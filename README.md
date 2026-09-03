@@ -4,11 +4,11 @@
 
 ## Project Description
 
-**Project Name:** *[Your project name]*
+**Project Name:** *ProjectProposal-LabEquipmentKnowledgeHub-ZAD*
 
-**Customer Name:** *[Your customer's name]*
+**Customer Name:** *Zeth Danielsson*
 
-**Student Full Name:** *[Your full name. This helps match your repository to you, even if your GitHub handle does not identify you.]*
+**Student Full Name:** *Ted Wall*
 
 ### Project Aim and Objectives
 
