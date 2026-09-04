@@ -12,13 +12,20 @@
 
 ### Project Aim and Objectives
 
-*[A short description of your project's goals and benefits. Bullet points or 1–2 paragraphs.]*
+The aim of this project is to develop a prototype that makes it easier to manage laboratory equipment and to maintain knowledge hub so that it is not lost when the people that holds the knowledge moves on.
+
+Specifically the aim is to:
+
+* Develop a system where people can book and loan laboratory equipment.
+* Build a hub to share knowledge to students so that they know how to use it.
+* Add a maintainer aspect to the system so that staff can maintain equipment.
+* Design a highly usable and accessible frontend for every aspect and role involved.
 
 ### User Personas
 
 | Name | Characteristics | Needs and Expectations | How will they use the system? |
 |---|---|---|---|
-| *[Name]* | *[Age, background, technical skill level, etc.]* | *[What they need from the system]* | *[How they'll interact with it]* |
+| Bob | 45, maintainer, high tech skill level | Bob needs a system that tracks the condition of the equipment. | They use the system to know when the equipment needs maintenance, as well as keeping track of broken equipment. |
 
 ### Software Requirements
 
