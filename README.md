@@ -27,6 +27,7 @@ Specifically the aim is to:
 |---|---|---|---|
 | Bob | 45, maintainer, high tech skill level | Bob needs a system that tracks the condition of the equipment. | He uses the system to know when the equipment needs maintenance, as well as keeping track of broken equipment. |
 | Lisa | 20, student, medium skill level. interested and curious, but still new | Lisa wants to learn more about technology by reading in the knowledge hub and borrow the equipment. | She borrows the equipment and is engaged in the knowledge hub, both as a consumer as well as writing about her own findings. |
+| Adam | 24, student and maintainer, high tech skill level | Adam both maintains and uses the equipment, and is an avid user of the knowledge hub as a writer. | Adam uses all parts of the system and is probably the person that will know every nook and cranny of it. |
 
 ### Software Requirements
 
