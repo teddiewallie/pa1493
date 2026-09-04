@@ -26,7 +26,6 @@ Specifically the aim is to:
 | Name | Characteristics | Needs and Expectations | How will they use the system? |
 |---|---|---|---|
 | Bob | 45, maintainer, high tech skill level | Bob needs a system that tracks the condition of the equipment. | He uses the system to know when the equipment needs maintenance, as well as keeping track of broken equipment. |
-
 | Bob | 45, maintainer, high tech skill level | Bob needs a system that tracks the condition of the equipment. | He uses the system to know when the equipment needs maintenance, as well as keeping track of broken equipment. |
 
 ### Software Requirements
