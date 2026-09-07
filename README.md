@@ -33,29 +33,56 @@ Specifically the aim is to:
 
 **Functional Requirements**
 
-* Inventory and registry
-* Borrowing and booking
-* Maintenance and fault tracker
-* Knowledge hub
-* Search and discovery
+**Must**
+
+* The system must allow users to log in.
+* The system must allow the following information to be added for each item:
+    - Unit name
+    - Item type
+    - Item serial number
+    - Item photo
+* The system must allow searching on the following fields for each item:
+    - Unit name
+    - Item type
+    _ Item serial number
+* The system must have role based access.
+* The system must allow students to submit articles to the idea catalogue.
+
+**Should**
+
+* The system should be mobile first.
+* The system should have input validation where it makes sense.
+* The system should have a "what can I build with this" link from any item page.
+* The system should have pagination.
+
+** Could **
+
+* The system could allow full text search through all faults, guides, and projects.
+* The system could allow storing documents and media.
+* The system could allow the following information to be added for each item:
+    - Kit definitions with contents checklists
+    - The system could allow adding QR codes for each item.
+    - Datasheets
+* The system could allow QR codes to be scanned from PC or phone cameras.
+* The system could allow label printing.
+* The system could have lazy loading.
+* The system could have an an audit log.
+* The system could allow import items from CSV or JSON.
+* The system could allow full text search through all faults, guides, and projects.
+* The system could allow storing documents and media.
+* The system could have usage statistics.
+* The system could have induction, gating what may be borrowed.
+* The system could filter search by availability, category, difficulty, required skill.
 
 **Non-Functional Requirements**
 
-* Node.js
-* React
-* Relational Database
-* Mobile First
-* QR Framework for tagging and scanning
-* Storing documents and media
-* CSV/JSON export framework
-* Authentication
-* User roles
-* Input validation
-* Pagination and lazy loading
-* Image optimization
-* Caching
-* Label printing
-* Audit log
+* The system could use the following tech stack:
+    - Node.js
+    - React
+    - Relational database
+* The images could be optimized for a reasonable balance between size and quality.
+* The system could cache information.
+* The system could have a REST API.
 
 ## Your Backlog
 
