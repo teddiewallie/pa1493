@@ -37,15 +37,17 @@ Specifically the aim is to:
 
 * The system must allow users to log in.
 * The system must allow the following information to be added for each item:
-    - Unit name
+    - Item name
     - Item type
     - Item serial number
     - Item photo
+* The system must allow users to view the item specifics.
 * The system must allow searching on the following fields for each item:
-    - Unit name
+    - Item name
     - Item type
-    _ Item serial number
+    - Item serial number
 * The system must have role based access.
+* The system must restrict users according to their role.
 * The system must allow students to submit articles to the idea catalogue.
 
 **Should**
@@ -54,13 +56,12 @@ Specifically the aim is to:
 * The system should have input validation where it makes sense.
 * The system should have a "what can I build with this" link from any item page.
 * The system should have pagination.
+* The system should allow users to borrow and return items.
 
-** Could **
+**Could**
 
-* The system could allow full text search through all faults, guides, and projects.
-* The system could allow storing documents and media.
 * The system could allow the following information to be added for each item:
-    - Kit definitions with contents checklists
+    - Kit definitions with contents checklists.
     - The system could allow adding QR codes for each item.
     - Datasheets
 * The system could allow QR codes to be scanned from PC or phone cameras.
