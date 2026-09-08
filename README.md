@@ -53,7 +53,6 @@ Specifically the aim is to:
 
 **Should**
 
-* The system should have input validation where it makes sense.
 * The system should have a "what can I build with this" link from any item page.
 * The system should have pagination.
 * The system should allow users to borrow and return items.
@@ -62,10 +61,8 @@ Specifically the aim is to:
 
 * The system could allow the following information to be added for each item:
     - Kit definitions with contents checklists.
-    - The system could allow adding QR codes for each item.
     - Datasheets
     - OS Images
-* The system could allow QR codes to be scanned from PC or phone cameras.
 * The system could allow label printing.
 * The system could have lazy loading.
 * The system could have an an audit log.
@@ -75,6 +72,8 @@ Specifically the aim is to:
 * The system could have usage statistics.
 * The system could have induction, gating what may be borrowed.
 * The system could filter search by availability, category, difficulty, required skill.
+* The system could allow QR codes to be scanned from PC or phone cameras.
+* The system could allow adding QR codes for each item.
 
 **Non-Functional Requirements**
 
@@ -86,6 +85,7 @@ Specifically the aim is to:
 * The system could cache information.
 * The system could have a REST API.
 * The system could be mobile first.
+* The system could have input validation where it makes sense.
 
 ## Your Backlog
 
