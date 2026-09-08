@@ -16,10 +16,10 @@ The aim of this project is to develop a prototype that makes it easier to manage
 
 Specifically the aim is to:
 
-* Develop a system where people can book and loan laboratory equipment.
 * Build a hub to share knowledge to students so that they know how to use it.
 * Add a maintainer aspect to the system so that staff can maintain equipment.
 * Design a highly usable and accessible frontend for every aspect and role involved.
+* Develop a system where people can book and loan laboratory equipment.
 
 ### User Personas
 
@@ -55,10 +55,10 @@ Specifically the aim is to:
 
 * The system should have a "what can I build with this" link from any item page.
 * The system should have pagination.
-* The system should allow users to borrow and return items.
 
 **Could**
 
+* The system could allow users to borrow and return items.
 * The system could allow the following information to be added for each item:
     - Kit definitions with contents checklists.
     - Datasheets
@@ -74,6 +74,7 @@ Specifically the aim is to:
 * The system could filter search by availability, category, difficulty, required skill.
 * The system could allow QR codes to be scanned from PC or phone cameras.
 * The system could allow adding QR codes for each item.
+* The system could allow users to rate and comment on articles in the idea bank.
 
 **Non-Functional Requirements**
 
