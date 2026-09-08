@@ -36,6 +36,7 @@ Specifically the aim is to:
 **Must**
 
 * The system must allow users to log in.
+* The system must have role based access.
 * The system must allow the following information to be added for each item:
     - Item name
     - Item type
@@ -46,13 +47,12 @@ Specifically the aim is to:
     - Item name
     - Item type
     - Item serial number
-* The system must have role based access.
 * The system must restrict users according to their role.
 * The system must allow students to submit articles to the idea catalogue.
+* The system must allow students to read articles in the idea catalogue.
 
 **Should**
 
-* The system should be mobile first.
 * The system should have input validation where it makes sense.
 * The system should have a "what can I build with this" link from any item page.
 * The system should have pagination.
@@ -64,6 +64,7 @@ Specifically the aim is to:
     - Kit definitions with contents checklists.
     - The system could allow adding QR codes for each item.
     - Datasheets
+    - OS Images
 * The system could allow QR codes to be scanned from PC or phone cameras.
 * The system could allow label printing.
 * The system could have lazy loading.
@@ -84,6 +85,7 @@ Specifically the aim is to:
 * The images could be optimized for a reasonable balance between size and quality.
 * The system could cache information.
 * The system could have a REST API.
+* The system could be mobile first.
 
 ## Your Backlog
 
