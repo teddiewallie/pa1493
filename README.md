@@ -36,6 +36,7 @@ Specifically the aim is to:
 **Must**
 
 * The system must allow users to log in.
+* The system must allow new users to be created.
 * The system must have role based access.
 * The system must allow the following information to be added for each item:
     - Item name
