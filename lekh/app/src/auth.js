@@ -11,6 +11,7 @@ let secret = process.env.AUTH_SECRET
   || (process.env.NODE_ENV === "development" ? "lekh" : undefined);
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   secret,
   session: {
     strategy: "jwt"
