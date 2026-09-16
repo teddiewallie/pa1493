@@ -1,0 +1,7 @@
+#!/bin/bash
+
+mariadb -u root -p"$MARIADB_ROOT_PASSWORD" <<EOF
+GRANT ALL PRIVILEGES ON \`${MARIADB_DATABASE}\`.* TO '${MARIADB_USER}'@'%';
+FLUSH PRIVILEGES;
+EOF
+
