@@ -10,3 +10,14 @@ services:
     volumes:
       - ./db/mysql:/var/lib/mysql:Z
       - ./db/init:/docker-entrypoint-initdb.d
+
+  lekh:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
