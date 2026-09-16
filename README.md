@@ -128,7 +128,22 @@ Your repository must remain **Private** for the entire course. This protects you
 
 ## Documenting Your Project
 
-Once Sprint 2 begins, add a **User Manual** section to this README, covering:
-- **Installing** — what's needed to set up your project locally (dependencies, environment, etc.)
-- **Running** — how to start/execute the application
+### Default Credentials
+
+Default account is `admin@home.arpa` and password `admin`.
+
+### Fast Track
+
+The app is deployed at https://lekh.ted.pm
+
+### Installing
+
+* Make sure `docker` and `docker-compose` are installed.
+* Navigate into the `lekh` directory.
+* Copy .env.example to .env and update any fields as needed.
+
+### Running
+
+* Run `docker compose up`.
+* When the logs stops going brrr, navigate to http://localhost:3000
 
