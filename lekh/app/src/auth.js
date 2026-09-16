@@ -3,6 +3,9 @@
 
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcrypt";
+import { z } from "zod";
+import pool from "@/lib/db";
 
 let secret = process.env.AUTH_SECRET
   || (process.env.NODE_ENV === "development" ? "lekh" : undefined);
@@ -26,16 +29,38 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
       },
       async authorize(credentials) {
-        if (credentials.email === "admin@local"
-        && credentials.password === "admin") {
-          return {
-            id: "1",
-            name: "Admin",
-            email: "admin@local"
-          }
+        const parsed = z.object({
+          email: z.string().email(),
+          password: z.string().min(4)
+        }).safeParse(credentials);
+
+        if(!parsed.success) {
+          return null;
         }
 
-        return null;
+        const { email, password } = parsed.data;
+
+        const rows = await pool.query(
+          "SELECT id, email, password FROM user WHERE email = ?",
+          [email]
+        );
+
+        const user = rows[0];
+
+        if (!user) {
+          return null;
+        }
+
+        const valid = await(bcrypt.compare(password, user.password));
+
+        if (!valid) {
+          return null;
+        }
+
+        return {
+          id: user.id,
+          email: user.email
+        }
       }
     })
   ]
