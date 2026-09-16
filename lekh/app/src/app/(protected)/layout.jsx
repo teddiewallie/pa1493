@@ -1,6 +1,5 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { Layout } from "../layout";
 
 export default async function ProtectedLayout({ children }) {
   const session = await auth();
@@ -9,10 +8,6 @@ export default async function ProtectedLayout({ children }) {
     redirect("/login");
   }
 
-  return (
-    <Layout>
-      children
-    </Layout>
-  );
+  return children;
 }
 
