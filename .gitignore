@@ -4,5 +4,61 @@
 # Linux trash folder
 .Trash-*<Paste>
 
-# macOS DS_Store files
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Production
+build/
+dist/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Docker
+*.log
+
+# Database
+*.sql.gz
+*.db
+
+# Logs
+logs/
+*.log
+pnpm-debug.log*
+
+# OS
 .DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing / coverage
+coverage/
+.nyc_output/
+
+# Misc
+.cache/
+.tmp/
+temp/
+
+# Environment files used by various tools
+.envrc
+.direnv/
+
+# mounted mysql directory
+**/db/mysql/*
