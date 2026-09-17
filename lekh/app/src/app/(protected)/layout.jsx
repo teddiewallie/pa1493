@@ -1,13 +1,21 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { UserProvider } from "@/components/user-provider";
+import { TopBar } from "@/components/top-bar";
 
-export default async function ProtectedLayout({ children }) {
+const ProtectedLayout = async ({ children }) => {
   const session = await auth();
 
   if (!session) {
     redirect("/login");
   }
 
-  return children;
-}
+  return (
+    <UserProvider user={session?.user}>
+      <TopBar />
+      { children }
+    </UserProvider>
+  );
+};
 
+export default ProtectedLayout;
