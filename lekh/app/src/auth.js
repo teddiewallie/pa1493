@@ -42,7 +42,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const { email, password } = parsed.data;
 
         const rows = await pool.query(
-          "SELECT id, email, password FROM user WHERE email = ?",
+          "SELECT id, name, email, password, role FROM user WHERE email = ?",
           [email]
         );
 
@@ -58,10 +58,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        return {
-          id: user.id,
-          email: user.email
-        }
+        return user;
       }
     })
   ]
