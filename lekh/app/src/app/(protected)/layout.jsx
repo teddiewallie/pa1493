@@ -13,9 +13,9 @@ const ProtectedLayout = async ({ children }) => {
   return (
     <UserProvider user={session?.user}>
       <TopBar />
-      { children }
     </UserProvider>
   );
 };
 
 export default ProtectedLayout;
+
