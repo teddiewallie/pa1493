@@ -9,7 +9,7 @@ const SheetItem = ({ name, route }) => {
 
   return (
     <a onClick={handleClick}>
-      <div className="grid gap-3 border-y p-3">
+      <div className="grid gap-3 border-y p-3 cursor-pointer">
         { name }
       </div>
     </a>

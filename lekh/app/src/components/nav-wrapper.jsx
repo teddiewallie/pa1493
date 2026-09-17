@@ -12,9 +12,7 @@ import { UserContext } from "@/context/user-context";
 
 const links = [
   { key: 1, name: "Dashboard", route: "/dashboard", roleId: 2 },
-  { key: 2, name: "Add Accounts", route: "/add-accounts", roleId: 1 },
-  { key: 3, name: "Role 2", route: "#", roleId: 2 },
-  { key: 4, name: "Role 0", route: "#", roleId: 0 }
+  { key: 2, name: "Manage Users", route: "/manage-users", roleId: 1 }
 ];
 
 const NavWrapper = () => {
