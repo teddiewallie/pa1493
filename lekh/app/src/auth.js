@@ -1,5 +1,6 @@
 // https://medium.com/@garciadiazjaime/nextauth-js-an-easy-way-to-add-authentication-to-your-next-js-project-65e6f3603087
 // https://nextjs.org/learn/dashboard-app/adding-authentication
+// https://authjs.dev/reference/core
 
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -15,6 +16,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   secret,
   session: {
     strategy: "jwt"
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.roleId = user.roleId;
+      }
+
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id;
+        session.user.roleId = token.roleId;
+      }
+
+      return session;
+    }
   },
   providers: [
     CredentialsProvider({
@@ -42,7 +61,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const { email, password } = parsed.data;
 
         const rows = await pool.query(
-          "SELECT id, email, password FROM user WHERE email = ?",
+          "SELECT id, name, email, password, role_id FROM user WHERE email = ?",
           [email]
         );
 
@@ -60,8 +79,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         return {
           id: user.id,
-          email: user.email
-        }
+          name: user.name,
+          email: user.email,
+          roleId: user.role_id
+        };
       }
     })
   ]
