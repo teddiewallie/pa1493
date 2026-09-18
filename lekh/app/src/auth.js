@@ -6,7 +6,8 @@ import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import { z } from "zod";
-import pool from "@/lib/db";
+
+import { getUsersByEmailQuery } from "@/query/user.js";
 
 let secret = process.env.AUTH_SECRET
   || (process.env.NODE_ENV === "development" ? "lekh" : undefined);
@@ -59,12 +60,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         const { email, password } = parsed.data;
-
-        const rows = await pool.query(
-          "SELECT id, name, email, password, role_id FROM user WHERE email = ?",
-          [email]
-        );
-
+        const rows = await getUsersByEmailQuery(email);
         const user = rows[0];
 
         if (!user) {
