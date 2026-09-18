@@ -13,29 +13,21 @@ import {
 
 import { Checkbox } from "@/components/ui/checkbox";
 
-import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { validateUser } from "@/services/validate-user";
+import { saveUser } from "@/services/save-user";
 
-const CreateUserForm = () => {
-  const schema = z.object({
-    name: z.string().min(1, "Name is required"),
-    email: z.email(),
-    password: z.string().min(4, "Password must be at least 4 characters"),
-    maintainer: z.boolean()
-  });
+import schema from "@/schema/user-schema";
 
+const CreateUserForm = ({ onSuccess, onFail }) => {
   const form = useForm({
     resolver: zodResolver(schema)
   });
 
-  const handleSubmit = (data) => {
-    validateUser(data);
-  };
+  const handleSubmit = async (data) => (await saveUser(data) ? onSuccess() : onFail());
 
   return (
     <form onSubmit={form.handleSubmit(handleSubmit)} autoComplete="off">
