@@ -1,5 +1,6 @@
 // https://ui.shadcn.com/docs/components/base/field
 // https://ui.shadcn.com/docs/components/base/select
+// https://ui.shadcn.com/docs/forms/react-hook-form#Checkbox
 
 import {
   Field,
@@ -10,34 +11,22 @@ import {
   FieldError
 } from "@/components/ui/field";
 
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import { z } from "zod";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-const items = [ // TODO: Fetch from database
-  { label: "Maintainer", value: "1" },
-  { label: "Student", value: "2" }
-];
+import { validateUser } from "@/services/validate-user";
 
 const CreateUserForm = () => {
   const schema = z.object({
     name: z.string().min(1, "Name is required"),
     email: z.email(),
     password: z.string().min(4, "Password must be at least 4 characters"),
-    roleId: z.number().int().positive(),
+    maintainer: z.boolean()
   });
 
   const form = useForm({
@@ -45,7 +34,7 @@ const CreateUserForm = () => {
   });
 
   const handleSubmit = (data) => {
-    console.log(data);
+    validateUser(data);
   };
 
   return (
@@ -76,8 +65,8 @@ const CreateUserForm = () => {
               {...form.register("password")}
               noValidate
               autoComplete="off"
-              aria-invalid={Boolean(form.formState.errors.name)} />
-              <FieldError errors={[form.formState.errors.email]} />
+              aria-invalid={Boolean(form.formState.errors.password)} />
+              <FieldError errors={[form.formState.errors.password]} />
           </Field>
           <Field data-invalid={Boolean(form.formState.errors.name)}>
             <FieldLabel htmlFor="Name">Name</FieldLabel>
@@ -90,23 +79,23 @@ const CreateUserForm = () => {
               <FieldError errors={[form.formState.errors.name]} />
           </Field>
           <div className="container flex items-center gap-12">
-            <Field className="flex">
-              <FieldLabel htmlFor="Role">Role</FieldLabel>
-              <Select items={items} id="roleId">
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {items.map((item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </Field>
+              <Controller
+                name="maintainer"
+                control={form.control}
+                defaultValue={false}
+                render={({field}) => (
+                  <Field orientation="horizontal">
+                    <Checkbox
+                      id="maintainer"
+                      name="maintainer"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                    <FieldLabel htmlFor="maintainer">
+                      Set as maintainer
+                    </FieldLabel>
+                  </Field>
+                )} />
             <Button className="flex mt-7" type="submit">Create User</Button>
           </div>
         </FieldGroup>
@@ -116,3 +105,4 @@ const CreateUserForm = () => {
 };
 
 export { CreateUserForm };
+
