@@ -4,17 +4,23 @@
 
 import schema from "@/schema/user-schema.js";
 
-const saveUser = async (data) => {
+import { addUserQuery } from "@/query/user.js";
+
+const addUser = async (data) => {
   const result = schema.safeParse(data);
 
   if (!result.success) {
     return false;
   }
 
-  console.log(data);
+  try {
+    await addUserQuery(data);
+  } catch (e) {
+    return false;
+  }
 
   return true;
 };
 
-export { saveUser };
+export { addUser };
 

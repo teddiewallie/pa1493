@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { saveUser } from "@/services/save-user";
+import { addUser } from "@/services/add-user";
 
 import schema from "@/schema/user-schema";
 
@@ -27,7 +27,7 @@ const CreateUserForm = ({ onSuccess, onFail }) => {
     resolver: zodResolver(schema)
   });
 
-  const handleSubmit = async (data) => (await saveUser(data) ? onSuccess() : onFail());
+  const handleSubmit = async (data) => (await addUser(data) ? onSuccess() : onFail());
 
   return (
     <form onSubmit={form.handleSubmit(handleSubmit)} autoComplete="off">
