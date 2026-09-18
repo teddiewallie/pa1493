@@ -11,6 +11,8 @@ const saveUser = async (data) => {
     return false;
   }
 
+  console.log(data);
+
   return true;
 };
 
