@@ -147,3 +147,12 @@ The app is deployed at https://lekh.ted.pm
 * Run `docker compose up`.
 * When the logs stops going brrr, navigate to http://localhost:3000
 
+### Development Environment
+
+* Navigate to the `lekh` directory.
+* Copy `.env.example` to `.env`.
+* Run `docker compose -f compose-dev.yaml up -d`
+* Navigate to the app directory.
+* run `./dev-load-env.sh`
+    - If if fails, run `sudo chmod +x dev-load-env.sh` and try again.
+
