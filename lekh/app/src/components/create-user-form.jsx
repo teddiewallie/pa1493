@@ -22,7 +22,7 @@ import { addUser } from "@/services/add-user";
 
 import schema from "@/schema/user-schema";
 
-const CreateUserForm = ({ onSuccess, onFail }) => {
+const CreateUserForm = ({ title, onSuccess, onFail }) => {
   const form = useForm({
     resolver: zodResolver(schema)
   });
@@ -61,7 +61,7 @@ const CreateUserForm = ({ onSuccess, onFail }) => {
               <FieldError errors={[form.formState.errors.password]} />
           </Field>
           <Field data-invalid={Boolean(form.formState.errors.name)}>
-            <FieldLabel htmlFor="Name">Name</FieldLabel>
+            <FieldLabel htmlFor="name">Name</FieldLabel>
             <Input
               id="name"
               type="name"

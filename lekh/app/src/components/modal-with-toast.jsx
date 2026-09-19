@@ -1,3 +1,6 @@
+// https://ui.shadcn.com/docs/components/base/dialog
+// https://ui.shadcn.com/docs/components/base/toast
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -16,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 
 const ModalWithToast = ({
-  buttonLabel,
+  title,
   message,
   children
 }) => {
@@ -33,11 +36,11 @@ const ModalWithToast = ({
     <div className="container md:mx-auto mx-4 mt-4">
       <Dialog {...{ open, onOpenChange }}>
         <DialogTrigger render={
-          <Button className="ml-auto" variant="outline">{buttonLabel}</Button>
+          <Button className="ml-auto" variant="outline">{title}</Button>
         } />
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create User</DialogTitle>
+            <DialogTitle>{title}</DialogTitle>
             <DialogDescription>
             </DialogDescription>
 

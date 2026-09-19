@@ -1,6 +1,3 @@
-// https://ui.shadcn.com/docs/components/base/dialog
-// https://ui.shadcn.com/docs/components/base/toast
-
 "use client";
 
 import { useState } from "react";
@@ -11,7 +8,7 @@ const Page = () => {
   const [message, setMessage] = useState("");
 
   return (
-    <ModalWithToast {...{ buttonLabel: "Create User", message }}>
+    <ModalWithToast {...{ title: "Create User", message }}>
       <CreateUserForm {...{
         onSuccess: () => setMessage("User successfully created."),
         onFail: () => setMessage("Failed to create user.")
