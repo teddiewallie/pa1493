@@ -7,7 +7,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcrypt";
 import { z } from "zod";
 
-import { getUsersByEmailQuery } from "@/query/user.js";
+import { getUsersByEmailQuery } from "@/query/user-query.js";
 
 let secret = process.env.AUTH_SECRET
   || (process.env.NODE_ENV === "development" ? "lekh" : undefined);
