@@ -6,9 +6,7 @@ const SignOutButton = () => {
   const router = useRouter();
 
   const handleSignOut = async () => {
-    await signOut();
-
-    router.push("/login");
+    await signOut({ redirectTo: "/login" });
   };
 
   return (<Button variant="outline" onClick={handleSignOut}>Sign Out</Button>);
