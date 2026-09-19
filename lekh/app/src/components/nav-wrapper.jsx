@@ -10,10 +10,7 @@ import { NavItem } from "@/components/nav-item";
 import { useContext } from "react";
 import { UserContext } from "@/context/user-context";
 
-const links = [
-  { key: 1, name: "Dashboard", route: "/dashboard", roleId: 2 },
-  { key: 2, name: "Manage Users", route: "/manage-users", roleId: 1 }
-];
+import { routes } from "@/routes";
 
 const NavWrapper = () => {
   const user = useContext(UserContext);
@@ -21,14 +18,14 @@ const NavWrapper = () => {
     <>
       <div className="hidden lg:flex">
         <NavMenu>
-          {links.filter((link) => link.roleId >= user.roleId)
-            .map((link) => <NavItem name={link.name} route={link.route} key={link.key} />)}
+          {routes.filter((route) => route.roleId >= user.roleId)
+            .map((route) => <NavItem name={route.name} route={route.route} key={route.key} />)}
         </NavMenu>
       </div>
       <div className="flex lg:hidden">
         <SheetMenu>
-          { links.filter((link) => link.roleId >= user.roleId)
-            .map((link) => <SheetItem name={link.name} route={link.route} key={link.key} />)}
+          { routes.filter((route) => route.roleId >= user.roleId)
+            .map((route) => <SheetItem name={route.name} route={route.route} key={route.key} />)}
         </SheetMenu>
       </div>
     </>);
