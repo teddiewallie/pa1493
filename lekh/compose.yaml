@@ -18,6 +18,7 @@ services:
     restart: always
     environment:
       AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_URL: ${AUTH_URL}
       MARIADB_HOST: db
       MARIADB_USER: ${MARIADB_USER}
       MARIADB_PASSWORD: ${MARIADB_PASSWORD}
