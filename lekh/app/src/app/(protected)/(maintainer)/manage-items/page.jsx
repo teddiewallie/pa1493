@@ -1,8 +1,16 @@
-const ManageItems = () => {
+"use client";
+
+import { useState } from "react";
+import { ModalWithToast } from "@/components/modal-with-toast";
+
+const Page = () => {
+  const [message, setMessage] = useState("");
   return (
-    <div>Manage Items</div>
+    <ModalWithToast {...{ buttonLabel: "Add Item", message }}>
+      Create Item
+    </ModalWithToast>
   );
 };
 
-export default ManageItems;
+export default Page;
 
