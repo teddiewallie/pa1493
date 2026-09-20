@@ -17,7 +17,7 @@ export const metadata = {
   description: "Do stuff with things",
 };
 
-export default function RootLayout({ children }) {
+const RootLayout = ({ children }) => {
   return (
     <html
       lang="en"
@@ -38,3 +38,5 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
+
+export default RootLayout;
