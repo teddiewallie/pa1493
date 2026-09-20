@@ -27,13 +27,13 @@ const addItem = async (data) => {
 
     const filePath = path.join(
       process.cwd(),
-      "..",
       "assets",
       `${asset.id}.${asset.extension}`
     );
 
     await fs.writeFile(filePath, Buffer.from(await data.image.arrayBuffer()));
   } catch (e) {
+    console.log(e);
     return false;
   }
 

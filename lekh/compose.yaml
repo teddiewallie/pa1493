@@ -10,6 +10,7 @@ services:
     volumes:
       - ./db/mysql:/var/lib/mysql:Z
       - ./db/init:/docker-entrypoint-initdb.d
+      - ./app/assets:/app/assets
 
   lekh:
     build:
