@@ -13,8 +13,9 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ImagePicker } from "@/components/image-picker";
 
 import { addItem } from "@/services/add-item";
 
@@ -61,6 +62,19 @@ const CreateItemForm = ({ onSuccess, onFail }) => {
               aria-invalid={Boolean(form.formState.errors.description)} />
               <FieldError errors={[form.formState.errors.description]} />
           </Field>
+          <Controller
+            name="image"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel>Image</FieldLabel>
+                <ImagePicker onChange={(file) => {
+                  field.onChange(file);
+                  form.trigger("image");
+                }} />
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )} />
           <div className="container flex items-center gap-12">
             <Button className="flex mt-7" type="submit">Create Item</Button>
           </div>
