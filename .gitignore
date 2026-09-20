@@ -62,3 +62,7 @@ temp/
 
 # mounted mysql directory
 **/db/mysql/*
+
+# assets
+/lekh/assets/*
+!/lekh/assets/.gitkeep
