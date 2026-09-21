@@ -66,3 +66,6 @@ temp/
 # assets
 /lekh/assets/*
 !/lekh/assets/.gitkeep
+
+# DB dummy data
+/lekh/db/init/9*.sql
