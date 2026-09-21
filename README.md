@@ -132,7 +132,7 @@ Your repository must remain **Private** for the entire course. This protects you
 
 Default account is `admin@home.arpa` and password `admin`.
 
-If dummy data is added, then there are a few more accounts you can try out:
+If dummy data is added, then there are a few more accounts you can try out. Adam should have the admin role honestly. Will fix if I remember to.
 
 | Name | E-mail | Password | Role |
 | ---- | ------ | -------- | ---- |
