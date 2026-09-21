@@ -23,7 +23,7 @@ const session = auth();
       }
     });
   } catch (e) {
-    return new Response(e.message, { status: 404 });
+    return new Response("Not found", { status: 404 });
   }
 };
 
