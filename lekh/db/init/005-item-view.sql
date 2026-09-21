@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW item_view AS
+CREATE VIEW IF NOT EXIST item_view AS
 SELECT
     item.id,
     item.name,
@@ -6,8 +6,7 @@ SELECT
     item.description,
     user.name AS created_by,
     user.email AS creator_email,
-    CONCAT(asset.id, '.', asset.extension) AS image
+    item.asset_id
 FROM item
 JOIN user ON item.user_id = user.id
-JOIN asset ON item.asset_id = asset.id;
 
