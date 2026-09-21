@@ -2,11 +2,13 @@
 
 import { useContext, useState } from "react";
 import { UserContext } from "@/context/user-context";
+import { ItemsContext } from "@/context/items-context";
 import { ModalWithToast } from "@/components/modal-with-toast";
 import { CreateItemForm } from "@/components/create-item-form";
 
 const Page = () => {
   const user = useContext(UserContext);
+  const { items, refreshItems } = useContext(ItemsContext);
 
   const [message, setMessage] = useState("");
 
@@ -17,7 +19,9 @@ const Page = () => {
           onSuccess: () => setMessage("Item successfully created."),
           onFail: () => setMessage("Failed to create item.")
         }} />
+
       </ModalWithToast> }
+      { items.map((item) => (<div>{item.name}</div>)) }
     </>
   );
 };

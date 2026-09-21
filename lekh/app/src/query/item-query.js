@@ -15,7 +15,13 @@ const addItemQuery = async (data) => {
   return { id: assetId, extension };
 };
 
+const getItemsQuery = async () => {
+  const items = await pool.query("SELECT * FROM item_view");
+  return items;
+};
+
 export {
-  addItemQuery
+  addItemQuery,
+  getItemsQuery
 };
 
