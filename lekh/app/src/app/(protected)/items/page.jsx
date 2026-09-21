@@ -12,6 +12,8 @@ const Page = () => {
 
   const [message, setMessage] = useState("");
 
+  console.log(items);
+
   return (
     <>
       { user.isAdmin && <ModalWithToast {...{ title: "Add Item", message }}>
@@ -21,7 +23,7 @@ const Page = () => {
         }} />
 
       </ModalWithToast> }
-      { items.map((item) => (<div key={item.id}>{item.name}</div>)) }
+      { items.map((item) => (<div key={item.id}>{item.name}<img src={`/api/asset/${item.asset_id}`} /></div>)) }
     </>
   );
 };
