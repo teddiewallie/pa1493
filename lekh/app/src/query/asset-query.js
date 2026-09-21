@@ -9,6 +9,16 @@ const addAssetQuery = async (mimeType, extension) => {
   return result.insertId;
 };
 
+const getAssetQuery = async(id) => {
+  const result = await pool.query(
+    "SELECT mime_type, extension FROM asset WHERE id=?",
+    [id]
+  );
+
+  return result[0];
+};
+
 export {
-  addAssetQuery
+  addAssetQuery,
+  getAssetQuery
 };

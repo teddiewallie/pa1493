@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { getAssetPath } from "@/service/asset-path";
+import { getAsset } from "@/service/get-asset";
 import { readFile } from "fs/promises";
 
 const GET = async (request, { params }) => {
@@ -10,19 +11,21 @@ const session = auth();
   }
 
   const { id } = await params;
-  const path = getAssetPath(id, "jpg")
 
   try {
+    const { mime_type, extension } = await getAsset(id);
+    const path = getAssetPath(id, extension);
     const image = await readFile(path);
 
     return new Response(image, {
       status: 200,
       headers: {
-        "Content-Type": "image/jpeg",
+        "Content-Type": mime_type,
         "Cache-Control": "private, max-age=3600"
       }
     });
   } catch (e) {
+    console.log(e);
     return new Response("Not found", { status: 404 });
   }
 };
