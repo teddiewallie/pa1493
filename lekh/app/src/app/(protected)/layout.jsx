@@ -11,8 +11,13 @@ const ProtectedLayout = async ({ children }) => {
     redirect("/login");
   }
 
+  const user = {
+    ...session?.user,
+    isAdmin: session?.user.roleId === 1
+  };
+
   return (
-    <UserProvider user={session?.user}>
+    <UserProvider user={user}>
       <TopBar />
       {children}
       <Toaster />
