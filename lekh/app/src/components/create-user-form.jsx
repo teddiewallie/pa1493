@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { addUser } from "@/services/add-user";
+import { addUser } from "@/service/add-user";
 
 import schema from "@/schema/user-schema";
 

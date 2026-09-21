@@ -17,7 +17,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ImagePicker } from "@/components/image-picker";
 
-import { addItem } from "@/services/add-item";
+import { addItem } from "@/service/add-item";
 
 import schema from "@/schema/item-schema";
 

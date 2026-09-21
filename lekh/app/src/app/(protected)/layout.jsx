@@ -1,6 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { UserProvider } from "@/components/user-provider";
+import { UserProvider } from "@/provider/user-provider";
+import { ItemsProvider } from "@/provider/items-provider";
 import { TopBar } from "@/components/top-bar";
 import { Toaster } from "@/components/ui/toast";
 
@@ -11,11 +12,18 @@ const ProtectedLayout = async ({ children }) => {
     redirect("/login");
   }
 
+  const user = {
+    ...session?.user,
+    isAdmin: session?.user.roleId === 1
+  };
+
   return (
-    <UserProvider user={session?.user}>
-      <TopBar />
-      {children}
-      <Toaster />
+    <UserProvider {...{ user }}>
+      <ItemsProvider>
+        <TopBar />
+          {children}
+        <Toaster />
+      </ItemsProvider>
     </UserProvider>
   );
 };

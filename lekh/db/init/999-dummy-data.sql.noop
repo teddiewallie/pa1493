@@ -1,0 +1,62 @@
+-- Source: ChatGPT
+
+-- Users (all passwords are arpa)
+INSERT INTO user (name, email, password, role_id) VALUES
+('Bob Bobson', 'bob@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 1),
+('Lisa Lisadotter', 'lisa@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
+('Adam Adamsson', 'adam@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
+('Eva Eriksson', 'eva@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
+('Fredrik Frisk', 'fredrik@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
+('Gustav Gustavsson','gustav@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
+('Hanna Holm', 'hanna@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
+('Ida Isaksson', 'ida@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
+('Johan Johansson', 'johan@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2);
+
+
+-- Assets
+INSERT INTO asset (mime_type, extension) VALUES
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg'),
+('image/jpeg', 'jpg');
+
+
+-- Items
+INSERT INTO item (name, serial, description, user_id, asset_id) VALUES
+('Raspberry Pi 4 Model B', 'RPI4-0001', 'Raspberry Pi 4B development board', 1, 1),
+('Raspberry Pi 4 Model B', 'RPI4-0002', 'Raspberry Pi 4B development board', 2, 2),
+('Arduino Uno', 'ARDU-0001', 'Arduino Uno microcontroller board', 1, 3),
+('Arduino Uno', 'ARDU-0002', 'Arduino Uno microcontroller board', 2, 4),
+('ESP32 Development Board', 'ESP32-0001', 'ESP32 Wi-Fi and Bluetooth development board', 1, 5),
+('ESP32 Development Board', 'ESP32-0002', 'ESP32 Wi-Fi and Bluetooth development board', 2, 6),
+('Temperature Sensor', 'TEMP-0001', 'Digital temperature sensor', 1, 7),
+('Temperature Sensor', 'TEMP-0002', 'Digital temperature sensor', 2, 8),
+('Ultrasonic Sensor', 'ULTRA-0001', 'Ultrasonic distance sensor', 1, 9),
+('Ultrasonic Sensor', 'ULTRA-0002', 'Ultrasonic distance sensor', 2, 10),
+('Webcam', 'CAM-0001', 'USB webcam for laboratory projects', 1, 11),
+('Webcam', 'CAM-0002', 'USB webcam for laboratory projects', 2, 12),
+('3D Printer', '3DP-0001', 'FDM 3D printer', 1, 13),
+('3D Printer', '3DP-0002', 'FDM 3D printer', 2, 14),
+('Soldering Station', 'SOLD-0001', 'Adjustable temperature soldering station', 1, 15),
+('Soldering Station', 'SOLD-0002', 'Adjustable temperature soldering station', 2, 16),
+('Multimeter', 'MULT-0001', 'Digital multimeter', 1, 17),
+('Multimeter', 'MULT-0002', 'Digital multimeter', 2, 18),
+('Stepper Motor', 'STEP-0001', 'NEMA stepper motor for robotics projects', 1, 19),
+('Stepper Motor', 'STEP-0002', 'NEMA stepper motor for robotics projects', 2, 20);
+
