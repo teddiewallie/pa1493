@@ -11,13 +11,25 @@ import {
 
 import Image from "next/image";
 
-const ItemCard = ({ item }) => {
-  const { id, name, description, asset_id } = item;
+const ItemCard = ({ item, handleClick, pointer }) => {
+  const { id, name, serial, description, asset_id } = item;
+
+  const handleActualClick = (e) => {
+    if (handleClick) {
+      handleClick(id);
+    }
+  };
+
+  const cardClassName = `relative overflow-hidden ${pointer && "cursor-pointer"}`;
+
   return (
 
-    <Card className="relative overflow-hidden">
+    <Card onClick={() => handleActualClick()} className={cardClassName}>
       <CardHeader>
-        <CardTitle>{name}</CardTitle>
+        <CardTitle className="flex items-center">
+          {name}
+          <span className="ml-auto font-mono">{serial}</span>
+        </CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
 
