@@ -9,14 +9,7 @@ const session = auth();
     return new Response("Forbidden", { status: 403 });
   }
 
-  const { asset } = await params;
-
-  if (asset.length != 2)
-  {
-    return new Response("Not Found", { status: 404 });
-  }
-
-  const id = asset[1];
+  const { id } = await params;
   const path = getAssetPath(id, "jpg")
 
   try {
