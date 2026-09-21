@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { UserProvider } from "@/components/user-provider";
+import { UserProvider } from "@/provider/user-provider";
 import { TopBar } from "@/components/top-bar";
 import { Toaster } from "@/components/ui/toast";
 
