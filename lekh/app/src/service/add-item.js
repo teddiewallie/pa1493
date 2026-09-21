@@ -2,12 +2,12 @@
 
 "use server";
 
-import schema from "@/schema/item-schema.js";
+import schema from "@/schema/item-schema";
 import { auth } from "@/auth";
 import fs from "fs/promises";
-import path from "path";
+import { getAssetPath } from "./asset-path";
 
-import { addItemQuery } from "@/query/item-query.js";
+import { addItemQuery } from "@/query/item-query";
 
 const addItem = async (data) => {
   const result = schema.safeParse(data);
@@ -24,14 +24,9 @@ const addItem = async (data) => {
 
   try {
     const asset = await addItemQuery(itemData);
+    const assetPath = getAssetPath(asset.id, asset.extension);
 
-    const filePath = path.join(
-      process.cwd(),
-      "assets",
-      `${asset.id}.${asset.extension}`
-    );
-
-    await fs.writeFile(filePath, Buffer.from(await data.image.arrayBuffer()));
+    await fs.writeFile(assetPath, Buffer.from(await data.image.arrayBuffer()));
   } catch (e) {
     console.log(e);
     return false;
