@@ -11,7 +11,11 @@ import {
 
 import Image from "next/image";
 
-const ItemCard = ({ item, handleClick, pointer }) => {
+const ItemCard = ({ item, handleClick, pointer, single }) => {
+  if (!item) {
+    return <div />
+  }
+
   const { id, name, serial, description, asset_id } = item;
 
   const handleActualClick = (e) => {
@@ -20,7 +24,9 @@ const ItemCard = ({ item, handleClick, pointer }) => {
     }
   };
 
-  const cardClassName = `relative overflow-hidden ${pointer && "cursor-pointer"}`;
+  let cardClassName = "relative overflow-hidden"
+  cardClassName = `${cardClassName} ${pointer && "cursor-pointer"}`;
+  cardClassName = `${cardClassName} ${single && "w-md"}`;
 
   return (
 

@@ -1,8 +1,21 @@
-const Page = async ({ params }) => {
-  const { id } = await params;
+"use client";
+
+import { use, useContext } from "react";
+import { ItemsContext } from "@/context/items-context";
+import { ItemCard } from "@/components/item-card";
+
+const Page = ({ params }) => {
+  const { id } = use(params);
+
+  const { items, refreshItems } = useContext(ItemsContext);
+  console.log(items);
+
+  const item = items.find((item) => (item.id == id));
 
   return (
-    <div>{id}</div>
+    <div className="container md:mx-auto mx-10 my-4">
+      <ItemCard {...{ item, single: true }} />
+    </div>
   );
 };
 
