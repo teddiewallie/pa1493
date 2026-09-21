@@ -5,6 +5,7 @@ import { UserContext } from "@/context/user-context";
 import { ItemsContext } from "@/context/items-context";
 import { ModalWithToast } from "@/components/modal-with-toast";
 import { CreateItemForm } from "@/components/create-item-form";
+import { ItemCard } from "@/components/item-card";
 
 const Page = () => {
   const user = useContext(UserContext);
@@ -12,19 +13,21 @@ const Page = () => {
 
   const [message, setMessage] = useState("");
 
-  console.log(items);
-
   return (
-    <>
+    <div className="container md:mx-auto">
       { user.isAdmin && <ModalWithToast {...{ title: "Add Item", message }}>
         <CreateItemForm {...{
           onSuccess: () => setMessage("Item successfully created."),
           onFail: () => setMessage("Failed to create item.")
         }} />
-
       </ModalWithToast> }
-      { items.map((item) => (<div key={item.id}>{item.name}<img src={`/api/asset/${item.asset_id}`} /></div>)) }
-    </>
+
+      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mx-10 my-4">
+        { items.map((item) => (<ItemCard
+          key={`item-${item.id}`}
+        {...{ item }} />)) }
+      </div>
+    </div>
   );
 };
 
