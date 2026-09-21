@@ -1,4 +1,4 @@
-CREATE VIEW IF NOT EXIST item_view AS
+CREATE VIEW IF NOT EXISTS item_view AS
 SELECT
     item.id,
     item.name,
