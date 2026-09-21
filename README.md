@@ -132,6 +132,20 @@ Your repository must remain **Private** for the entire course. This protects you
 
 Default account is `admin@home.arpa` and password `admin`.
 
+If dummy data is added, then there are a few more accounts you can try out:
+
+| Name | E-mail | Password | Role |
+| ---- | ------ | -------- | ---- |
+| Bob Bobson | bob@home.arpa | arpa | Admin |
+| Lisa Lisadotter | lisa@home.arpa | arpa | Student |
+| Adam Adamsson | adam@home.arpa | arpa | Student |
+| Eva Eriksson | eva@home.arpa | arpa | Student |
+| Fredrik Frisk | fredrik@home.arpa | arpa | Student |
+| Gustav Gustavsson | gustav@home.arpa | arpa | Student |
+| Hanna Holm | hanna@home.arpa | arpa | Student |
+| Ida Isaksson | ida@home.arpa | arpa | Student |
+| Johan Johansson | johan@home.arpa | arpa | Student |
+
 ### Fast Track
 
 The app is deployed at https://lekh.ted.pm
