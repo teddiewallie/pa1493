@@ -10,7 +10,6 @@ services:
     volumes:
       - ./db/mysql:/var/lib/mysql:Z
       - ./db/init:/docker-entrypoint-initdb.d
-      - ./app/assets:/app/assets
 
   lekh:
     build:
@@ -26,6 +25,8 @@ services:
       MARIADB_DATABASE: ${MARIADB_DATABASE}
     ports:
       - "3000:3000"
+    volumes:
+      - ./app/assets:/app/assets
     depends_on:
       - db
 
