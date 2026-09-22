@@ -5,18 +5,25 @@
 import { useContext } from "react";
 import { UserContext } from "@/context/user-context";
 import { SignOutButton } from "@/components/sign-out-button";
-import { NavWrapper } from "@/components/nav-wrapper";
+import { routes } from "@/routes";
 
 const TopBar = () => {
   const user = useContext(UserContext);
 
+  const LinkItem = ({Icon, route, name}) => (
+    <a href={route} className="mx-3 flex"><Icon className="inline mr-1" />{name}</a>
+  );
+
   return (
-    <header className="border-border bg-background sticky top-0 z-20 flex h-12 w-full shrink-0 items-center justify-between gap-2 border-b px-4">
-      <div className="hidden lg:flex shrink-0 items-center gap-2">
+    <header className="hidden lg:flex border-border bg-background sticky top-0 z-20 h-12 w-full shrink-0 items-center justify-between gap-2 border-b px-4">
+      <div className="flex shrink-0 items-center gap-2">
         <span className="font-bold font-serif mr-8">LEKH</span>
         <span className="font-bold">{user.name}</span>
       </div>
-      <NavWrapper />
+      <div className="flex">
+        {routes.filter((route) => route.roleId >= user.roleId)
+          .map((route) => <LinkItem key={route.key} {...{ Icon: route.Icon, route: route.route, name: route.name }} />)}
+      </div>
       <div className="hidden lg:flex items-center gap-2">
         <SignOutButton />
       </div>
