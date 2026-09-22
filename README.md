@@ -35,20 +35,20 @@ Specifically the aim is to:
 
 **Must**
 
-* The system must allow users to log in.
-* The system must allow new users to be created.
-* The system must have role based access.
-* The system must allow the following information to be added for each item:
-    - Item name
-    - Item type
-    - Item serial number
-    - Item photo
+* ~~The system must allow users to log in.~~
+* ~~The system must allow new users to be created.~~
+* ~~The system must have role based access.~~
+* ~~The system must allow the following information to be added for each item:~~
+    - ~~Item name~~
+    - ~~Item type~~
+    - ~~Item serial number~~
+    - ~~Item photo~~
 * The system must allow users to view the item specifics.
 * The system must allow searching on the following fields for each item:
     - Item name
     - Item type
     - Item serial number
-* The system must restrict users according to their role.
+* ~~The system must restrict users according to their role.~~
 * The system must allow students to submit articles to the idea catalogue.
 * The system must allow students to read articles in the idea catalogue.
 
