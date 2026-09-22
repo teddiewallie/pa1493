@@ -1,4 +1,5 @@
 // https://ui.shadcn.com/docs/components/base/card
+// https://nextjs.org/docs/app/api-reference/components/image#loading
 
 import {
   Card,
@@ -46,6 +47,7 @@ const ItemCard = ({ item, handleClick, pointer, single }) => {
           width={800}
           height={600}
           src={`/api/asset/${item.asset_id}`}
+          loading="eager"
         />
       </div>
     </Card>
