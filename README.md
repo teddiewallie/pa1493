@@ -161,6 +161,12 @@ The app is deployed at https://lekh.ted.pm
 * Run `docker compose up`.
 * When the logs stops going brrr, navigate to http://localhost:3000
 
+### Updating
+
+* Run `docker compose down`
+* Run `git pull`
+* Run `docker compose up --build`
+
 ### Development Environment
 
 * Navigate to the `lekh` directory.
