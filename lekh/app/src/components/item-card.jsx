@@ -30,7 +30,6 @@ const ItemCard = ({ item, handleClick, pointer, single }) => {
   cardClassName = `${cardClassName} ${single && "w-md"}`;
 
   return (
-
     <Card onClick={() => handleActualClick()} className={cardClassName}>
       <CardHeader>
         <CardTitle className="flex items-center">
@@ -47,7 +46,7 @@ const ItemCard = ({ item, handleClick, pointer, single }) => {
           width={800}
           height={600}
           src={`/api/asset/${item.asset_id}`}
-          loading="eager"
+          unoptimized
         />
       </div>
     </Card>

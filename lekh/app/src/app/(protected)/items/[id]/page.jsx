@@ -8,7 +8,6 @@ const Page = ({ params }) => {
   const { id } = use(params);
 
   const { items, refreshItems } = useContext(ItemsContext);
-  console.log(items);
 
   const item = items.find((item) => (item.id == id));
 
