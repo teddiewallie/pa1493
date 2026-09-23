@@ -4,7 +4,7 @@ import { getAsset } from "@/service/get-asset";
 import { readFile } from "fs/promises";
 
 const GET = async (request, { params }) => {
-const session = auth();
+const session = await auth();
 
   if (!session) {
     return new Response("Forbidden", { status: 403 });
