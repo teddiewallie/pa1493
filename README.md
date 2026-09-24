@@ -4,7 +4,7 @@
 
 ## Project Description
 
-**Project Name:** *ProjectProposal-LabEquipmentKnowledgeHub-ZAD*
+**Project Name:** *Lab Equipment Knowledge Hub*
 
 **Customer Name:** *Zeth Danielsson*
 
