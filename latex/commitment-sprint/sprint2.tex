@@ -1,0 +1,264 @@
+\renewcommand{\arraystretch}{1.5}
+
+\newcommand{\commitheadermanual}[5]{%
+  \hline
+  \multicolumn{1}{|c|}{\textbf{#1}} &
+  \multicolumn{1}{c|}{\textbf{#2}} &
+  \multicolumn{1}{c|}{\textbf{#3}} &
+  \multicolumn{1}{c|}{\textbf{#4}} &
+  \multicolumn{1}{c|}{\textbf{#5}} \\
+  \hline
+  \hline
+}
+
+\newcommand{\commitheader}[0]{%
+\commitheadermanual
+{ID}
+{User Story}
+{Size}
+{Acceptance Criteria}
+{Notes}
+}
+
+\newcommand{\commitrow}[5]{%
+\texttt{#1} &
+#2 &
+#3 &
+#4 &
+#5 \\
+\hline
+}
+
+\newcommand{\committable}[1]{%
+\begin{adjustwidth}{-2.2cm}{-2.2cm}
+\begin{tabular}{
+  |>{\centering\arraybackslash}m{0.9cm}
+  |m{4.4cm}
+  |>{\centering\arraybackslash}m{0.9cm}
+  |m{5.6cm}
+  |m{4.8cm}|
+}
+\commitheader
+#1
+\end{tabular}
+\end{adjustwidth}
+}
+
+
+\newgeometry{top=1.2cm, bottom=1.5cm}
+\section*{Sprint Information}
+
+\begin{itemize}[noitemsep]
+    \item \textbf{Project Name:} Lab Equipment Knowledge Hub
+    \item \textbf{Customer Name:} Zeth Danielsson
+    \item \textbf{Sprint Goal:} Maintainers have edit functionality for users and items, all users can read and write articles, anyone can scan QR codes to visit the corresponding item page, items can be grouped.
+\end{itemize}
+
+\section*{Backlog}
+
+\committable{
+\commitrow
+{62}
+{
+As any user
+I want to see the shelf place for an item
+so that I know where they are.
+}
+{XS}
+{
+Given that an item has a shelf place,
+when the user views the item,
+then the item's shelf place is displayed.
+}
+{Shelf space will not be mandatory.}
+
+\commitrow
+{107}
+{
+As a user
+I want to see a QR code on the item page
+so that I can scan it.
+}
+{XS}
+{
+Given that the user is logged in,
+when the user views the item page,
+then a QR code for the item is displayed.
+}
+{}
+
+\commitrow
+{59}
+{
+As a maintainer
+I want to add shelf place
+so that I know where the items are.
+}
+{XS}
+{
+Given that the maintainer is creating or editing an item,
+when they enter a shelf place and save the item,
+then the shelf place is stored for that item.
+}
+{}
+
+\commitrow
+{85}
+{
+As a maintainer
+I want to edit items
+so that I can keep them up to date.
+}
+{S}
+{
+Given that the maintainer is viewing an existing item,
+when they edit the item's information and save the changes,
+then the updated information is stored.
+}
+{}
+
+\commitrow
+{100}
+{
+As a maintainer
+I want to set the status of the item
+so that it is clear which items are available.
+}
+{S}
+{
+Given that the maintainer is creating or editing an item,
+when they select a status and save the item,
+then the selected status is stored.
+}
+{}
+
+\commitrow
+{106}
+{
+As a user
+I want to scan a QR code
+so that I can navigate to the connected item page.
+}
+{S}
+{
+Given that the server accepts the connection as secure,
+and the user approves the usage of the camera on the device,
+when the user scans the QR code,
+then the user is directed to the page for the associated item.
+}
+{
+The QR library requires HTTPS or to manually installing server
+certificates on the user's device to be able to use the camera
+on the user's device.
+}
+
+\commitrow
+{65}
+{
+As a maintainer
+I want to show every user account
+so that I can manage them.
+}
+{M}
+{
+Given that the maintainer is viewing the user account management page,
+when the page is loaded,
+then all user accounts are shown.
+}
+{}
+
+\commitrow
+{66}
+{
+As a maintainer
+I want to edit accounts
+so that they can be updated.
+}
+{M}
+{
+Given that the maintainer is viewing a user account,
+when they edit the account information and save the changes,
+then the updated information is stored.
+}
+{}
+
+\commitrow
+{83}
+{
+As any user,
+I want to read articles
+so that I can get a deeper understanding of the items.
+}
+{M}
+{
+Given that an article exists,
+when the user opens the article,
+then the article content is displayed.
+}
+{}
+}
+
+\committable{
+\commitrow
+{84}
+{
+As any user
+I want to submit articles
+so that I can share my knowledge of the items.
+}
+{M}
+{
+Given that the user is on the add/edit article page,
+when they enter the article content and submit it,
+then the article is stored.
+}
+{}
+
+\commitrow
+{53}
+{
+As a maintainer
+I want to be able to group items
+so that articles can be written about an item group.
+}
+{L}
+{
+Given that the maintainer is managing items,
+when they assign items to a group and save the changes,
+then the items are associated with that group.
+}
+{}
+
+\commitrow
+{91}
+{
+As a user
+I want to see my profile
+so that I can verify that the information is correct.
+}
+{M}
+{
+Given that the user is signed in,
+when they open their profile,
+then their profile information is displayed.
+}
+{}
+
+\commitrow
+{92}
+{
+As a user
+I want to edit my profile
+so that I can keep my data up to date.
+}
+{M}
+{
+Given that the user is viewing their profile,
+when they edit their profile information and save the changes,
+then the updated information is stored.
+}
+{}
+}
+
+\restoregeometry
+
