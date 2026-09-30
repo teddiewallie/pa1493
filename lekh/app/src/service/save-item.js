@@ -16,7 +16,7 @@ import {
   updateItemQuery
 } from "@/query/item-query";
 
-const addItem = async (data) => {
+const saveItem = async (data) => {
   const statuses = await getItemStatusMetaQuery();
   const schema = createItemSchema(statuses, Boolean(data.id));
   const result = schema.safeParse(data);
@@ -50,8 +50,6 @@ const addItem = async (data) => {
       await fs.unlink(oldAssetPath);
       await removeAsset(data.assetId);
     }
-    console.log("PRESENT");
-
   } catch (e) {
     console.log(e);
     return false;
@@ -60,5 +58,5 @@ const addItem = async (data) => {
   return true;
 };
 
-export { addItem };
+export { saveItem };
 
