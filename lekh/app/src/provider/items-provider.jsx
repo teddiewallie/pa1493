@@ -6,14 +6,17 @@ import { ItemsContext } from "@/context/items-context";
 
 const ItemsProvider = ({ children }) => {
   const [items, setItems] = useState([]);
+  const [meta, setMeta] = useState({});
+
   const [loading, setLoading] = useState(true);
 
   const refreshItems = async () => {
     setLoading(true);
 
-    const items = await getItems();
+    const capsule = await getItems();
 
-    setItems(items);
+    setItems(capsule.items);
+    setMeta(capsule.meta);
     setLoading(false);
   };
 
@@ -22,7 +25,7 @@ const ItemsProvider = ({ children }) => {
   }, []);
 
   return (
-    <ItemsContext.Provider value={{items, loading, refreshItems}}>
+    <ItemsContext.Provider value={{items, meta, loading, refreshItems}}>
       { children }
     </ItemsContext.Provider>
   );

@@ -1,7 +1,7 @@
 "use server";
 
 import { auth } from "@/auth";
-import { getItemsQuery } from "@/query/item-query";
+import { getItemsQuery, getItemStatusMetaQuery } from "@/query/item-query";
 
 const getItems = async () => {
   const session = await auth();
@@ -11,8 +11,13 @@ const getItems = async () => {
   }
 
   try {
-    const items = await getItemsQuery();
-    return items;
+    const capsule = {};
+    capsule.items = await getItemsQuery();
+
+    capsule.meta = {};
+    capsule.meta.status = await getItemStatusMetaQuery();
+
+    return capsule;
   } catch(e) {
     return [];
   }
