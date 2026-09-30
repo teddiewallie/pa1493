@@ -11,6 +11,14 @@ import {
   FieldError
 } from "@/components/ui/field";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Controller, useForm } from "react-hook-form";
@@ -19,11 +27,16 @@ import { ImagePicker } from "@/components/image-picker";
 
 import { addItem } from "@/service/add-item";
 
-import schema from "@/schema/item-schema";
+import { createItemSchema } from "@/schema/item-schema";
 
-const CreateItemForm = ({ onSuccess, onFail }) => {
+const CreateItemForm = ({ onSuccess, onFail, statuses }) => {
+  const schema = createItemSchema(statuses);
+
   const form = useForm({
-    resolver: zodResolver(schema)
+    resolver: zodResolver(schema),
+    defaultValues: {
+      statusId: statuses[0]?.id
+    }
   });
 
   const handleSubmit = async (data) => (await addItem(data) ? onSuccess() : onFail());
@@ -72,6 +85,39 @@ const CreateItemForm = ({ onSuccess, onFail }) => {
               aria-invalid={Boolean(form.formState.errors.shelf)} />
               <FieldError errors={[form.formState.errors.shelf]} />
           </Field>
+          <Controller
+            name="statusId"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel>Status</FieldLabel>
+
+                <Select
+                  value={field.value?.toString()}
+                  onValueChange={(value) => field.onChange(Number(value))}
+                >
+                  <SelectTrigger aria-invalid={fieldState.invalid}>
+                    <SelectValue>
+                      {statuses.find((status) => status.id === field.value)?.name}
+                    </SelectValue>
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {statuses.map((status) => (
+                      <SelectItem
+                        key={status.id}
+                        value={status.id.toString()}
+                      >
+                        {status.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
           <Controller
             name="image"
             control={form.control}

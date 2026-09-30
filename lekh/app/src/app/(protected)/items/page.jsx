@@ -12,7 +12,7 @@ const Page = () => {
   const user = useContext(UserContext);
   const router = useRouter();
 
-  const { items, refreshItems } = useContext(ItemsContext);
+  const { items, refreshItems, meta } = useContext(ItemsContext);
 
   const [message, setMessage] = useState("");
 
@@ -28,7 +28,8 @@ const Page = () => {
             setMessage("Item successfully created.");
             refreshItems();
           },
-          onFail: () => setMessage("Failed to create item.")
+          onFail: () => setMessage("Failed to create item."),
+          statuses: meta.status
         }} />
       </ModalWithToast> }
 

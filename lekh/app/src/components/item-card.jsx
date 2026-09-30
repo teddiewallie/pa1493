@@ -12,13 +12,14 @@ import {
 
 import Image from "next/image";
 import { QRCode } from "@/components/qr-code";
+import { ItemStatus } from "@/components/item-status";
 
 const ItemCard = ({ item, handleClick, pointer, single }) => {
   if (!item) {
     return <div />
   }
 
-  const { id, name, serial, description, shelf, asset_id } = item;
+  const { id, name, serial, description, shelf, asset_id, status_name } = item;
 
   const handleActualClick = (e) => {
     if (handleClick) {
@@ -58,6 +59,7 @@ const ItemCard = ({ item, handleClick, pointer, single }) => {
           unoptimized
         />
       </div>
+      <ItemStatus id={item.status_id} name={item.status_name} />
     </Card>
   );
 };

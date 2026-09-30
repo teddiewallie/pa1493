@@ -2,15 +2,18 @@
 
 "use server";
 
-import schema from "@/schema/item-schema";
+import { createItemSchema } from "@/schema/item-schema";
 import { auth } from "@/auth";
 import fs from "fs/promises";
 import { getAssetPath } from "./asset-path";
 
-import { addItemQuery } from "@/query/item-query";
+import { addItemQuery, getItemStatusMetaQuery } from "@/query/item-query";
 
 const addItem = async (data) => {
+  const statuses = await getItemStatusMetaQuery();
+  const schema = createItemSchema(statuses);
   const result = schema.safeParse(data);
+
   const session = await auth();
 
   if (!result.success || !session) {
