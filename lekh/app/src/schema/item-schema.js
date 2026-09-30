@@ -5,6 +5,7 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 export default z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string(),
+  shelf: z.string(),
   serial: z.string().min(1, "Serial is required"),
 
   image: z.instanceof(File).refine(
