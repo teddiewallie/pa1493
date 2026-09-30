@@ -17,7 +17,7 @@ const ItemCard = ({ item, handleClick, pointer, single }) => {
     return <div />
   }
 
-  const { id, name, serial, description, asset_id } = item;
+  const { id, name, serial, description, shelf, asset_id } = item;
 
   const handleActualClick = (e) => {
     if (handleClick) {
@@ -34,9 +34,12 @@ const ItemCard = ({ item, handleClick, pointer, single }) => {
       <CardHeader>
         <CardTitle className="flex items-center">
           {name}
-          <span className="ml-auto font-mono">{serial}</span>
+          <span className="ml-auto font-mono">{shelf}</span>
         </CardTitle>
-        <CardDescription>{description}</CardDescription>
+        <CardDescription className="flex items-center">
+          {description}
+          <span className="ml-auto font-mono">{serial}</span>
+        </CardDescription>
       </CardHeader>
 
       <div className="relative aspect-video w-full flex items-center justify-center">

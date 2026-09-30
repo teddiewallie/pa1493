@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS item (
     name VARCHAR(255) NOT NULL,
     serial VARCHAR(255) NOT NULL UNIQUE,
     description VARCHAR(255) NOT NULL,
+    shelf VARCHAR(255),
     user_id INT NOT NULL,
     asset_id INT NOT NULL,
     CONSTRAINT fk_user_id

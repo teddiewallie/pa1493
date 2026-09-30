@@ -62,6 +62,16 @@ const CreateItemForm = ({ onSuccess, onFail }) => {
               aria-invalid={Boolean(form.formState.errors.description)} />
               <FieldError errors={[form.formState.errors.description]} />
           </Field>
+          <Field data-invalid={Boolean(form.formState.errors.shelf)}>
+            <FieldLabel htmlFor="shelf">Shelf</FieldLabel>
+            <Input
+              id="shelf"
+              type="shelf"
+              placeholder="shelf"
+              {...form.register("shelf")}
+              aria-invalid={Boolean(form.formState.errors.shelf)} />
+              <FieldError errors={[form.formState.errors.shelf]} />
+          </Field>
           <Controller
             name="image"
             control={form.control}
