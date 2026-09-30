@@ -25,21 +25,28 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ImagePicker } from "@/components/image-picker";
 
-import { addItem } from "@/service/add-item";
+import { saveItem } from "@/service/save-item";
 
 import { createItemSchema } from "@/schema/item-schema";
 
-const CreateItemForm = ({ onSuccess, onFail, statuses }) => {
-  const schema = createItemSchema(statuses);
+const CreateItemForm = ({ onSuccess, onFail, statuses, item }) => {
+  const editing = Boolean(item);
+  const schema = createItemSchema(statuses, editing);
 
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      statusId: statuses[0]?.id
+      id: item?.id,
+      assetId: item?.asset_id,
+      name: item?.name ?? "",
+      serial: item?.serial ?? "",
+      description: item?.description ?? "",
+      shelf: item?.shelf ?? "",
+      statusId: item?.status_id ?? Number(statuses[0]?.id)
     }
   });
 
-  const handleSubmit = async (data) => (await addItem(data) ? onSuccess() : onFail());
+  const handleSubmit = async (data) => (await saveItem(data) ? onSuccess() : onFail());
 
   return (
     <form onSubmit={form.handleSubmit(handleSubmit)} autoComplete="off">
@@ -124,15 +131,17 @@ const CreateItemForm = ({ onSuccess, onFail, statuses }) => {
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel>Image</FieldLabel>
-                <ImagePicker onChange={(file) => {
-                  field.onChange(file);
-                  form.trigger("image");
+                <ImagePicker
+                  current={item ? `/api/asset/${item.asset_id}` : null}
+                  onChange={(file) => {
+                    field.onChange(file);
+                    form.trigger("image");
                 }} />
                 <FieldError errors={[fieldState.error]} />
               </Field>
             )} />
           <div className="container flex items-center gap-12">
-            <Button className="flex mt-7" type="submit">Create Item</Button>
+            <Button className="flex mt-7" type="submit">Save Item</Button>
           </div>
         </FieldGroup>
       </FieldSet>

@@ -21,6 +21,7 @@ import {
 const ModalWithToast = ({
   title,
   message,
+  onMessageHandled,
   children
 }) => {
   const [ open, onOpenChange ] = useState(false);
@@ -29,6 +30,7 @@ const ModalWithToast = ({
     onOpenChange(false);
     if (message != "") {
       toast.add({ title: message });
+      onMessageHandled();
     }
   }, [message]);
 

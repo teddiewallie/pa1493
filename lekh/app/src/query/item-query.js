@@ -3,15 +3,42 @@
 import pool from "@/lib/db";
 import { addAssetQuery } from "./asset-query";
 
+const columns = [
+  "name",
+  "serial",
+  "description",
+  "shelf",
+  "user_id",
+  "asset_id",
+  "status_id"
+];
+
 const addItemQuery = async (data) => {
   const extension = data.image.name.split(".").pop().toLowerCase();
   const assetId = await addAssetQuery(data.image.type, extension);
 
-  console.log(data);
+  await pool.query(
+    `INSERT INTO item (${columns.join(", ")}) VALUES (${columns.map(() => "?").join(", ")})`,
+    [data.name, data.serial, data.description, data.shelf, data.userId, assetId, data.statusId]
+  );
+
+  return { id: assetId, extension };
+};
+
+const updateItemQuery = async (data) => {
+  let extension = null;
+  let assetId = null;
+
+  if (data.image) {
+    extension = data.image.name.split(".").pop().toLowerCase();
+    assetId = await addAssetQuery(data.image.type, extension);
+  }
+
+  const updateColumns = columns.map((column) => `${column}=?`).join(", ");
 
   await pool.query(
-    "INSERT INTO item (name, serial, description, shelf, user_id, asset_id, status_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
-    [data.name, data.serial, data.description, data.shelf, data.userId, assetId, data.statusId]
+    `UPDATE item SET ${updateColumns} WHERE id=?`,
+    [data.name, data.serial, data.description, data.shelf, data.userId, assetId ?? data.assetId, data.statusId, data.id]
   );
 
   return { id: assetId, extension };
@@ -30,6 +57,7 @@ const getItemStatusMetaQuery = async () => {
 export {
   addItemQuery,
   getItemsQuery,
-  getItemStatusMetaQuery
+  getItemStatusMetaQuery,
+  updateItemQuery
 };
 
