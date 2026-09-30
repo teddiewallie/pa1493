@@ -6,10 +6,15 @@ import { ItemsContext } from "@/context/items-context";
 
 const ItemsProvider = ({ children }) => {
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const refreshItems = async () => {
+    setLoading(true);
+
     const items = await getItems();
+
     setItems(items);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -17,11 +22,11 @@ const ItemsProvider = ({ children }) => {
   }, []);
 
   return (
-    <ItemsContext.Provider value={{items, refreshItems}}>
+    <ItemsContext.Provider value={{items, loading, refreshItems}}>
       { children }
     </ItemsContext.Provider>
   );
 };
 
-export { ItemsProvider };
+export { ItemsProvider, loading };
 
