@@ -6,11 +6,15 @@ CREATE TABLE IF NOT EXISTS item (
     shelf VARCHAR(255),
     user_id INT NOT NULL,
     asset_id INT NOT NULL,
+    status_id INT NOT NULL DEFAULT 1,
     CONSTRAINT fk_user_id
         FOREIGN KEY (user_id)
         REFERENCES user (id) ON DELETE CASCADE,
     CONSTRAINT fk_asset_id
         FOREIGN KEY (asset_id)
-        REFERENCES asset (id) ON DELETE CASCADE
+        REFERENCES asset (id) ON DELETE CASCADE,
+    CONSTRAINT fk_status_id
+        FOREIGN KEY (status_id)
+        REFERENCES item_status (id) ON DELETE CASCADE
 );
 
