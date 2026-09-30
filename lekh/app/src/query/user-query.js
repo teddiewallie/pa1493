@@ -3,9 +3,13 @@
 import pool from "@/lib/db";
 import bcrypt from "bcrypt";
 
-const getUsersByEmailQuery = (email) => pool.query(
+const getUsersByEmailQuery = async (email) => await pool.query(
   "SELECT id, name, email, password, role_id FROM user WHERE email = ?",
   [email]
+);
+
+const getAllUsersQuery = async () => await pool.query(
+  "SELECT id, name, email, role_id FROM user"
 );
 
 const addUserQuery = async (data) => pool.query(
@@ -14,6 +18,7 @@ const addUserQuery = async (data) => pool.query(
 );
 
 export {
+  getAllUsersQuery,
   getUsersByEmailQuery,
   addUserQuery
 };

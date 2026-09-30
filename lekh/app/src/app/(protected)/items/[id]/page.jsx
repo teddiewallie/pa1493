@@ -21,7 +21,7 @@ const Page = ({ params }) => {
   const onMessageHandled = () => setMessage("");
 
   return (
-    <div className="container md:mx-auto mx-12 my-4">
+    <div className="container md:mx-auto my-4">
       { user.isAdmin && <ModalWithToast {...{ title: "Edit Item", message, onMessageHandled }}>
         <CreateItemForm {...{
           item,
