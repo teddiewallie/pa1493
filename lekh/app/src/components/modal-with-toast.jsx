@@ -36,7 +36,7 @@ const ModalWithToast = ({
     <div className="container md:mx-auto mt-4">
       <Dialog {...{ open, onOpenChange }}>
         <DialogTrigger render={
-          <Button className="ml-auto mx-10" variant="outline">{title}</Button>
+          <Button className="ml-auto mx-10 print:hidden" variant="outline">{title}</Button>
         } />
         <DialogContent>
           <DialogHeader>

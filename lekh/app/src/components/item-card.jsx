@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 
 import Image from "next/image";
+import { QRCode } from "@/components/qr-code";
 
 const ItemCard = ({ item, handleClick, pointer, single }) => {
   if (!item) {
@@ -31,20 +32,25 @@ const ItemCard = ({ item, handleClick, pointer, single }) => {
 
   return (
     <Card onClick={() => handleActualClick()} className={cardClassName}>
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          {name}
-          <span className="ml-auto font-mono">{shelf}</span>
-        </CardTitle>
-        <CardDescription className="flex items-center">
-          {description}
-          <span className="ml-auto font-mono">{serial}</span>
-        </CardDescription>
-      </CardHeader>
+      <div className="flex items-center">
+        <CardHeader className="min-w-0 flex-1">
+          <CardTitle className="grid grid-cols-[1fr_auto] gap-2">
+            <span className="min-w-0">{name}</span>
+            <span className="font-mono">{shelf}</span>
+          </CardTitle>
+
+          <CardDescription className="grid grid-cols-[1fr_auto] gap-2">
+            <span className="min-w-0">{description}</span>
+            <span className="font-mono">{serial}</span>
+          </CardDescription>
+        </CardHeader>
+        <QRCode value={serial} className="print:hidden w-16 h-16 mr-4 shrink-0 border p-1" />
+      </div>
 
       <div className="relative aspect-video w-full flex items-center justify-center">
+        <QRCode value={serial} className="hidden print:block w-24 h-24" />
         <Image
-          className="max-h-full w-auto object-contain rounded-lg"
+          className="print:hidden max-h-full w-auto object-contain rounded-lg"
           alt={name}
           width={800}
           height={600}
@@ -57,3 +63,4 @@ const ItemCard = ({ item, handleClick, pointer, single }) => {
 };
 
 export { ItemCard };
+
