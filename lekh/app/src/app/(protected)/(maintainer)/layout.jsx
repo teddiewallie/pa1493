@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { UsersProvider } from "@/provider/users-provider";
 
 const MaintainerLayout = async ({ children }) => {
   const session = await auth();
@@ -8,7 +9,11 @@ const MaintainerLayout = async ({ children }) => {
     redirect("/dashboard");
   }
 
-  return children;
+  return (
+    <UsersProvider>
+      {children}
+    </UsersProvider>
+  );
 };
 
 export default MaintainerLayout;
