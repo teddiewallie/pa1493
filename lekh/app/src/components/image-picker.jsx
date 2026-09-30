@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 
-const ImagePicker = ({ onChange }) => {
+const ImagePicker = ({ onChange, current }) => {
   const [ file, setFile ] = useState(null);
   const inputRef = useRef(null);
 
@@ -29,6 +29,7 @@ const ImagePicker = ({ onChange }) => {
       />
       <Button onClick={() => inputRef.current?.click()}>Select Image</Button>
       {file && <img src={URL.createObjectURL(file)} alt="Preview" />}
+      {!file && current && <img src={current} alt="Preview" />}
     </>
   );
 }

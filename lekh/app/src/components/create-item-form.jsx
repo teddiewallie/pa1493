@@ -29,13 +29,20 @@ import { addItem } from "@/service/add-item";
 
 import { createItemSchema } from "@/schema/item-schema";
 
-const CreateItemForm = ({ onSuccess, onFail, statuses }) => {
-  const schema = createItemSchema(statuses);
+const CreateItemForm = ({ onSuccess, onFail, statuses, item }) => {
+  const editing = Boolean(item);
+  const schema = createItemSchema(statuses, editing);
 
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      statusId: statuses[0]?.id
+      id: item?.id,
+      assetId: item?.asset_id,
+      name: item?.name ?? "",
+      serial: item?.serial ?? "",
+      description: item?.description ?? "",
+      shelf: item?.shelf ?? "",
+      statusId: item?.status_id ?? Number(statuses[0]?.id)
     }
   });
 
@@ -124,9 +131,11 @@ const CreateItemForm = ({ onSuccess, onFail, statuses }) => {
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel>Image</FieldLabel>
-                <ImagePicker onChange={(file) => {
-                  field.onChange(file);
-                  form.trigger("image");
+                <ImagePicker
+                  current={`/api/asset/${item.asset_id}`}
+                  onChange={(file) => {
+                    field.onChange(file);
+                    form.trigger("image");
                 }} />
                 <FieldError errors={[fieldState.error]} />
               </Field>
