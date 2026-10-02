@@ -28,8 +28,8 @@ const ImagePicker = ({ onChange, current }) => {
         onChange={handleChange}
       />
       <Button onClick={() => inputRef.current?.click()}>Select Image</Button>
-      {file && <img src={URL.createObjectURL(file)} alt="Preview" />}
-      {!file && current && <img src={current} alt="Preview" />}
+      {file && <img src={URL.createObjectURL(file)} alt="Preview" className="max-w-md" />}
+      {!file && current && <img src={current} className="max-w-md mx-auto" alt="Preview" />}
     </>
   );
 }

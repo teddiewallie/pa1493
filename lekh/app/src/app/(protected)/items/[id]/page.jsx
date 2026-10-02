@@ -22,7 +22,7 @@ const Page = ({ params }) => {
 
   return (
     <div className="container md:mx-auto">
-      { user.isAdmin && <ModalWithToast {...{ title: "Edit Item", message, onMessageHandled }}>
+      { user.isAdmin && <ModalWithToast doubleWidth {...{ title: "Edit Item", message, onMessageHandled }}>
         <CreateItemForm {...{
           item,
           onSuccess: () => {
