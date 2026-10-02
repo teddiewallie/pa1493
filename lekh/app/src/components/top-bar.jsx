@@ -8,7 +8,7 @@ import { SignOutButton } from "@/components/sign-out-button";
 import { routes } from "@/routes";
 
 const TopBar = () => {
-  const user = useContext(UserContext);
+  const { user } = useContext(UserContext);
 
   const LinkItem = ({Icon, route, name}) => (
     <a href={route} className="mx-3 flex"><Icon className="inline mr-1" />{name}</a>
@@ -21,7 +21,7 @@ const TopBar = () => {
         <span className="font-bold">{user.name}</span>
       </div>
       <div className="flex">
-        {routes.filter((route) => route.roleId >= user.roleId)
+        {routes.filter((route) => route.role_id >= user.role_id)
           .map((route) => <LinkItem key={route.key} {...{ Icon: route.Icon, route: route.route, name: route.name }} />)}
       </div>
       <div className="hidden lg:flex items-center gap-2">

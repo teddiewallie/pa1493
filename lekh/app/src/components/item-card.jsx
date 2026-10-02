@@ -27,7 +27,7 @@ const ItemCard = ({ item, handleClick, pointer, single }) => {
     }
   };
 
-  let cardClassName = "relative overflow-hidden max-w-md";
+  let cardClassName = "relative overflow-hidden md:max-w-md";
   cardClassName = `${cardClassName} ${pointer && "cursor-pointer"}`;
   // cardClassName = `${cardClassName} ${single && ""}`;
 

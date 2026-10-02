@@ -10,7 +10,7 @@ import { CreateItemForm } from "@/components/create-item-form";
 const Page = ({ params }) => {
   const { id } = use(params);
 
-  const user = useContext(UserContext);
+  const { user } = useContext(UserContext);
 
   const { items, refreshItems, meta } = useContext(ItemsContext);
 
@@ -22,7 +22,7 @@ const Page = ({ params }) => {
 
   return (
     <div className="container md:mx-auto">
-      { user.isAdmin && <ModalWithToast doubleWidth {...{ title: "Edit Item", message, onMessageHandled }}>
+      { (user.role_id == 1) && <ModalWithToast doubleWidth {...{ title: "Edit Item", message, onMessageHandled }}>
         <CreateItemForm {...{
           item,
           onSuccess: () => {

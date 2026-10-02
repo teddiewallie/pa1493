@@ -7,9 +7,9 @@ import { getAllUsersQuery } from "@/query/user-query";
 const getUsers = async () => {
   const session = await auth();
 
-  const { roleId } = session?.user;
+  const { role_id } = session?.user;
 
-  if (!roleId || roleId != 1) {
+  if (!role_id || role_id != 1) {
     return false;
   }
 

@@ -1,34 +1,20 @@
 "use client";
 
-import { use, useContext, useState } from "react";
+import { use, useContext } from "react";
 import { UsersContext } from "@/context/users-context";
-import { ModalWithToast } from "@/components/modal-with-toast";
-import { CreateUserForm } from "@/components/create-user-form";
-import { UserCard } from "@/components/user-card";
+import { Profile } from "@/components/profile";
 
 const Page = ({params}) => {
-  const { users } = useContext(UsersContext);
   const { id } = use(params);
-  const [message, setMessage] = useState("");
+  const { users, refreshUsers } = useContext(UsersContext);
 
-  const user = users.filter((user) => (user.id == id))[0];
+  const user = users.find((user) => (user.id == id));
 
-  console.log(user);
+  if (!user) {
+    return (<div></div>);
+  }
 
-  return (
-    <>
-      <ModalWithToast {...{ title: "Create User", message }}>
-        <CreateUserForm {...{
-          onSuccess: () => setMessage("User successfully created."),
-          onFail: () => setMessage("Failed to create user.")
-        }} />
-      </ModalWithToast>
-
-      <div className="container md:mx-auto my-4 px-6">
-        <UserCard {...{ user }} />
-      </div>
-    </>
-  );
+  return <Profile {...{user, refreshUsers}} />
 };
 
 export default Page;

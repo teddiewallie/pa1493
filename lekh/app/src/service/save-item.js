@@ -23,7 +23,7 @@ const saveItem = async (data) => {
 
   const session = await auth();
 
-  if (!result.success || !session) {
+  if (!result.success || !session || session.user.role_id !== 1) {
     return false;
   }
 
@@ -50,8 +50,9 @@ const saveItem = async (data) => {
       await fs.unlink(oldAssetPath);
       await removeAsset(data.assetId);
     }
+
+    return asset;
   } catch (e) {
-    console.log(e);
     return false;
   }
 

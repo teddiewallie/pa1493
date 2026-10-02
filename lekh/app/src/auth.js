@@ -22,15 +22,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.roleId = user.roleId;
+        token.role_id = user.role_id;
       }
 
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id;
-        session.user.roleId = token.roleId;
+        session.user.id = Number(token.id);
+        session.user.role_id = token.role_id;
       }
 
       return session;
@@ -77,7 +77,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: user.id,
           name: user.name,
           email: user.email,
-          roleId: user.role_id
+          role_id: user.role_id
         };
       }
     })
