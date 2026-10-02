@@ -12,12 +12,12 @@ import { routes } from "@/routes";
   );
 
 const BottomBar = () => {
-  const user = useContext(UserContext);
+  const { user } = useContext(UserContext);
 
   return (
     <footer className="mt-auto flex lg:hidden border-border bg-background sticky bottom-0 z-20 h-12 w-full shrink-0 items-center justify-between gap-2 border-b px-4">
       <div className="flex w-full items-center justify-between">
-          {routes.filter((route) => route.roleId >= user.roleId)
+          {routes.filter((route) => route.role_id >= user.role_id)
             .map((route) => <LinkItem key={route.key} {...{ Icon: route.Icon, route: route.route }}/>)}
         <SignOutButton type="bottom-bar"/>
       </div>

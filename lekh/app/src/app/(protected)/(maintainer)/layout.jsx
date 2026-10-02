@@ -6,7 +6,7 @@ import { getLanding } from "@/routes";
 const MaintainerLayout = async ({ children }) => {
   const session = await auth();
 
-  if (session.user.roleId > 1) {
+  if (session.user.role_id > 1) {
     redirect(getLanding().route);
   }
 

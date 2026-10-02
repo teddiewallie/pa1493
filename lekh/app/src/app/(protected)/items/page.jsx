@@ -9,7 +9,7 @@ import { ItemCard } from "@/components/item-card";
 import { useRouter } from "next/navigation";
 
 const Page = () => {
-  const user = useContext(UserContext);
+  const { user } = useContext(UserContext);
   const router = useRouter();
 
   const { items, refreshItems, meta } = useContext(ItemsContext);
@@ -22,7 +22,7 @@ const Page = () => {
 
   return (
     <div className="container md:mx-auto">
-      { user.isAdmin && <ModalWithToast doubleWidth {...{ title: "Add Item", message }}>
+      { (user.role_id == 1) && <ModalWithToast doubleWidth {...{ title: "Add Item", message }}>
         <CreateItemForm {...{
           onSuccess: () => {
             setMessage("Item successfully created.");

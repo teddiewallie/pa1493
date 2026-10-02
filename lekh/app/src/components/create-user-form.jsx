@@ -2,6 +2,8 @@
 // https://ui.shadcn.com/docs/components/base/select
 // https://ui.shadcn.com/docs/forms/react-hook-form#Checkbox
 
+import { useContext } from "react";
+
 import {
   Field,
   FieldDescription,
@@ -12,26 +14,38 @@ import {
 } from "@/components/ui/field";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { UserContext } from "@/context/user-context";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { addUser } from "@/service/add-user";
+import { saveUser } from "@/service/save-user";
 
-import schema from "@/schema/user-schema";
+import { createUserSchema } from "@/schema/user-schema";
 
-const CreateUserForm = ({ title, onSuccess, onFail }) => {
+const CreateUserForm = ({ title, onSuccess, onFail, user }) => {
+  const editing = Boolean(user);
+  const schema = createUserSchema(editing);
+
+  const { user: loggedInUser } = useContext(UserContext);
+
   const form = useForm({
-    resolver: zodResolver(schema)
+    resolver: zodResolver(schema),
+    defaultValues: {
+      id: user?.id,
+      name: user?.name ?? "",
+      email: user?.email ?? "",
+      maintainer: user?.role_id == 1 || false
+    }
   });
 
-  const handleSubmit = async (data) => (await addUser(data) ? onSuccess() : onFail());
+  const handleSubmit = async (data) => (await saveUser(data) ? onSuccess() : onFail());
 
   return (
     <form onSubmit={form.handleSubmit(handleSubmit)} autoComplete="off">
-      <FieldSet className="w-full max-w-xs">
+      <FieldSet>
         <FieldGroup>
           <Field data-invalid={Boolean(form.formState.errors.email)}>
             <FieldLabel htmlFor="email">E-mail</FieldLabel>
@@ -71,10 +85,10 @@ const CreateUserForm = ({ title, onSuccess, onFail }) => {
               <FieldError errors={[form.formState.errors.name]} />
           </Field>
           <div className="container flex items-center gap-12">
-              <Controller
+
+            {loggedInUser.role_id == 1 && <Controller
                 name="maintainer"
                 control={form.control}
-                defaultValue={false}
                 render={({field}) => (
                   <Field orientation="horizontal">
                     <Checkbox
@@ -87,8 +101,8 @@ const CreateUserForm = ({ title, onSuccess, onFail }) => {
                       Set as maintainer
                     </FieldLabel>
                   </Field>
-                )} />
-            <Button className="flex mt-7" type="submit">Create User</Button>
+                )} />}
+            <Button className="flex mt-7" type="submit">Save User</Button>
           </div>
         </FieldGroup>
       </FieldSet>

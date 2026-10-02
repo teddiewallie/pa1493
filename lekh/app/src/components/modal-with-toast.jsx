@@ -35,9 +35,11 @@ const ModalWithToast = ({
     }
   }, [message]);
 
-  const contentClassName = doubleWidth
+  let contentClassName = doubleWidth
     ? "sm:max-w-[95vw] lg:max-w-[960px]"
     : "";
+
+  contentClassName = `${contentClassName} max-h-[calc(100vh-2rem)] flex-col overflow-y-scroll`;
 
   return (
     <div className="container md:mx-auto mt-4">
@@ -50,9 +52,8 @@ const ModalWithToast = ({
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>
             </DialogDescription>
-
           </DialogHeader>
-            { children }
+          { children }
         </DialogContent>
       </Dialog>
     </div>
