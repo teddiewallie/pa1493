@@ -5,7 +5,7 @@ import {
 } from "@/components/ui/card";
 
 const NavCard = ({ user, handleClick }) => (
-  <Card className="text-center cursor-pointer" onClick={() => handleClick(user.id)}>
+  <Card className="text-center cursor-pointer md:max-w-104" onClick={() => handleClick(user.id)}>
     <CardHeader className="font-bold text-xl">
       { user?.name }
     </CardHeader>
@@ -16,7 +16,7 @@ const NavCard = ({ user, handleClick }) => (
 );
 
 const SingleCard = ({ user }) => (
-  <Card className="text-center mx-4 max-w-128">
+  <Card className="text-center mx-4 md:max-w-104">
     <CardHeader className="font-bold text-xl">
       { user?.name }
     </CardHeader>

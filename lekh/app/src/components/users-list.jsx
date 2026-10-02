@@ -11,7 +11,7 @@ const UsersList = () => {
 
   return (
     <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mx-10 my-4">
-      { users.map((user) => (<UserCard {...{user, handleClick}} />)) }
+      { users.map((user) => (<UserCard {...{user, handleClick}} key={`${"user-" + user.id}`} />)) }
     </div>
   );
 };
