@@ -7,7 +7,7 @@ const Page = () => {
   const router = useRouter();
 
   const onScan = (serial) => {
-     router.push(`/items/by-serial/${serial}`);
+     router.push(`/units/by-serial/${serial}`);
   };
 
   return <Html5QrcodeWrapper {...{ onScan }} />

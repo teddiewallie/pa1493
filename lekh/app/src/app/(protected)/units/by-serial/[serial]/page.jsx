@@ -14,7 +14,7 @@ const Page = ({ params }) => {
 
   useEffect(() => {
     if (!loading && item) {
-      router.push(`/items/${item.id}`);
+      router.push(`/units/${item.id}`);
     }
   }, [loading, item, router])
 

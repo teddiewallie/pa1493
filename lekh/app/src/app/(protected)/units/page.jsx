@@ -17,7 +17,7 @@ const Page = () => {
   const [message, setMessage] = useState("");
 
   const handleClick = (id) => {
-    router.push(`/items/${id}`);
+    router.push(`/units/${id}`);
   };
 
   return (
