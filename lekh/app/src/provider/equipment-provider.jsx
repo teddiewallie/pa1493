@@ -8,7 +8,7 @@ import { EquipmentContext } from "@/context/equipment-context";
 const EquipmentProvider = ({ children }) => {
   const [items, setItems] = useState([]);
   const [meta, setMeta] = useState({});
-  const [groups, setGroups] = useState({});
+  const [groups, setGroups] = useState([]);
 
   const [loading, setLoading] = useState(true);
 
@@ -16,7 +16,7 @@ const EquipmentProvider = ({ children }) => {
     setLoading(true);
 
     const capsule = await getItems();
-    const groups = await getGroups();
+    const { groups } = await getGroups();
 
     setItems(capsule.items);
     setMeta(capsule.meta);

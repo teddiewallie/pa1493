@@ -36,19 +36,18 @@ INSERT INTO asset (mime_type, extension) VALUES
 ('image/jpeg', 'jpg'),
 ('image/jpeg', 'jpg');
 
-
 -- Item Groups
-INSERT INTO item_group (name, serial, description) VALUES
-('Raspberry Pi 4 Model B', 'GRP-RPI4-0001', 'Raspberry Pi 4B development boards'),
-('Arduino Uno', 'GRP-ARDU-0001', 'Arduino Uno microcontroller boards'),
-('ESP32 Development Board', 'GRP-ESP32-0001', 'ESP32 Wi-Fi and Bluetooth development boards'),
-('Temperature Sensor', 'GRP-TEMP-0001', 'Digital temperature sensors'),
-('Ultrasonic Sensor', 'GRP-ULTRA-0001', 'Ultrasonic distance sensors'),
-('Webcam', 'GRP-CAM-0001', 'USB webcams for laboratory projects'),
-('3D Printer', 'GRP-3DP-0001', 'FDM 3D printers'),
-('Soldering Station', 'GRP-SOLD-0001', 'Adjustable temperature soldering stations'),
-('Multimeter', 'GRP-MULT-0001', 'Digital multimeters'),
-('Stepper Motor', 'GRP-STEP-0001', 'NEMA stepper motors for robotics projects');
+INSERT INTO item_group (name, description) VALUES
+('Raspberry Pi 4 Model B', 'Raspberry Pi 4B development boards'),
+('Arduino Uno', 'Arduino Uno microcontroller boards'),
+('ESP32 Development Board', 'ESP32 Wi-Fi and Bluetooth development boards'),
+('Temperature Sensor', 'Digital temperature sensors'),
+('Ultrasonic Sensor', 'Ultrasonic distance sensors'),
+('Webcam', 'USB webcams for laboratory projects'),
+('3D Printer', 'FDM 3D printers'),
+('Soldering Station', 'Adjustable temperature soldering stations'),
+('Multimeter', 'Digital multimeters'),
+('Stepper Motor', 'NEMA stepper motors for robotics projects');
 
 -- Items
 INSERT INTO item (
