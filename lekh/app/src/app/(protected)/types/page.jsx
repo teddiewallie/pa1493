@@ -9,15 +9,13 @@ const Page = () => {
   const router = useRouter();
   const { groups } = useContext(EquipmentContext);
 
-  console.log(groups);
-
   const handleClick = (id) => router.push(`/units/by-type/${id}`);
 
   // TODO: EDIT GROUPS
   return (
     <div className="container mx-auto">
       <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mx-10 my-4">
-        {groups.map((group) => <GroupCard {...{ group, handleClick }} />)}
+        {groups.map((group) => <GroupCard key={`group-${group.id}`} {...{ group, handleClick }} />)}
       </div>
     </div>
   );

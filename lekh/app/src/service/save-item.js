@@ -16,9 +16,13 @@ import {
   updateItemQuery
 } from "@/query/item-query";
 
+import { getGroups } from "./get-groups";
+
 const saveItem = async (data) => {
   const statuses = await getItemStatusMetaQuery();
-  const schema = createItemSchema(statuses, Boolean(data.id));
+  const { groups } = await getGroups();
+  console.log(groups);
+  const schema = createItemSchema(groups, statuses, Boolean(data.id));
   const result = schema.safeParse(data);
 
   const session = await auth();

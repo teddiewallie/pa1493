@@ -9,12 +9,14 @@ import { ItemCard } from "@/components/item-card";
 import { useRouter } from "next/navigation";
 
 const ItemList = ({ groupId }) => {
+  const { groups, items, refreshItems, meta } = useContext(EquipmentContext);
   const { user } = useContext(UserContext);
   const router = useRouter();
-
-  const { items, refreshItems, meta } = useContext(EquipmentContext);
-
   const [message, setMessage] = useState("");
+
+  if (!groups.find((group) => group.id == groupId)) {
+    return (<div>Type not found.</div>);
+  }
 
   const handleClick = (id) => {
     router.push(`/units/by-id/${id}`);
@@ -31,7 +33,8 @@ const ItemList = ({ groupId }) => {
             refreshItems();
           },
           onFail: () => setMessage("Failed to create item."),
-          statuses: meta.status
+          statuses: meta.status,
+          groupId
         }} />
       </ModalWithToast> }
 
