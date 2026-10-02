@@ -14,10 +14,6 @@ const ItemList = ({ groupId }) => {
   const router = useRouter();
   const [message, setMessage] = useState("");
 
-  if (!groups.find((group) => group.id == groupId)) {
-    return (<div>Type not found.</div>);
-  }
-
   const handleClick = (id) => {
     router.push(`/units/by-id/${id}`);
   };

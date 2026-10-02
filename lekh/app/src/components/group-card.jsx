@@ -23,8 +23,13 @@ const GroupCard = ({ group, handleClick }) => {
 
   const { id, name, description } = group;
 
-  const groupItems = items.filter((item) => (item.group_id == group.id));
-  const assetId = groupItems[0].asset_id;
+  let groupItems = items;
+  let assetId = 0;
+
+  if (id !== 0) {
+    groupItems = items.filter((item) => (item.group_id == group.id));
+    assetId = groupItems[0].asset_id;
+  }
 
   const totalItems = groupItems.length;
   const availableItems = groupItems.filter((item) => (item.status_id == 1)).length;
