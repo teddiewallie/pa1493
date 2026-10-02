@@ -5,3 +5,4 @@ CREATE TABLE IF NOT EXISTS item_group (
     description VARCHAR(255) NOT NULL
 );
 
+

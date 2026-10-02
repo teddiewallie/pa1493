@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS item (
         FOREIGN KEY (status_id)
         REFERENCES item_status (id) ON DELETE CASCADE,
     CONSTRAINT fk_group_id
-        FOREING KEY (group_id)
+        FOREIGN KEY (group_id)
         REFERENCES item_group (id) ON DELETE CASCADE
 );
 

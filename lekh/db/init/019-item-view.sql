@@ -5,6 +5,7 @@ SELECT
     item.serial,
     item.description,
     item.shelf,
+    item.group_id,
     user.name AS created_by,
     user.email AS creator_email,
     item.asset_id,

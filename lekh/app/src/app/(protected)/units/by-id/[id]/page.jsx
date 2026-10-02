@@ -2,7 +2,7 @@
 
 import { use, useContext, useState } from "react";
 import { UserContext } from "@/context/user-context";
-import { ItemsContext } from "@/context/items-context";
+import { EquipmentContext } from "@/context/equipment-context";
 import { ItemCard } from "@/components/item-card";
 import { ModalWithToast } from "@/components/modal-with-toast";
 import { CreateItemForm } from "@/components/create-item-form";
@@ -12,7 +12,7 @@ const Page = ({ params }) => {
 
   const { user } = useContext(UserContext);
 
-  const { items, refreshItems, meta } = useContext(ItemsContext);
+  const { items, refreshItems, meta } = useContext(EquipmentContext);
 
   const [message, setMessage] = useState("");
 
