@@ -50,7 +50,7 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item }) => {
 
   return (
     <form onSubmit={form.handleSubmit(handleSubmit)} autoComplete="off">
-      <FieldSet className="w-full max-w-xs">
+      <FieldSet>
         <FieldGroup>
           <Field data-invalid={Boolean(form.formState.errors.name)}>
             <FieldLabel htmlFor="name">Name</FieldLabel>

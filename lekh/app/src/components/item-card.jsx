@@ -27,9 +27,9 @@ const ItemCard = ({ item, handleClick, pointer, single }) => {
     }
   };
 
-  let cardClassName = "relative overflow-hidden"
+  let cardClassName = "relative overflow-hidden w-md";
   cardClassName = `${cardClassName} ${pointer && "cursor-pointer"}`;
-  cardClassName = `${cardClassName} ${single && "w-md"}`;
+  // cardClassName = `${cardClassName} ${single && ""}`;
 
   return (
     <Card onClick={() => handleActualClick()} className={cardClassName}>

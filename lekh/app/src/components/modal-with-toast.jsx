@@ -15,13 +15,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogTrigger
 } from "@/components/ui/dialog";
 
 const ModalWithToast = ({
   title,
   message,
   onMessageHandled,
+  doubleWidth,
   children
 }) => {
   const [ open, onOpenChange ] = useState(false);
@@ -34,13 +35,17 @@ const ModalWithToast = ({
     }
   }, [message]);
 
+  const contentClassName = doubleWidth
+    ? "sm:max-w-[95vw] lg:max-w-[960px]"
+    : "";
+
   return (
     <div className="container md:mx-auto mt-4">
       <Dialog {...{ open, onOpenChange }}>
         <DialogTrigger render={
           <Button className="ml-auto mx-10 print:hidden" variant="outline">{title}</Button>
         } />
-        <DialogContent>
+        <DialogContent className={contentClassName}>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>

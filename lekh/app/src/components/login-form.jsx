@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "cn";
 import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import { getLanding } from "@/routes";
 import {
   Card,
   CardContent,
@@ -45,7 +46,7 @@ export function LoginForm({
       return;
     }
 
-    router.push("/dashboard");
+    router.push(getLanding().route);
   }
 
   return (
