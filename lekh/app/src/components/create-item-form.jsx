@@ -147,7 +147,9 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
                   </SelectTrigger>
 
                   <SelectContent>
-                    {groups.map((group) => (
+                    {groups
+                      .sort((group1, group2) => group1.name.localeCompare(group2.name))
+                      .map((group) => (
                       <SelectItem
                         key={group.id}
                         value={group.id.toString()}
