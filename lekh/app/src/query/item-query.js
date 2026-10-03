@@ -10,7 +10,8 @@ const columns = [
   "shelf",
   "user_id",
   "asset_id",
-  "status_id"
+  "status_id",
+  "group_id"
 ];
 
 const addItemQuery = async (data) => {
@@ -19,7 +20,7 @@ const addItemQuery = async (data) => {
 
   await pool.query(
     `INSERT INTO item (${columns.join(", ")}) VALUES (${columns.map(() => "?").join(", ")})`,
-    [data.name, data.serial, data.description, data.shelf, data.userId, assetId, data.statusId]
+    [data.name, data.serial, data.description, data.shelf, data.userId, assetId, data.statusId, data.groupId]
   );
 
   return { id: assetId, extension };
@@ -38,7 +39,7 @@ const updateItemQuery = async (data) => {
 
   await pool.query(
     `UPDATE item SET ${updateColumns} WHERE id=?`,
-    [data.name, data.serial, data.description, data.shelf, data.userId, assetId ?? data.assetId, data.statusId, data.id]
+    [data.name, data.serial, data.description, data.shelf, data.userId, assetId ?? data.assetId, data.statusId, data.groupId, data.id]
   );
 
   return { id: assetId, extension };

@@ -2,8 +2,9 @@ import { z } from "zod";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
-const createItemSchema = (statuses, editing = false) => {
+const createItemSchema = (groups, statuses, editing = false) => {
   const statusIds = statuses.map((status) => status.id);
+  const groupIds = groups.map((group) => group.id);
 
   const imageSchema = z.instanceof(File)
     .refine(
@@ -26,6 +27,11 @@ const createItemSchema = (statuses, editing = false) => {
     statusId: z.number().refine(
       (id) => statusIds.includes(id),
       "Invalid status"
+    ),
+
+    groupId: z.number().refine(
+      (id) => groupIds.includes(id),
+      "Invalid group"
     ),
 
     image: editing

@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS item (
     user_id INT NOT NULL,
     asset_id INT NOT NULL,
     status_id INT NOT NULL DEFAULT 1,
+    group_id INT NOT NULL DEFAULT 1,
     CONSTRAINT fk_user_id
         FOREIGN KEY (user_id)
         REFERENCES user (id) ON DELETE CASCADE,
@@ -15,6 +16,9 @@ CREATE TABLE IF NOT EXISTS item (
         REFERENCES asset (id) ON DELETE CASCADE,
     CONSTRAINT fk_status_id
         FOREIGN KEY (status_id)
-        REFERENCES item_status (id) ON DELETE CASCADE
+        REFERENCES item_status (id) ON DELETE CASCADE,
+    CONSTRAINT fk_group_id
+        FOREIGN KEY (group_id)
+        REFERENCES item_group (id) ON DELETE CASCADE
 );
 

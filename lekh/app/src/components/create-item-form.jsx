@@ -19,6 +19,8 @@ import {
   SelectValue
 } from "@/components/ui/select";
 
+import { useContext } from "react";
+import { EquipmentContext } from "@/context/equipment-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Controller, useForm } from "react-hook-form";
@@ -29,9 +31,10 @@ import { saveItem } from "@/service/save-item";
 
 import { createItemSchema } from "@/schema/item-schema";
 
-const CreateItemForm = ({ onSuccess, onFail, statuses, item }) => {
+const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
   const editing = Boolean(item);
-  const schema = createItemSchema(statuses, editing);
+  const { groups } = useContext(EquipmentContext);
+  const schema = createItemSchema(groups, statuses, editing);
 
   const form = useForm({
     resolver: zodResolver(schema),
@@ -42,7 +45,8 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item }) => {
       serial: item?.serial ?? "",
       description: item?.description ?? "",
       shelf: item?.shelf ?? "",
-      statusId: item?.status_id ?? Number(statuses[0]?.id)
+      statusId: item?.status_id ?? Number(statuses[0]?.id),
+      groupId: item?.group_id ?? groupId ?? 1
     }
   });
 
@@ -116,6 +120,39 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item }) => {
                         value={status.id.toString()}
                       >
                         {status.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <FieldError errors={[fieldState.error]} />
+              </Field>
+            )}
+          />
+          <Controller
+            name="groupId"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel>Group</FieldLabel>
+
+                <Select
+                  value={field.value?.toString()}
+                  onValueChange={(value) => field.onChange(Number(value))}
+                >
+                  <SelectTrigger aria-invalid={fieldState.invalid}>
+                    <SelectValue>
+                      {groups.find((group) => group.id === field.value)?.name ?? "Select Group"}
+                    </SelectValue>
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {groups.map((group) => (
+                      <SelectItem
+                        key={group.id}
+                        value={group.id.toString()}
+                      >
+                        {group.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

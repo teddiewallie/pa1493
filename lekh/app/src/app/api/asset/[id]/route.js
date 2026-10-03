@@ -25,8 +25,16 @@ const session = await auth();
       }
     });
   } catch (e) {
-    console.log(e);
-    return new Response("Not found", { status: 404 });
+    const path = getAssetPath("0", "jpg");
+    const image = await readFile(path);
+
+    return new Response(image, {
+      status: 404,
+      headers: {
+        "Content-Type": "image/jpeg",
+        "Cache-Control": "private, max-age=3600"
+      }
+    });
   }
 };
 
