@@ -28,8 +28,8 @@ import { MarkdownEditor } from "@/components/markdown-editor";
 
 const articleTypes = [
   { id: 1, name: "Guide" },
-  { id: 2, name: "Troubleshooting" },
-  { id: 3, name: "Reference" },
+  { id: 2, name: "Equipment" },
+  { id: 3, name: "Projects" },
   { id: 4, name: "Documentation" }
 ];
 

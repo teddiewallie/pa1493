@@ -7,7 +7,7 @@ INSERT INTO user (name, email, password, role_id) VALUES
 ('Adam Adamsson', 'adam@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
 ('Eva Eriksson', 'eva@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
 ('Fredrik Frisk', 'fredrik@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
-('Gustav Gustavsson','gustav@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
+('Gustav Gustavsson', 'gustav@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
 ('Hanna Holm', 'hanna@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
 ('Ida Isaksson', 'ida@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
 ('Johan Johansson', 'johan@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2);
@@ -36,18 +36,75 @@ INSERT INTO asset (mime_type, extension) VALUES
 ('image/jpeg', 'jpg'),
 ('image/jpeg', 'jpg');
 
+
 -- Item Groups
-INSERT INTO item_group (id, name, description) VALUES
-(2, 'Raspberry Pi 4 Model B', 'Raspberry Pi 4B development boards'),
-(3, 'Arduino Uno', 'Arduino Uno microcontroller boards'),
-(4, 'ESP32 Development Board', 'ESP32 Wi-Fi and Bluetooth development boards'),
-(5, 'Temperature Sensor', 'Digital temperature sensors'),
-(6, 'Ultrasonic Sensor', 'Ultrasonic distance sensors'),
-(7, 'Webcam', 'USB webcams for laboratory projects'),
-(8, '3D Printer', 'FDM 3D printers'),
-(9, 'Soldering Station', 'Adjustable temperature soldering stations'),
-(10, 'Multimeter', 'Digital multimeters'),
-(11, 'Stepper Motor', 'NEMA stepper motors for robotics projects');
+INSERT INTO item_group (
+    id,
+    name,
+    description,
+    known_issues
+) VALUES
+(
+    2,
+    'Raspberry Pi 4 Model B',
+    'Raspberry Pi 4B development boards',
+    'All boards occasionally run warm under sustained CPU load. Use adequate cooling for longer-running projects.'
+),
+(
+    3,
+    'Arduino Uno',
+    'Arduino Uno microcontroller boards',
+    'USB connection can occasionally disconnect when the board is powered from an unstable USB port.'
+),
+(
+    4,
+    'ESP32 Development Board',
+    'ESP32 Wi-Fi and Bluetooth development boards',
+    'Wi-Fi and Bluetooth performance may be reduced when the board is powered through a low-quality USB cable.'
+),
+(
+    5,
+    'Temperature Sensor',
+    'Digital temperature sensors',
+    'Readings can be inaccurate when the sensor is placed directly next to heat-generating components.'
+),
+(
+    6,
+    'Ultrasonic Sensor',
+    'Ultrasonic distance sensors',
+    'Measurements can be unreliable with soft, angled, or highly irregular surfaces.'
+),
+(
+    7,
+    'Webcam',
+    'USB webcams for laboratory projects',
+    'Camera exposure may need manual adjustment in poorly lit environments.'
+),
+(
+    8,
+    '3D Printer',
+    'FDM 3D printers',
+    'Print quality depends heavily on bed levelling and nozzle cleanliness. Check the build plate before starting a print.'
+),
+(
+    9,
+    'Soldering Station',
+    'Adjustable temperature soldering stations',
+    'Allow the station to reach the selected temperature before soldering. Always return the temperature to a safe level after use.'
+),
+(
+    10,
+    'Multimeter',
+    'Digital multimeters',
+    'Always check the probe connections and selected measurement mode before measuring. Do not exceed the rated input limits.'
+),
+(
+    11,
+    'Stepper Motor',
+    'NEMA stepper motors for robotics projects',
+    'Motors may become hot during extended operation. Use an appropriate driver and avoid operating the motor without a suitable load.'
+);
+
 
 -- Items
 INSERT INTO item (
@@ -58,37 +115,236 @@ INSERT INTO item (
     user_id,
     asset_id,
     status_id,
-    group_id
+    group_id,
+    known_issues
 ) VALUES
-('Raspberry Pi 4 Model B', 'RPI4-0001', 'Raspberry Pi 4B development board', 'A-01', 1, 1, 1, 2),
-('Raspberry Pi 4 Model B', 'RPI4-0002', 'Raspberry Pi 4B development board', 'A-02', 2, 2, 1, 2),
+(
+    'Raspberry Pi 4 Model B',
+    'RPI4-0001',
+    'Raspberry Pi 4B development board',
+    'A-01',
+    1,
+    1,
+    1,
+    2,
+    'Ethernet port is slightly loose and may require the cable to be held firmly.'
+),
+(
+    'Raspberry Pi 4 Model B',
+    'RPI4-0002',
+    'Raspberry Pi 4B development board',
+    'A-02',
+    2,
+    2,
+    1,
+    2,
+    ''
+),
 
--- One Arduino intentionally ungrouped
-('Arduino Uno', 'ARDU-0001', 'Arduino Uno microcontroller board', 'A-03', 1, 3, 1, 1),
-('Arduino Uno', 'ARDU-0002', 'Arduino Uno microcontroller board', 'A-04', 2, 4, 3, 3),
+(
+    'Arduino Uno',
+    'ARDU-0001',
+    'Arduino Uno microcontroller board',
+    'A-03',
+    1,
+    3,
+    1,
+    1,
+    ''
+),
+(
+    'Arduino Uno',
+    'ARDU-0002',
+    'Arduino Uno microcontroller board',
+    'A-04',
+    2,
+    4,
+    3,
+    3,
+    'One of the digital pins is unreliable and should not be used for critical connections.'
+),
 
-('ESP32 Development Board', 'ESP32-0001', 'ESP32 Wi-Fi and Bluetooth development board', 'A-05', 1, 5, 3, 4),
-('ESP32 Development Board', 'ESP32-0002', 'ESP32 Wi-Fi and Bluetooth development board', 'A-06', 2, 6, 3, 4),
+(
+    'ESP32 Development Board',
+    'ESP32-0001',
+    'ESP32 Wi-Fi and Bluetooth development board',
+    'A-05',
+    1,
+    5,
+    3,
+    4,
+    'USB connector is loose and can disconnect if the cable is moved.'
+),
+(
+    'ESP32 Development Board',
+    'ESP32-0002',
+    'ESP32 Wi-Fi and Bluetooth development board',
+    'A-06',
+    2,
+    6,
+    3,
+    4,
+    ''
+),
 
-('Temperature Sensor', 'TEMP-0001', 'Digital temperature sensor', 'B-01', 1, 7, 1, 5),
-('Temperature Sensor', 'TEMP-0002', 'Digital temperature sensor', 'B-02', 2, 8, 1, 5),
+(
+    'Temperature Sensor',
+    'TEMP-0001',
+    'Digital temperature sensor',
+    'B-01',
+    1,
+    7,
+    1,
+    5,
+    ''
+),
+(
+    'Temperature Sensor',
+    'TEMP-0002',
+    'Digital temperature sensor',
+    'B-02',
+    2,
+    8,
+    1,
+    5,
+    'Readings are approximately 1–2 °C higher than expected at room temperature.'
+),
 
-('Ultrasonic Sensor', 'ULTRA-0001', 'Ultrasonic distance sensor', 'B-03', 1, 9, 1, 6),
-('Ultrasonic Sensor', 'ULTRA-0002', 'Ultrasonic distance sensor', 'B-04', 2, 10, 1, 6),
+(
+    'Ultrasonic Sensor',
+    'ULTRA-0001',
+    'Ultrasonic distance sensor',
+    'B-03',
+    1,
+    9,
+    1,
+    6,
+    ''
+),
+(
+    'Ultrasonic Sensor',
+    'ULTRA-0002',
+    'Ultrasonic distance sensor',
+    'B-04',
+    2,
+    10,
+    1,
+    6,
+    'Occasionally reports a distance of 0 cm until the sensor is restarted.'
+),
 
--- One Webcam intentionally ungrouped
-('Webcam', 'CAM-0001', 'USB webcam for laboratory projects', 'B-05', 1, 11, 3, 1),
-('Webcam', 'CAM-0002', 'USB webcam for laboratory projects', 'B-06', 2, 12, 3, 7),
+(
+    'Webcam',
+    'CAM-0001',
+    'USB webcam for laboratory projects',
+    'B-05',
+    1,
+    11,
+    3,
+    1,
+    ''
+),
+(
+    'Webcam',
+    'CAM-0002',
+    'USB webcam for laboratory projects',
+    'B-06',
+    2,
+    12,
+    3,
+    7,
+    'Autofocus occasionally hunts continuously. Switching to manual focus resolves the issue.'
+),
 
-('3D Printer', '3DP-0001', 'FDM 3D printer', 'C-01', 1, 13, 4, 8),
-('3D Printer', '3DP-0002', 'FDM 3D printer', 'C-02', 2, 14, 1, 8),
+(
+    '3D Printer',
+    '3DP-0001',
+    'FDM 3D printer',
+    'C-01',
+    1,
+    13,
+    4,
+    8,
+    'The extruder occasionally clicks during high-speed printing. Reduce print speed if this occurs.'
+),
+(
+    '3D Printer',
+    '3DP-0002',
+    'FDM 3D printer',
+    'C-02',
+    2,
+    14,
+    1,
+    8,
+    ''
+),
 
-('Soldering Station', 'SOLD-0001', 'Adjustable temperature soldering station', 'C-03', 1, 15, 1, 9),
-('Soldering Station', 'SOLD-0002', 'Adjustable temperature soldering station', 'C-04', 2, 16, 1, 9),
+(
+    'Soldering Station',
+    'SOLD-0001',
+    'Adjustable temperature soldering station',
+    'C-03',
+    1,
+    15,
+    1,
+    9,
+    ''
+),
+(
+    'Soldering Station',
+    'SOLD-0002',
+    'Adjustable temperature soldering station',
+    'C-04',
+    2,
+    16,
+    1,
+    9,
+    'Temperature display is slightly slow to update after changing the temperature.'
+),
 
-('Multimeter', 'MULT-0001', 'Digital multimeter', 'C-05', 1, 17, 1, 10),
-('Multimeter', 'MULT-0002', 'Digital multimeter', 'C-06', 2, 18, 1, 10),
+(
+    'Multimeter',
+    'MULT-0001',
+    'Digital multimeter',
+    'C-05',
+    1,
+    17,
+    1,
+    10,
+    ''
+),
+(
+    'Multimeter',
+    'MULT-0002',
+    'Digital multimeter',
+    'C-06',
+    2,
+    18,
+    1,
+    10,
+    'The rotary selector is slightly stiff around the resistance measurement range.'
+),
 
-('Stepper Motor', 'STEP-0001', 'NEMA stepper motor for robotics projects', 'D-01', 1, 19, 1, 11),
-('Stepper Motor', 'STEP-0002', 'NEMA stepper motor for robotics projects', 'D-02', 2, 20, 1, 11);
+(
+    'Stepper Motor',
+    'STEP-0001',
+    'NEMA stepper motor for robotics projects',
+    'D-01',
+    1,
+    19,
+    1,
+    11,
+    ''
+),
+(
+    'Stepper Motor',
+    'STEP-0002',
+    'NEMA stepper motor for robotics projects',
+    'D-02',
+    2,
+    20,
+    1,
+    11,
+    'Motor makes a noticeable vibration at low speeds. Higher speeds appear unaffected.'
+);
 

@@ -23,6 +23,7 @@ import { useContext } from "react";
 import { EquipmentContext } from "@/context/equipment-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ImagePicker } from "@/components/image-picker";
@@ -44,13 +45,16 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
       name: item?.name ?? "",
       serial: item?.serial ?? "",
       description: item?.description ?? "",
+      knownIssues: item?.known_issues ?? "",
       shelf: item?.shelf ?? "",
       statusId: item?.status_id ?? Number(statuses[0]?.id),
       groupId: item?.group_id ?? groupId ?? 1
     }
   });
 
-  const handleSubmit = async (data) => (await saveItem(data) ? onSuccess() : onFail());
+  const handleSubmit = async (data) => (
+    await saveItem(data) ? onSuccess() : onFail()
+  );
 
   return (
     <form onSubmit={form.handleSubmit(handleSubmit)} autoComplete="off">
@@ -63,9 +67,11 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
               type="name"
               placeholder="Raspberry PI 4"
               {...form.register("name")}
-              aria-invalid={Boolean(form.formState.errors.name)} />
-              <FieldError errors={[form.formState.errors.name]} />
+              aria-invalid={Boolean(form.formState.errors.name)}
+            />
+            <FieldError errors={[form.formState.errors.name]} />
           </Field>
+
           <Field data-invalid={Boolean(form.formState.errors.serial)}>
             <FieldLabel htmlFor="serial">Serial</FieldLabel>
             <Input
@@ -73,9 +79,11 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
               type="serial"
               placeholder="S3R1-A1"
               {...form.register("serial")}
-              aria-invalid={Boolean(form.formState.errors.serial)} />
-              <FieldError errors={[form.formState.errors.serial]} />
+              aria-invalid={Boolean(form.formState.errors.serial)}
+            />
+            <FieldError errors={[form.formState.errors.serial]} />
           </Field>
+
           <Field data-invalid={Boolean(form.formState.errors.description)}>
             <FieldLabel htmlFor="description">Description</FieldLabel>
             <Input
@@ -83,9 +91,23 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
               type="description"
               placeholder="description"
               {...form.register("description")}
-              aria-invalid={Boolean(form.formState.errors.description)} />
-              <FieldError errors={[form.formState.errors.description]} />
+              aria-invalid={Boolean(form.formState.errors.description)}
+            />
+            <FieldError errors={[form.formState.errors.description]} />
           </Field>
+
+          <Field data-invalid={Boolean(form.formState.errors.knownIssues)}>
+            <FieldLabel htmlFor="knownIssues">Known Issues</FieldLabel>
+            <Textarea
+              id="knownIssues"
+              placeholder="Known issues with this unit"
+              className="min-h-32"
+              {...form.register("knownIssues")}
+              aria-invalid={Boolean(form.formState.errors.knownIssues)}
+            />
+            <FieldError errors={[form.formState.errors.knownIssues]} />
+          </Field>
+
           <Field data-invalid={Boolean(form.formState.errors.shelf)}>
             <FieldLabel htmlFor="shelf">Shelf</FieldLabel>
             <Input
@@ -93,9 +115,11 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
               type="shelf"
               placeholder="shelf"
               {...form.register("shelf")}
-              aria-invalid={Boolean(form.formState.errors.shelf)} />
-              <FieldError errors={[form.formState.errors.shelf]} />
+              aria-invalid={Boolean(form.formState.errors.shelf)}
+            />
+            <FieldError errors={[form.formState.errors.shelf]} />
           </Field>
+
           <Controller
             name="statusId"
             control={form.control}
@@ -129,12 +153,13 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
               </Field>
             )}
           />
+
           <Controller
             name="groupId"
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel>Group</FieldLabel>
+                <FieldLabel>Type</FieldLabel>
 
                 <Select
                   value={field.value?.toString()}
@@ -142,7 +167,7 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
                 >
                   <SelectTrigger aria-invalid={fieldState.invalid}>
                     <SelectValue>
-                      {groups.find((group) => group.id === field.value)?.name ?? "Select Group"}
+                      {groups.find((group) => group.id === field.value)?.name ?? "Select Type"}
                     </SelectValue>
                   </SelectTrigger>
 
@@ -150,13 +175,13 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
                     {groups
                       .sort((group1, group2) => group1.name.localeCompare(group2.name))
                       .map((group) => (
-                      <SelectItem
-                        key={group.id}
-                        value={group.id.toString()}
-                      >
-                        {group.name}
-                      </SelectItem>
-                    ))}
+                        <SelectItem
+                          key={group.id}
+                          value={group.id.toString()}
+                        >
+                          {group.name}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
 
@@ -164,6 +189,7 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
               </Field>
             )}
           />
+
           <Controller
             name="image"
             control={form.control}
@@ -175,12 +201,17 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
                   onChange={(file) => {
                     field.onChange(file);
                     form.trigger("image");
-                }} />
+                  }}
+                />
                 <FieldError errors={[fieldState.error]} />
               </Field>
-            )} />
+            )}
+          />
+
           <div className="container flex items-center gap-12">
-            <Button className="flex mt-7" type="submit">Save Unit</Button>
+            <Button className="flex mt-7" type="submit">
+              Save Unit
+            </Button>
           </div>
         </FieldGroup>
       </FieldSet>

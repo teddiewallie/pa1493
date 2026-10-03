@@ -8,7 +8,7 @@ import { CreateItemForm } from "@/components/create-item-form";
 import { ItemCard } from "@/components/item-card";
 import { useRouter } from "next/navigation";
 
-const ItemList = ({ groupId, children }) => {
+const ItemList = ({ extraCards, groupId, children }) => {
   const { groups, items, refreshItems, meta } = useContext(EquipmentContext);
   const { user } = useContext(UserContext);
   const router = useRouter();
@@ -38,6 +38,7 @@ const ItemList = ({ groupId, children }) => {
       </div>
 
       <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mx-10 my-4">
+        {extraCards}
         {curatedItems.map((item) => (<ItemCard key={`item-${item.id}`} {...{ item, handleClick, pointer: true }} />))}
       </div>
    </div>

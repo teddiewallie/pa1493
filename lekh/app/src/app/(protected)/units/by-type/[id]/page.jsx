@@ -6,6 +6,7 @@ import { EquipmentContext } from "@/context/equipment-context";
 import { ItemList } from "@/components/item-list";
 import { ModalWithToast } from "@/components/modal-with-toast";
 import { CreateGroupForm } from "@/components/create-group-form";
+import { SimpleCard } from "@/components/simple-card";
 
 const Page = ({params}) => {
   const { id } = use(params);
@@ -18,13 +19,15 @@ const Page = ({params}) => {
 
   const onMessageHandled = () => setMessage("");
 
+  const extraCards = <SimpleCard {...{ title: "Known Type Issues", description: group.known_issues }} />;
+
   return (
     <>
       <div className="container md:mx-auto pl-10 mt-4 text-2xl font-bold">
         {group && group.name}
       </div>
 
-      <ItemList groupId={Number(id)}>
+      <ItemList {...{ extraCards, groupId: Number(id) }}>
         { (user.role_id == 1) && <ModalWithToast row {...{ title: "Edit Type", message, onMessageHandled }}>
           <CreateGroupForm {...{
             group,

@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS item (
     serial VARCHAR(255) NOT NULL UNIQUE,
     description VARCHAR(255) NOT NULL,
     shelf VARCHAR(255),
+    known_issues TEXT NOT NULL,
     user_id INT NOT NULL,
     asset_id INT NOT NULL,
     status_id INT NOT NULL DEFAULT 1,

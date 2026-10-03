@@ -6,19 +6,23 @@ import { EquipmentContext } from "@/context/equipment-context";
 import { ItemCard } from "@/components/item-card";
 import { ModalWithToast } from "@/components/modal-with-toast";
 import { CreateItemForm } from "@/components/create-item-form";
+import { SimpleCard } from "@/components/simple-card";
 
 const Page = ({ params }) => {
   const { id } = use(params);
 
   const { user } = useContext(UserContext);
-
-  const { items, refreshItems, meta } = useContext(EquipmentContext);
+  const { items, refreshItems, meta, groups } = useContext(EquipmentContext);
 
   const [message, setMessage] = useState("");
 
-  const item = items.find((item) => (item.id == id));
+  const item = items?.find((item) => (item.id == id));
+  const group = groups?.find((group) => group.id == item.group_id);
 
   const onMessageHandled = () => setMessage("");
+
+  const itemIssues = item?.known_issues;
+  const groupIssues = group?.known_issues;
 
   return (
     <div className="container md:mx-auto">
@@ -30,11 +34,13 @@ const Page = ({ params }) => {
             refreshItems();
           },
           onFail: () => setMessage("Failed to create item."),
-          statuses: meta.status
+          statuses: meta?.status
         }} />
       </ModalWithToast> }
 
       <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 mx-10 my-4">
+        {itemIssues?.length > 0 && <SimpleCard {...{ title: "Known Unit Issues", description: itemIssues }} />}
+        {groupIssues?.length > 0 && <SimpleCard {...{ title: "Known Type Issues", description: groupIssues }} />}
         <ItemCard {...{ item, single: true }} />
       </div>
     </div>
