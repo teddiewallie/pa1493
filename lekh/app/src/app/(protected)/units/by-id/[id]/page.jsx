@@ -22,7 +22,7 @@ const Page = ({ params }) => {
 
   return (
     <div className="container md:mx-auto">
-      { (user.role_id == 1) && <ModalWithToast doubleWidth {...{ title: "Edit Item", message, onMessageHandled }}>
+      { (user.role_id == 1) && <ModalWithToast {...{ title: "Edit Item", message, onMessageHandled }}>
         <CreateItemForm {...{
           item,
           onSuccess: () => {

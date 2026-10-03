@@ -28,7 +28,7 @@ const GroupCard = ({ group, handleClick }) => {
 
   if (id !== 0) {
     groupItems = items.filter((item) => (item.group_id == group.id));
-    assetId = groupItems[0].asset_id;
+    assetId = groupItems[0]?.asset_id;
   }
 
   const totalItems = groupItems.length;

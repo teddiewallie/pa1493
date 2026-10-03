@@ -10,14 +10,22 @@ import {
   CardTitle
 } from "@/components/ui/card";
 
+import { useRouter } from "next/navigation";
+import { useContext } from "react";
+import { EquipmentContext } from "@/context/equipment-context";
 import Image from "next/image";
 import { QRCode } from "@/components/qr-code";
 import { ItemStatus } from "@/components/item-status";
 
 const ItemCard = ({ item, handleClick, pointer, single }) => {
+  const { groups } = useContext(EquipmentContext);
+  const router = useRouter();
+
   if (!item) {
     return <div />
   }
+
+  const group = groups?.find((group) => group.id == item.group_id);
 
   const { id, name, serial, description, shelf, asset_id, status_name } = item;
 
@@ -60,6 +68,15 @@ const ItemCard = ({ item, handleClick, pointer, single }) => {
         />
       </div>
       <ItemStatus id={item.status_id} name={item.status_name} />
+      {single && <div className="flex print:hidden items-center justify-left mx-4 -mt-2">
+        <div className="flex-1">Type</div>
+        <div className="flex items-center">
+          <span
+            onClick={() => router.push(`/units/by-type/${group?.id}`)}
+            className="cursor-pointer underline decoration-dashed"
+          >{group?.name}</span>
+        </div>
+      </div>}
     </Card>
   );
 };

@@ -8,7 +8,7 @@ import { CreateItemForm } from "@/components/create-item-form";
 import { ItemCard } from "@/components/item-card";
 import { useRouter } from "next/navigation";
 
-const ItemList = ({ groupId }) => {
+const ItemList = ({ groupId, children }) => {
   const { groups, items, refreshItems, meta } = useContext(EquipmentContext);
   const { user } = useContext(UserContext);
   const router = useRouter();
@@ -22,17 +22,20 @@ const ItemList = ({ groupId }) => {
 
   return (
     <div className="container md:mx-auto">
-      { (user.role_id == 1) && <ModalWithToast doubleWidth {...{ title: "Add Item", message }}>
-        <CreateItemForm {...{
-          onSuccess: () => {
-            setMessage("Item successfully created.");
-            refreshItems();
-          },
-          onFail: () => setMessage("Failed to create item."),
-          statuses: meta.status,
-          groupId
-        }} />
-      </ModalWithToast> }
+      <div className="flex">
+        {children}
+        { (user.role_id == 1) && <ModalWithToast row {...{ title: "Add Item", message }}>
+          <CreateItemForm {...{
+            onSuccess: () => {
+              setMessage("Item successfully created.");
+              refreshItems();
+            },
+            onFail: () => setMessage("Failed to create item."),
+            statuses: meta.status,
+            groupId
+          }} />
+        </ModalWithToast> }
+      </div>
 
       <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mx-10 my-4">
         {curatedItems.map((item) => (<ItemCard key={`item-${item.id}`} {...{ item, handleClick, pointer: true }} />))}

@@ -14,22 +14,30 @@ const EquipmentProvider = ({ children }) => {
 
   const refreshItems = async () => {
     setLoading(true);
-
     const capsule = await getItems();
-    const { groups } = await getGroups();
-
     setItems(capsule.items);
     setMeta(capsule.meta);
-    setGroups(groups);
+    setLoading(false);
+  };
+
+  const refreshGroups = async () => {
+    setLoading(true);
+    const { groups: initialGroups } = await getGroups();
+    setGroups(initialGroups);
     setLoading(false);
   };
 
   useEffect(() => {
-    refreshItems();
+    const load = async () => {
+      await refreshItems();
+      await refreshGroups();
+    }
+
+    load();
   }, []);
 
   return (
-    <EquipmentContext.Provider value={{groups, items, meta, loading, refreshItems}}>
+    <EquipmentContext.Provider value={{groups, items, meta, loading, refreshItems, refreshGroups}}>
       { children }
     </EquipmentContext.Provider>
   );
