@@ -19,7 +19,7 @@ const Page = ({params}) => {
 
   const onMessageHandled = () => setMessage("");
 
-  const extraCards = <SimpleCard {...{ title: "Known Type Issues", description: group.known_issues }} />;
+  const extraCards = <SimpleCard {...{ title: "Known Type Issues", description: group?.known_issues }} />;
 
   return (
     <>

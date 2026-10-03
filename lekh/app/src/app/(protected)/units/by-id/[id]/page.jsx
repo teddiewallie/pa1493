@@ -25,25 +25,30 @@ const Page = ({ params }) => {
   const groupIssues = group?.known_issues;
 
   return (
-    <div className="container md:mx-auto">
-      { (user.role_id == 1) && <ModalWithToast {...{ title: "Edit Unit", message, onMessageHandled }}>
-        <CreateItemForm {...{
-          item,
-          onSuccess: () => {
-            setMessage("Item successfully created.");
-            refreshItems();
-          },
-          onFail: () => setMessage("Failed to create item."),
-          statuses: meta?.status
-        }} />
-      </ModalWithToast> }
-
-      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 mx-10 my-4">
-        {itemIssues?.length > 0 && <SimpleCard {...{ title: "Known Unit Issues", description: itemIssues }} />}
-        {groupIssues?.length > 0 && <SimpleCard {...{ title: "Known Type Issues", description: groupIssues }} />}
-        <ItemCard {...{ item, single: true }} />
+    <>
+      <div className="container md:mx-auto pl-10 mt-4 text-2xl font-bold">
+        {item && `${item.name} - ${item.serial}`}
       </div>
-    </div>
+      <div className="container md:mx-auto">
+        { (user.role_id == 1) && <ModalWithToast {...{ title: "Edit Unit", message, onMessageHandled }}>
+          <CreateItemForm {...{
+            item,
+            onSuccess: () => {
+              setMessage("Item successfully created.");
+              refreshItems();
+            },
+            onFail: () => setMessage("Failed to create item."),
+            statuses: meta?.status
+          }} />
+        </ModalWithToast> }
+
+        <div className="grid grid-cols-1 gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mx-10 my-4">
+          <ItemCard {...{ item, single: true }} />
+          {itemIssues?.length > 0 && <SimpleCard {...{ title: "Known Unit Issues", description: itemIssues }} />}
+          {groupIssues?.length > 0 && <SimpleCard {...{ title: "Known Type Issues", description: groupIssues }} />}
+        </div>
+      </div>
+    </>
   );
 };
 

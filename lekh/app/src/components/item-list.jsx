@@ -38,8 +38,8 @@ const ItemList = ({ extraCards, groupId, children }) => {
       </div>
 
       <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mx-10 my-4">
-        {extraCards}
         {curatedItems.map((item) => (<ItemCard key={`item-${item.id}`} {...{ item, handleClick, pointer: true }} />))}
+        {extraCards}
       </div>
    </div>
   );
