@@ -24,13 +24,13 @@ const ItemList = ({ groupId, children }) => {
     <div className="container md:mx-auto">
       <div className="flex">
         {children}
-        { (user.role_id == 1) && <ModalWithToast row {...{ title: "Add Item", message }}>
+        { (user.role_id == 1) && <ModalWithToast row {...{ title: "Add Unit", message }}>
           <CreateItemForm {...{
             onSuccess: () => {
-              setMessage("Item successfully created.");
+              setMessage("Unit successfully created.");
               refreshItems();
             },
-            onFail: () => setMessage("Failed to create item."),
+            onFail: () => setMessage("Failed to create unit."),
             statuses: meta.status,
             groupId
           }} />

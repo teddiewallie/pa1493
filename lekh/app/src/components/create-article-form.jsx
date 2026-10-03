@@ -73,8 +73,6 @@ const CreateArticleForm = ({ onSuccess, onFail, article, articleId }) => {
                 aria-invalid={Boolean(form.formState.errors.title)}
                 className="rounded-none border-b-0 -mb-5 !text-xl px-4 py-6 !bg-transparent"
               />
-
-              <FieldError errors={[form.formState.errors.title]} />
             </Field>
 
             <Controller
@@ -111,8 +109,6 @@ const CreateArticleForm = ({ onSuccess, onFail, article, articleId }) => {
                       ))}
                     </SelectContent>
                   </Select>
-
-                  <FieldError errors={[fieldState.error]} />
                 </Field>
               )}
             />
@@ -133,8 +129,6 @@ const CreateArticleForm = ({ onSuccess, onFail, article, articleId }) => {
                 />
               )}
             />
-
-            <FieldError errors={[form.formState.errors.content]} />
           </Field>
 
           <div className="flex items-center mx-2">

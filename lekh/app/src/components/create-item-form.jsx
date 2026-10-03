@@ -180,7 +180,7 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
               </Field>
             )} />
           <div className="container flex items-center gap-12">
-            <Button className="flex mt-7" type="submit">Save Item</Button>
+            <Button className="flex mt-7" type="submit">Save Unit</Button>
           </div>
         </FieldGroup>
       </FieldSet>
