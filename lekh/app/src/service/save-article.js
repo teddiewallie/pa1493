@@ -1,8 +1,24 @@
 "use server";
 
+import { auth } from "@/auth";
 import { addArticleQuery, updateArticleQuery } from "@/query/article-query";
 
 const saveArticle = async (data) => {
+  const session = await auth(); 
+
+  if (!session) {
+    return false;
+  }
+
+  if (session.role_id > 1) {
+    if (data.groupId) {
+      return false;
+    }
+    if (data.articleType != 3) {
+      return false;
+    }
+  }
+
   try {
     if (data.id) {
       await updateArticleQuery(data);
@@ -17,3 +33,4 @@ const saveArticle = async (data) => {
 };
 
 export { saveArticle };
+
