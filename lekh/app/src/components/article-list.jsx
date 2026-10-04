@@ -10,13 +10,15 @@ import Link from "next/link";
 
 import { ArticleBadge } from "@/components/article-badge";
 
-const ArticleList = ({ articles, articleTypes }) => {
+const ArticleList = ({ articles, articleTypes, title }) => {
+
+  title = title ?? "Articles";
 
   return (
     <Card className="max-h-106">
       <CardHeader className="pt-2">
         <CardTitle>
-          Articles
+          {title}
         </CardTitle>
         <CardDescription>
           Guides, Documentation, Equipment, Projects

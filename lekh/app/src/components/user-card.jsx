@@ -29,10 +29,12 @@ const SingleCard = ({ user }) => (
 );
 
 const UserCard = ({user, single}) => (
-  <Link href={`/users/${user.id}`}>
+  <>
     {single && <SingleCard {...{user}} />}
-    {!single && <NavCard {...{user}} />}
-  </Link>
+    {!single && <Link href={`/users/${user.id}`}>
+      <NavCard {...{user}} />
+    </Link>}
+  </>
 );
 
 export { UserCard };

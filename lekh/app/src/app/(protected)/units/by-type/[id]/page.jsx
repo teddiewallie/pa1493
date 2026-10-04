@@ -48,7 +48,7 @@ const Page = ({params}) => {
       </div>
 
       <ItemList {...{ extraCards, groupId: Number(id) }}>
-        { (user?.role_id == 1 && !isUngrouped) &&
+        { !isUngrouped &&
           <Link href={`/editor/for-type/${id}`}>
             <Button
               className="ml-auto mt-4 ml-10 print:hidden"

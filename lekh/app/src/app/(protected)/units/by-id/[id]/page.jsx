@@ -6,11 +6,13 @@ import { useRouter } from "next/navigation";
 import { use, useContext, useState } from "react";
 import { UserContext } from "@/context/user-context";
 import { EquipmentContext } from "@/context/equipment-context";
+import { ArticleContext } from "@/context/article-context";
 import { ItemCard } from "@/components/item-card";
 import { ModalWithToast } from "@/components/modal-with-toast";
 import { CreateItemForm } from "@/components/create-item-form";
 import { SimpleCard } from "@/components/simple-card";
 import { Button } from "@/components/ui/button";
+import { ArticleList } from "@/components/article-list";
 
 const Page = ({ params }) => {
   const { id } = use(params);
@@ -18,6 +20,7 @@ const Page = ({ params }) => {
 
   const { user } = useContext(UserContext);
   const { items, refreshItems, meta, groups } = useContext(EquipmentContext);
+  const { articles, articleTypes } = useContext(ArticleContext);
 
   const [message, setMessage] = useState("");
 
@@ -28,6 +31,9 @@ const Page = ({ params }) => {
 
   const itemIssues = item?.known_issues;
   const groupIssues = group?.known_issues;
+
+  const itemArticles = articles.filter((article) => (article.item_id == item?.id));
+  const groupArticles = articles.filter((article) => (article.group_id == item?.group_id));
 
   return (
     <>
@@ -41,7 +47,7 @@ const Page = ({ params }) => {
         </div>
       </div>
       <div className="flex container md:mx-auto">
-        { <Link href={`/editor/for-unit/${id}`}>
+        { user.role_id == 1 && <Link href={`/editor/for-unit/${id}`}>
             <Button
               className="ml-10 mt-4 print:hidden"
               variant="outline"
@@ -62,6 +68,8 @@ const Page = ({ params }) => {
 
       <div className="container px-10 md:mx-auto grid grid-cols-1 gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 my-4">
         <ItemCard {...{ item, single: true }} />
+        <ArticleList {...{ articles: itemArticles, articleTypes, title: "Type Articles"}} />
+        <ArticleList {...{ articles: groupArticles, articleTypes, title: "Unit Articles"}} />
         {itemIssues?.length > 0 && <SimpleCard {...{ title: "Known Unit Issues", description: itemIssues }} />}
         {groupIssues?.length > 0 && <SimpleCard {...{ title: "Known Type Issues", description: groupIssues }} />}
       </div>

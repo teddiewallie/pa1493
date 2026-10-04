@@ -40,7 +40,7 @@ const Page = ({params}) => {
   }
 
   if (user.role_id > 1) {
-    if (scope == "for-type") {
+    if (scope == "for-unit") {
       router.back();
     }
 

@@ -11,9 +11,10 @@ const saveArticle = async (data) => {
   }
 
   if (session.role_id > 1) {
-    if (data.groupId) {
+    if (data.itemId) {
       return false;
     }
+
     if (data.articleType != 3) {
       return false;
     }
