@@ -33,7 +33,7 @@ const articleTypes = [
   { id: 4, name: "Documentation" }
 ];
 
-const CreateArticleForm = ({ onSuccess, onFail, article, articleId }) => {
+const CreateArticleForm = ({ onSuccess, onFail, article, articleId, groupId, itemId }) => {
   const schema = createArticleSchema();
 
   const form = useForm({
@@ -42,7 +42,9 @@ const CreateArticleForm = ({ onSuccess, onFail, article, articleId }) => {
       id: article?.id ?? articleId,
       title: article?.title ?? "",
       content: article?.content ?? "",
-      typeId: article?.type_id ?? articleTypes[0].id
+      typeId: article?.type_id ?? articleTypes[0].id,
+      groupId,
+      itemId
     }
   });
 
