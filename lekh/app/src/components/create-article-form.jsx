@@ -15,6 +15,7 @@ import {
   SelectValue
 } from "@/components/ui/select";
 
+import { useRouter } from "next/navigation";
 import { useContext, useEffect } from "react";
 
 import { Controller, useForm } from "react-hook-form";
@@ -30,7 +31,7 @@ import { MarkdownEditor } from "@/components/markdown-editor";
 
 import { EquipmentContext } from "@/context/equipment-context";
 
-const CreateArticleForm = ({ onSuccess, onFail, article, articleTypes, typeId, articleId, groupId, itemId, isStudent }) => {
+const CreateArticleForm = ({ onSuccess, onFail, article, articleTypes, typeId, articleId, groupId, itemId, userId, isStudent }) => {
   const { items, groups } = useContext(EquipmentContext);
   const schema = createArticleSchema();
 
@@ -45,7 +46,8 @@ const CreateArticleForm = ({ onSuccess, onFail, article, articleTypes, typeId, a
       content: article?.content ?? "",
       typeId: typeId ?? article?.type_id ?? articleTypes[0]?.id,
       groupId,
-      itemId
+      itemId,
+      userId
     }
   });
 
@@ -58,13 +60,15 @@ const CreateArticleForm = ({ onSuccess, onFail, article, articleTypes, typeId, a
     content: article.content ?? "",
     typeId: typeId ?? article.type_id ?? articleTypes[0]?.id,
     groupId,
-    itemId
+    itemId,
+    userId
   });
 }, [articleId, article, articleTypes, groupId, itemId, typeId, form]);
 
-  const handleSubmit = async (data) => (
-    await saveArticle(data) ? onSuccess() : onFail()
-  );
+  const handleSubmit = async (data) => {
+    const result = await saveArticle(data);
+    result ? onSuccess(result) : onFail()
+  };
 
   return (
     <>
@@ -96,7 +100,7 @@ const CreateArticleForm = ({ onSuccess, onFail, article, articleTypes, typeId, a
                 />
               </Field>
 
-              { isStudent ?? <Controller
+              { !isStudent && <Controller
                 name="typeId"
                 control={form.control}
                 render={({ field, fieldState }) => (

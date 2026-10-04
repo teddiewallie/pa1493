@@ -10,7 +10,7 @@ import { toast } from "@/components/ui/toast";
 const Page = ({params}) => {
   const router = useRouter();
 
-  const { articles, articleTypes } = useContext(ArticleContext);
+  const { articles, articleTypes, refreshArticles, loading } = useContext(ArticleContext);
   const { user } = useContext(UserContext);
   const { scope, equipmentId, articleIds } = use(params);
   let articleId = null;
@@ -24,10 +24,14 @@ const Page = ({params}) => {
     }
   }
 
-  const groupId = scope === "for-type" ? equipmentId : null;
-  const itemId = scope === "for-unit" ? equipmentId : null;
+  const groupId = scope === "for-type" ? Number(equipmentId) : null;
+  const itemId = scope === "for-unit" ? Number(equipmentId) : null;
 
   const article = articles?.find((article) => article.id == articleId);
+
+  if (articleId && !article && !loading) {
+    router.back();
+  }
 
   const validScopes = ["for-type", "for-unit"];
 
@@ -45,22 +49,24 @@ const Page = ({params}) => {
     }
   }
 
-  if (article && article?.user_id != user.id) {
-    router.back();
-  }
-
-  const typeId = user.role_id > 1 ? 3 : article?.type_id;
+  const typeId = user.role_id > 1 ? 3 : Number(article?.type_id);
 
   return (<CreateArticleForm {...{
-    onSuccess: () => toast.add({ title: "Article successfully saved." }),
+    onSuccess: (result) => {
+      toast.add({ title: `Article successfully ${articleId ? "updated" : "saved"}.` }),
+      refreshArticles();
+      if (!articleId) {
+        router.push(`/editor/${scope}/${equipmentId}/${result.id}`);
+      }
+    },
     onFail: () => toast.add({ title: "Failed to save article." }),
     articleTypes: articleTypes ?? [],
     article,
-    articleId,
+    articleId: Number(articleId),
     groupId,
     itemId,
     typeId,
-    userId: user?.id,
+    userId: Number(user?.id),
     isStudent: user?.role_id > 1
   }} />);
 }

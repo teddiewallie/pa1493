@@ -7,11 +7,14 @@ import { getArticles } from "@/service/get-articles";
 const ArticleProvider = ({ children }) => {
   const [articles, setArticles] = useState([]);
   const [articleTypes, setArticleTypes] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const refreshArticles = async () => {
+    setLoading(true);
     const { articles, articleTypes } = await getArticles();
     setArticles(articles);
     setArticleTypes(articleTypes);
+    setLoading(false);
   }
 
   useEffect(() => {
@@ -20,7 +23,7 @@ const ArticleProvider = ({ children }) => {
   }, []);
   
   return (
-    <ArticleContext.Provider value={{articles, articleTypes}}>
+    <ArticleContext.Provider value={{articles, articleTypes, refreshArticles, loading}}>
       { children }
     </ArticleContext.Provider>
   );
