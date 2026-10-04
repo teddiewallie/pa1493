@@ -43,51 +43,77 @@ Specifically the aim is to:
     - ~~Item type~~
     - ~~Item serial number~~
     - ~~Item photo~~
-* The system must allow users to view the item specifics.
-* The system must allow searching on the following fields for each item:
-    - Item name
-    - Item type
-    - Item serial number
+* ~~The system must allow users to view the item specifics.~~
+* The system must allow full text search through all faults, guides, and projects.
+* ~~The system must allow distinguishing between types and units.~~
 * ~~The system must restrict users according to their role.~~
-* The system must allow students to submit articles to the idea catalogue.
-* The system must allow students to read articles in the idea catalogue.
+* ~~The system must allow students to submit articles to the idea catalogue.~~
+* ~~The system must allow students to read articles in the idea catalogue.~~
+* The system must allow students to (request to) borrow and return items, with start and end dates.
+* The system must allow the unit to be returned.
+* ~~The system must allow to mark an item as out of service.~~
+* The system must allow users to report a known fault on a specific unit.
+* ~~The system must allow caretakers to report a known fault on a whole type.~~
+* ~~The system must allow users to record a finished project and link the article to the used equipment.~~
+  - Multiple equipment and "Related Articles" section in each mentioned type?
 
 **Should**
 
-* The system should have a "what can I build with this" link from any item page.
-* The system should have pagination.
+* ~~The system could allow QR codes to be scanned from PC or phone cameras.~~
+* ~~The system could allow adding QR codes for each item.~~
+* ~~The system should allow label printing~~.
+* The system should allow searching on the following fields for each item:
+    - Item name
+    - Item type
+    - Item serial number
 
 **Could**
 
-* The system could allow users to borrow and return items.
+* The system could have pagination.
+* The system could have a "what can I build with this" link from any item page.
 * The system could allow the following information to be added for each item:
     - Kit definitions with contents checklists.
     - Datasheets
     - OS Images
-* The system could allow label printing.
 * The system could have lazy loading.
 * The system could have an an audit log.
 * The system could allow import items from CSV or JSON.
-* The system could allow full text search through all faults, guides, and projects.
 * The system could allow storing documents and media.
 * The system could have usage statistics.
 * The system could have induction, gating what may be borrowed.
 * The system could filter search by availability, category, difficulty, required skill.
-* The system could allow QR codes to be scanned from PC or phone cameras.
-* The system could allow adding QR codes for each item.
 * The system could allow users to rate and comment on articles in the idea bank.
 
 **Non-Functional Requirements**
 
-* The system could use the following tech stack:
-    - Node.js
-    - React
-    - Relational database
+* ~~The system could use the following tech stack:~~
+    - ~~Node.js~~
+    - ~~React~~
+    - ~~Relational database~~
 * The images could be optimized for a reasonable balance between size and quality.
 * The system could cache information.
-* The system could have a REST API.
-* The system could be mobile first.
-* The system could have input validation where it makes sense.
+* ~~The system could have a REST API. (NextJS uses server and client components. There is a REST API endpoint for assets.)~~
+* ~~The system could be mobile first.~~
+* ~~The system could have input validation where it makes sense.~~
+
+### Acceptance Criteria
+
+| # | Acceptance criterion | Scenario | Expected result |
+|---:|---|---|---|
+| ✅1 | **User registration** | An account for a user can be created. | A new account is created and the user can log in with it. |
+| ✅2 | **Login and roles** | A student logs in, then a caretaker logs in. | Both reach the system, and the two roles do not see the same thing. A student cannot reach caretaker functions. |
+| ✅3 | **Equipment types and units** | A caretaker adds an item type and registers several individual units of it. | The type exists once and the units exist separately, each with its own identifier, location and condition. |
+| ✅4 | **Browse equipment** | A student opens the equipment list. | Equipment is listed with its category and whether it is currently available. |
+| ✅5 | **One unit out of service** | A caretaker marks one unit of a type as out of service, and a student then opens that type. | The type still shows as available, the remaining units can be borrowed, and the broken unit cannot. |
+| ✅6 | **Equipment guide** | A student opens a piece of equipment and looks for instructions. | A setup or usage guide in text for that equipment is reachable from the equipment page. |
+| 7 | **Report a fault** | A student reports a fault on a specific unit. | The fault is recorded against that unit, a caretaker can see it, and the fault is visible on the unit. |
+| 8 | **Fault on a whole type** | A caretaker records a known problem against an item type rather than a single unit. | The problem is shown on every unit of that type without being entered again. |
+| 9 | **Borrow request with dates** | A student requests to borrow a unit. | The request covers a period with a start and an end date, and is recorded as pending. |
+| 10 | **Return** | A borrowed unit is returned. | The loan is closed, the unit becomes available again, and the loan appears in that unit’s history. |
+| ✅11 | **Usable on a phone** | A student opens the equipment list and an equipment guide on a phone. | Both are readable and usable on a phone screen, without horizontal scrolling or zooming to read. |
+| ✅12 | **Project library** | A student records a finished project and states which equipment was used, then opens that equipment. | The project is saved and is reachable from the equipment it used. |
+| 13 | **Search** | A user searches for a term that appears in equipment, guides and projects. | Matching results are returned across those areas and can be opened. |
+
 
 ## Your Backlog
 

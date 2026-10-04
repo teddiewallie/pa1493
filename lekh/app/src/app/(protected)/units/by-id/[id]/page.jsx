@@ -68,8 +68,8 @@ const Page = ({ params }) => {
 
       <div className="container px-10 md:mx-auto grid grid-cols-1 gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 my-4">
         <ItemCard {...{ item, single: true }} />
-        <ArticleList {...{ articles: itemArticles, articleTypes, title: "Type Articles"}} />
-        <ArticleList {...{ articles: groupArticles, articleTypes, title: "Unit Articles"}} />
+        {itemArticles?.length > 0 && <ArticleList {...{ articles: itemArticles, articleTypes, title: "Unit Articles"}} />}
+        {groupArticles?.length > 0 && <ArticleList {...{ articles: groupArticles, articleTypes, title: "Type Articles"}} />}
         {itemIssues?.length > 0 && <SimpleCard {...{ title: "Known Unit Issues", description: itemIssues }} />}
         {groupIssues?.length > 0 && <SimpleCard {...{ title: "Known Type Issues", description: groupIssues }} />}
       </div>
