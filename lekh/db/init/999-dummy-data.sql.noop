@@ -348,3 +348,473 @@ INSERT INTO item (
     'Motor makes a noticeable vibration at low speeds. Higher speeds appear unaffected.'
 );
 
+-- Articles
+-- Group articles are created by maintainers.
+-- Item articles are created by students and use the Project type.
+
+INSERT INTO article (
+    title,
+    content,
+    user_id,
+    item_id,
+    group_id,
+    type_id
+) VALUES
+
+-- ============================================================
+-- GROUP ARTICLES
+-- ============================================================
+
+(
+    'Getting Started with Raspberry Pi 4',
+    '# Getting Started
+
+The Raspberry Pi 4 is a small single-board computer suitable for a wide range of projects.
+
+## Basic setup
+
+1. Connect the power supply.
+2. Connect a display and keyboard if needed.
+3. Insert the prepared SD card.
+4. Power on the board.
+
+Make sure the board has adequate cooling during longer workloads.',
+    1, NULL, 2, 1
+),
+(
+    'Arduino Uno Basics',
+    '# Arduino Uno Basics
+
+The Arduino Uno is a simple microcontroller board commonly used for learning electronics.
+
+## First project
+
+A good first project is a blinking LED.
+
+Connect an LED through a resistor and configure one of the digital pins as an output.
+
+Always disconnect power before changing the wiring.',
+    1, NULL, 3, 1
+),
+(
+    'ESP32 Wi-Fi Projects',
+    '# ESP32 Wi-Fi Projects
+
+The ESP32 combines a microcontroller with Wi-Fi and Bluetooth.
+
+## Common uses
+
+- IoT projects
+- Wireless sensors
+- Web servers
+- Bluetooth controllers
+- Remote monitoring
+
+For reliable wireless operation, use a good USB cable and a stable power source.',
+    1, NULL, 4, 3
+),
+(
+    'Measuring Temperature',
+    '# Measuring Temperature
+
+Temperature sensors are useful for monitoring environmental conditions and electronics projects.
+
+## Tips
+
+Place the sensor away from components that generate significant heat.
+
+Allow the sensor to stabilise before recording measurements.
+
+> Measurements may vary slightly depending on the environment and sensor placement.',
+    1, NULL, 5, 2
+),
+(
+    'Ultrasonic Distance Measurement',
+    '# Ultrasonic Distance Measurement
+
+Ultrasonic sensors measure distance by sending out a short sound pulse and measuring the return time.
+
+## Example uses
+
+- Obstacle detection
+- Robot navigation
+- Automatic doors
+- Tank level measurement
+
+Measurements work best when the target surface is relatively flat and perpendicular to the sensor.',
+    1, NULL, 6, 4
+),
+(
+    'Using the Laboratory Webcams',
+    '# Using the Laboratory Webcams
+
+The laboratory webcams can be connected through USB and used by most applications that support standard webcams.
+
+## Troubleshooting
+
+If the image is too dark, check the exposure settings.
+
+If autofocus behaves unexpectedly, try switching to manual focus if the application supports it.',
+    1, NULL, 7, 4
+),
+(
+    '3D Printing Workflow',
+    '# 3D Printing Workflow
+
+A typical 3D printing workflow is:
+
+1. Prepare the model.
+2. Slice the model.
+3. Check the printer.
+4. Level the build plate.
+5. Start the print.
+6. Monitor the first layers.
+
+## Before printing
+
+Check that the build plate is clean and that the nozzle is free of old material.',
+    1, NULL, 8, 1
+),
+(
+    'Soldering Station Guide',
+    '# Soldering Station Guide
+
+The soldering stations have adjustable temperature controls.
+
+## Basic procedure
+
+1. Select an appropriate temperature.
+2. Allow the station to heat up.
+3. Tin the tip if necessary.
+4. Solder the connection.
+5. Clean the tip.
+6. Return the station to a safe temperature.
+
+Never leave a heated soldering iron unattended.',
+    1, NULL, 9, 1
+),
+(
+    'Using a Multimeter',
+    '# Using a Multimeter
+
+A multimeter can measure quantities such as voltage, resistance, and current.
+
+## Before measuring
+
+Check:
+
+- The selected measurement mode
+- Probe connections
+- Expected measurement range
+- Maximum rated input
+
+> Never connect the meter to a circuit using the wrong measurement mode.',
+    1, NULL, 10, 4
+),
+(
+    'Stepper Motor Basics',
+    '# Stepper Motor Basics
+
+Stepper motors move in discrete steps and are commonly used in robotics and automation projects.
+
+## Using a stepper motor
+
+A suitable motor driver is required. The motor should not be connected directly to a microcontroller.
+
+Motors can become warm during extended operation, so allow sufficient ventilation.',
+    1, NULL, 11, 1
+),
+
+-- ============================================================
+-- ITEM ARTICLES
+-- All created by students (users 3-10).
+-- All are Project articles (type 3).
+-- ============================================================
+
+(
+    'Raspberry Pi 4: Simple Web Server',
+    '# Simple Web Server
+
+This project uses the Raspberry Pi to host a small local web server.
+
+## Goal
+
+Install a lightweight web server and make a test page accessible from another computer on the same network.
+
+## Notes
+
+Keep the Pi connected to a stable network connection during testing.',
+    3, 1, NULL, 3
+),
+(
+    'Raspberry Pi 4: Temperature Monitor',
+    '# Temperature Monitor
+
+Build a simple temperature monitor using the Raspberry Pi and a temperature sensor.
+
+## Project idea
+
+Read the sensor periodically and display the current temperature on a small web page.
+
+This combines GPIO, sensors, and basic networking.',
+    4, 2, NULL, 3
+),
+(
+    'Arduino Uno: LED Traffic Light',
+    '# LED Traffic Light
+
+Create a small traffic light using three LEDs.
+
+## Components
+
+- Arduino Uno
+- Red LED
+- Yellow LED
+- Green LED
+- Resistors
+
+Program the LEDs so that they change in a realistic traffic-light sequence.',
+    5, 3, NULL, 3
+),
+(
+    'Arduino Uno: Digital Pin Test',
+    '# Digital Pin Test
+
+This project tests the digital pins of an Arduino Uno.
+
+## Procedure
+
+Connect an LED through a resistor and test the pins one at a time.
+
+Record which pins behave as expected and which require further investigation.',
+    6, 4, NULL, 3
+),
+(
+    'ESP32: Wi-Fi Temperature Display',
+    '# Wi-Fi Temperature Display
+
+Use the ESP32 to read a temperature sensor and publish the result over Wi-Fi.
+
+## Overview
+
+The ESP32 reads the sensor periodically and serves the latest value through a simple HTTP page.
+
+This combines sensors, microcontrollers, and networking.',
+    7, 5, NULL, 3
+),
+(
+    'ESP32: Wireless Sensor Node',
+    '# Wireless Sensor Node
+
+Turn the ESP32 into a small wireless sensor node.
+
+## Project
+
+Connect a sensor and periodically transmit its readings to another computer on the network.
+
+Use a stable USB connection during testing to avoid unexpected resets.',
+    8, 6, NULL, 3
+),
+(
+    'Temperature Sensor: Room Monitor',
+    '# Room Temperature Monitor
+
+Build a simple room temperature monitor.
+
+## Project idea
+
+Take a temperature reading every few seconds and display the current value.
+
+For better results, keep the sensor away from computers, power supplies, and other heat-producing equipment.',
+    9, 7, NULL, 3
+),
+(
+    'Temperature Sensor: Comparing Measurements',
+    '# Comparing Temperature Measurements
+
+Use this sensor to compare temperatures at different locations.
+
+## Experiment
+
+Measure the temperature:
+
+1. Near a window.
+2. In the centre of the room.
+3. Near a computer.
+4. Near a power supply.
+
+Record the results and discuss why the measurements differ.',
+    10, 8, NULL, 3
+),
+(
+    'Ultrasonic Sensor: Parking Assistant',
+    '# Parking Assistant
+
+Create a simple parking assistant using an ultrasonic sensor.
+
+## Behaviour
+
+The closer an object gets to the sensor, the faster an LED should blink.
+
+This provides a simple introduction to distance measurement and conditional logic.',
+    3, 9, NULL, 3
+),
+(
+    'Ultrasonic Sensor: Obstacle Detector',
+    '# Obstacle Detector
+
+Build a small obstacle detector using the ultrasonic sensor.
+
+## Example
+
+Use the sensor to detect objects in front of a robot and stop the robot when the measured distance falls below a selected threshold.',
+    4, 10, NULL, 3
+),
+(
+    'Webcam: Motion Monitoring',
+    '# Motion Monitoring
+
+Use the webcam to monitor a small area.
+
+## Project idea
+
+Capture frames periodically and compare them to detect changes.
+
+This can be extended into a simple motion-detection system.',
+    5, 11, NULL, 3
+),
+(
+    'Webcam: Document Camera',
+    '# Document Camera
+
+Turn the webcam into a simple document camera.
+
+## Setup
+
+Position the camera above the workspace and adjust the exposure and focus.
+
+This can be useful for recording electronics work or demonstrating a circuit to others.',
+    6, 12, NULL, 3
+),
+(
+    '3D Printer: Calibration Cube',
+    '# Calibration Cube
+
+Print a small calibration cube to evaluate the printer.
+
+## What to check
+
+- Overall dimensions
+- Layer consistency
+- First-layer adhesion
+- Corner quality
+- Stringing
+
+Record the results before making adjustments to the printer settings.',
+    7, 13, NULL, 3
+),
+(
+    '3D Printer: First Layer Test',
+    '# First Layer Test
+
+This project focuses on getting a reliable first layer.
+
+## Procedure
+
+1. Clean the build plate.
+2. Check the bed levelling.
+3. Start a small test print.
+4. Observe the first layer.
+5. Adjust the printer if necessary.
+
+A good first layer is one of the most important factors in a successful print.',
+    8, 14, NULL, 3
+),
+(
+    'Soldering Station: LED Circuit',
+    '# LED Circuit
+
+Build a simple LED circuit using the soldering station.
+
+## Project
+
+Solder an LED, resistor, and connector onto a small prototyping board.
+
+Allow the soldering station to reach the selected temperature before beginning.',
+    9, 15, NULL, 3
+),
+(
+    'Soldering Station: Cable Repair',
+    '# Cable Repair
+
+Practice repairing a damaged low-voltage cable.
+
+## Procedure
+
+Strip the damaged section, prepare the conductors, solder the connection, and insulate it properly.
+
+Always work on cables that are disconnected from their power source.',
+    10, 16, NULL, 3
+),
+(
+    'Multimeter: Resistor Measurements',
+    '# Resistor Measurements
+
+Use the multimeter to measure several resistors and compare the results with their labelled values.
+
+## Experiment
+
+Measure at least five resistors and calculate the difference between the measured and expected values.
+
+Remember to select resistance mode before measuring.',
+    3, 17, NULL, 3
+),
+(
+    'Multimeter: Checking a Power Supply',
+    '# Checking a Power Supply
+
+Use the multimeter to check the output voltage of a low-voltage power supply.
+
+## Procedure
+
+1. Check the expected voltage.
+2. Select an appropriate voltage range.
+3. Connect the probes correctly.
+4. Measure the output.
+
+Never exceed the rated input limits of the multimeter.',
+    4, 18, NULL, 3
+),
+(
+    'Stepper Motor: Basic Rotation',
+    '# Basic Stepper Motor Rotation
+
+Connect the stepper motor to a suitable driver and make it rotate a fixed number of steps.
+
+## Goal
+
+Learn how step count, direction, and speed affect the motor.
+
+Do not connect the motor directly to a microcontroller.',
+    5, 19, NULL, 3
+),
+(
+    'Stepper Motor: Speed Experiment',
+    '# Stepper Motor Speed Experiment
+
+Investigate how motor speed affects vibration and movement.
+
+## Experiment
+
+Run the motor at several different speeds and record:
+
+- Speed
+- Direction
+- Vibration
+- Temperature
+- Missed steps
+
+Compare the results and determine a suitable operating range.',
+    6, 20, NULL, 3
+);
+

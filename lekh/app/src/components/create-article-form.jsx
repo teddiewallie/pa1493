@@ -15,6 +15,8 @@ import {
   SelectValue
 } from "@/components/ui/select";
 
+import { useEffect } from "react";
+
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -26,14 +28,7 @@ import { createArticleSchema } from "@/schema/article-schema";
 
 import { MarkdownEditor } from "@/components/markdown-editor";
 
-const articleTypes = [
-  { id: 1, name: "Guide" },
-  { id: 2, name: "Equipment" },
-  { id: 3, name: "Projects" },
-  { id: 4, name: "Documentation" }
-];
-
-const CreateArticleForm = ({ onSuccess, onFail, article, articleId, groupId, itemId }) => {
+const CreateArticleForm = ({ onSuccess, onFail, article, articleTypes, articleId, groupId, itemId }) => {
   const schema = createArticleSchema();
 
   const form = useForm({
@@ -42,11 +37,24 @@ const CreateArticleForm = ({ onSuccess, onFail, article, articleId, groupId, ite
       id: article?.id ?? articleId,
       title: article?.title ?? "",
       content: article?.content ?? "",
-      typeId: article?.type_id ?? articleTypes[0].id,
+      typeId: article?.type_id ?? articleTypes[0]?.id,
       groupId,
       itemId
     }
   });
+
+  useEffect(() => {
+  if (!article) return;
+
+  form.reset({
+    id: article.id ?? articleId,
+    title: article.title ?? "",
+    content: article.content ?? "",
+    typeId: article.type_id ?? articleTypes[0]?.id,
+    groupId,
+    itemId
+  });
+}, [articleId, article, articleTypes, groupId, itemId, form]);
 
   const handleSubmit = async (data) => (
     await saveArticle(data) ? onSuccess() : onFail()

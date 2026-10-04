@@ -3,13 +3,15 @@
 import { useRouter } from "next/navigation";
 import { use, useContext } from "react";
 import { ArticleContext } from "@/context/article-context";
+import { UserContext } from "@/context/user-context";
 import { CreateArticleForm } from "@/components/create-article-form";
 import { toast } from "@/components/ui/toast";
 
 const Page = ({params}) => {
   const router = useRouter();
 
-  const { articles } = useContext(ArticleContext);
+  const { articles, articleTypes } = useContext(ArticleContext);
+  const { user } = useContext(UserContext);
   const { scope, equipmentId, articleIds } = use(params);
   let articleId = null;
 
@@ -31,15 +33,17 @@ const Page = ({params}) => {
   const groupId = scope === "for-type" ? equipmentId : null;
   const itemId = scope === "for-unit" ? equipmentId : null;
 
-  const article = articles?.find((article) => (article.group_id == groupId || article.item_id == itemId));
+  const article = articles?.find((article) => article.id == articleId);
 
   return (<CreateArticleForm {...{
     onSuccess: () => toast.add({ title: "Article successfully saved." }),
     onFail: () => toast.add({ title: "Failed to save article." }),
+    articleTypes: articleTypes ?? [],
     article,
     articleId,
     groupId,
-    itemId
+    itemId,
+    userId: user?.id
   }} />);
 }
 
