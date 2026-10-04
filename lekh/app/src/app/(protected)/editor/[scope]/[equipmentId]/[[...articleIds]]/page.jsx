@@ -15,12 +15,6 @@ const Page = ({params}) => {
   const { scope, equipmentId, articleIds } = use(params);
   let articleId = null;
 
-  const validScopes = ["for-type", "for-unit"];
-  if (!validScopes.includes(scope)) {
-    router.back();
-    return (<div />);
-  }
-
   if (articleIds) {
     if (articleIds.length > 1) {
       router.back();
@@ -35,6 +29,28 @@ const Page = ({params}) => {
 
   const article = articles?.find((article) => article.id == articleId);
 
+  const validScopes = ["for-type", "for-unit"];
+
+  if (!validScopes.includes(scope)) {
+    router.back();
+  }
+
+  if (user.role_id > 1) {
+    if (scope == "for-type") {
+      router.back();
+    }
+
+    if (article && user.id != article?.user_id) {
+      router.back();
+    }
+  }
+
+  if (article && article?.user_id != user.id) {
+    router.back();
+  }
+
+  const typeId = user.role_id > 1 ? 3 : article?.type_id;
+
   return (<CreateArticleForm {...{
     onSuccess: () => toast.add({ title: "Article successfully saved." }),
     onFail: () => toast.add({ title: "Failed to save article." }),
@@ -43,7 +59,9 @@ const Page = ({params}) => {
     articleId,
     groupId,
     itemId,
-    userId: user?.id
+    typeId,
+    userId: user?.id,
+    isStudent: user?.role_id > 1
   }} />);
 }
 
