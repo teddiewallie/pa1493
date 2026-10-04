@@ -4,6 +4,17 @@
 
 @custom-variant dark (&:is(.dark *));
 
+body .w-md-editor-text-pre > code,
+body .w-md-editor-text-input {
+  font-size: 16px !important;
+  line-height: 1.6 !important;
+  font-family: monospace !important;
+}
+
+body .wmde-markdown-color {
+    background-color: transparent !important;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

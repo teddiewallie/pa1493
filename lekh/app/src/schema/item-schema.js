@@ -21,6 +21,7 @@ const createItemSchema = (groups, statuses, editing = false) => {
     assetId: z.number().optional(),
     name: z.string().min(1, "Name is required"),
     description: z.string(),
+    knownIssues: z.string(),
     shelf: z.string(),
     serial: z.string().min(1, "Serial is required"),
 

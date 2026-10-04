@@ -8,7 +8,7 @@ import { CreateItemForm } from "@/components/create-item-form";
 import { ItemCard } from "@/components/item-card";
 import { useRouter } from "next/navigation";
 
-const ItemList = ({ groupId, children }) => {
+const ItemList = ({ extraCards, groupId, children }) => {
   const { groups, items, refreshItems, meta } = useContext(EquipmentContext);
   const { user } = useContext(UserContext);
   const router = useRouter();
@@ -24,13 +24,13 @@ const ItemList = ({ groupId, children }) => {
     <div className="container md:mx-auto">
       <div className="flex">
         {children}
-        { (user.role_id == 1) && <ModalWithToast row {...{ title: "Add Item", message }}>
+        { (user.role_id == 1) && <ModalWithToast row {...{ title: "Add Unit", message }}>
           <CreateItemForm {...{
             onSuccess: () => {
-              setMessage("Item successfully created.");
+              setMessage("Unit successfully created.");
               refreshItems();
             },
-            onFail: () => setMessage("Failed to create item."),
+            onFail: () => setMessage("Failed to create unit."),
             statuses: meta.status,
             groupId
           }} />
@@ -39,6 +39,7 @@ const ItemList = ({ groupId, children }) => {
 
       <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mx-10 my-4">
         {curatedItems.map((item) => (<ItemCard key={`item-${item.id}`} {...{ item, handleClick, pointer: true }} />))}
+        {extraCards}
       </div>
    </div>
   );

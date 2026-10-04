@@ -4,6 +4,7 @@ SELECT
     item.name,
     item.serial,
     item.description,
+    item.known_issues,
     item.shelf,
     item.group_id,
     user.name AS created_by,

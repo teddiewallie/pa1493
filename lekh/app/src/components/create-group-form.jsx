@@ -12,6 +12,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 import { saveGroup } from "@/service/save-group";
 import { createGroupSchema } from "@/schema/group-schema";
@@ -24,7 +25,8 @@ const CreateGroupForm = ({ onSuccess, onFail, group, groupId }) => {
     defaultValues: {
       id: group?.id ?? groupId,
       name: group?.name ?? "",
-      description: group?.description ?? ""
+      description: group?.description ?? "",
+      knownIssues: group?.known_issues ?? ""
     }
   });
 
@@ -60,6 +62,18 @@ const CreateGroupForm = ({ onSuccess, onFail, group, groupId }) => {
             <FieldError errors={[form.formState.errors.description]} />
           </Field>
 
+          <Field data-invalid={Boolean(form.formState.errors.knownIssues)}>
+            <FieldLabel htmlFor="knownIssues">Known Issues</FieldLabel>
+            <Textarea
+              id="knownIssues"
+              placeholder="Known issues with this group"
+              className="min-h-40"
+              {...form.register("knownIssues")}
+              aria-invalid={Boolean(form.formState.errors.knownIssues)}
+            />
+            <FieldError errors={[form.formState.errors.knownIssues]} />
+          </Field>
+
           <div className="container flex items-center gap-12">
             <Button className="flex mt-7" type="submit">
               Save Group
@@ -72,3 +86,4 @@ const CreateGroupForm = ({ onSuccess, onFail, group, groupId }) => {
 };
 
 export { CreateGroupForm };
+

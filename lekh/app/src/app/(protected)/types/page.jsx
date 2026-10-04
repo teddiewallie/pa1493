@@ -31,23 +31,28 @@ const Page = () => {
   const onMessageHandled = () => setMessage("");
 
   return (
-    <div className="container mx-auto">
-      { (user.role_id == 1) && <ModalWithToast {...{ title: "Add Type", message, onMessageHandled }}>
-        <CreateGroupForm {...{
-          onSuccess: () => {
-            setMessage("Type successfully added.");
-            refreshGroups();
-          },
-          onFail: () => setMessage("Failed to add type.")
-        }} />
-      </ModalWithToast> }
-
-
-      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mx-10 my-4">
-        <GroupCard key="group-0" {...{ group: allItems, handleClick }} />
-        {groups.map((group) => <GroupCard key={`group-${group.id}`} {...{ group, handleClick }} />)}
+    <>
+      <div className="container md:mx-auto pl-10 mt-4 text-2xl font-bold">
+        All Types
       </div>
-    </div>
+      <div className="container mx-auto">
+        { (user.role_id == 1) && <ModalWithToast {...{ title: "Add Type", message, onMessageHandled }}>
+          <CreateGroupForm {...{
+            onSuccess: () => {
+              setMessage("Type successfully added.");
+              refreshGroups();
+            },
+            onFail: () => setMessage("Failed to add type.")
+          }} />
+        </ModalWithToast> }
+
+
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mx-10 my-4">
+          <GroupCard key="group-0" {...{ group: allItems, handleClick }} />
+          {groups.map((group) => <GroupCard key={`group-${group.id}`} {...{ group, handleClick }} />)}
+        </div>
+      </div>
+    </>
   );
 };
 

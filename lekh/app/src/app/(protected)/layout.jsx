@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { UserProvider } from "@/provider/user-provider";
 import { EquipmentProvider } from "@/provider/equipment-provider";
+import { ArticleProvider } from "@/provider/article-provider";
 import { TopBar } from "@/components/top-bar";
 import { BottomBar } from "@/components/bottom-bar";
 import { Toaster } from "@/components/ui/toast";
@@ -20,10 +21,12 @@ const ProtectedLayout = async ({ children }) => {
   return (
     <UserProvider {...{ user }}>
       <EquipmentProvider>
-        <TopBar />
-          {children}
-        <Toaster />
-        <BottomBar />
+        <ArticleProvider>
+          <TopBar />
+            {children}
+          <Toaster />
+          <BottomBar />
+        </ArticleProvider>
       </EquipmentProvider>
     </UserProvider>
   );
