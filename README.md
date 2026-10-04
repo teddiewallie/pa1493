@@ -31,7 +31,7 @@ Specifically the aim is to:
 
 ### Software Requirements
 
-**Functional Requirements**
+**Functional Requirements** (~~strikethrough~~ means implemented)
 
 **Must**
 
