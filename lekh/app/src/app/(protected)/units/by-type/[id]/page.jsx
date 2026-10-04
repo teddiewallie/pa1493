@@ -47,7 +47,7 @@ const Page = ({params}) => {
         </div>
       </div>
 
-      <ItemList {...{ extraCards, groupId: Number(id) }}>
+      <ItemList {...{ extraCards, groupId: Number(id),onMessageHandled }}>
         { !isUngrouped &&
           <Link href={`/editor/for-type/${id}`}>
             <Button

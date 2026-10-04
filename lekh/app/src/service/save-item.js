@@ -21,7 +21,6 @@ import { getGroups } from "./get-groups";
 const saveItem = async (data) => {
   const statuses = await getItemStatusMetaQuery();
   const { groups } = await getGroups();
-  console.log(groups);
   const schema = createItemSchema(groups, statuses, Boolean(data.id));
   const result = schema.safeParse(data);
 
@@ -50,13 +49,17 @@ const saveItem = async (data) => {
       await fs.writeFile(assetPath, Buffer.from(await data.image.arrayBuffer()));
 
       const oldAsset = await getAsset(data.assetId);
-      const oldAssetPath = getAssetPath(data.assetId, oldAsset.extension);
-      await fs.unlink(oldAssetPath);
-      await removeAsset(data.assetId);
+
+      if (oldAsset) {
+        const oldAssetPath = getAssetPath(data.assetId, oldAsset.extension);
+        await fs.unlink(oldAssetPath);
+        await removeAsset(data.assetId);
+      }
     }
 
     return asset;
   } catch (e) {
+    console.log(e);
     return false;
   }
 

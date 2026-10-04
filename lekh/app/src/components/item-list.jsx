@@ -8,7 +8,7 @@ import { CreateItemForm } from "@/components/create-item-form";
 import { ItemCard } from "@/components/item-card";
 import { useRouter } from "next/navigation";
 
-const ItemList = ({ extraCards, groupId, children }) => {
+const ItemList = ({ extraCards, groupId, children, onMessageHandled }) => {
   const { groups, items, refreshItems, meta } = useContext(EquipmentContext);
   const { user } = useContext(UserContext);
   const router = useRouter();
@@ -20,7 +20,7 @@ const ItemList = ({ extraCards, groupId, children }) => {
     <div className="container md:mx-auto">
       <div className="flex">
         {children}
-        { (user.role_id == 1) && <ModalWithToast row {...{ title: "Add Unit", message }}>
+        { (user.role_id == 1) && <ModalWithToast row {...{ title: "Add Unit", message, onMessageHandled }}>
           <CreateItemForm {...{
             onSuccess: () => {
               setMessage("Unit successfully created.");
