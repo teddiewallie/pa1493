@@ -33,7 +33,11 @@ const Page = ({ params }) => {
     <>
       <div className="container pl-10 md:mx-auto mt-4 text-2xl font-bold">
         <div className="flex items-center">
-          <Link href={`/units/by-type/${item?.group_id}`}><CircleArrowLeft className="inline mr-2" />{item && `${item.name} - ${item.serial}`}</Link>
+          <Link href={`/units/by-type/${item?.group_id}`}>
+            <CircleArrowLeft className="inline mr-2" />
+            {group && group.name} /
+            {item && ` ${item.name} - ${item.serial}`}
+          </Link>
         </div>
       </div>
       <div className="flex container md:mx-auto">
