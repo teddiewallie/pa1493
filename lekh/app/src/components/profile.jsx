@@ -26,7 +26,7 @@ const Profile = ({user, refresh}) => {
       </ModalWithToast>
 
       <div className="container md:mx-auto my-4 px-6">
-        <UserCard {...{ user }} />
+        <UserCard {...{ user, single: true }} />
       </div>
     </>
   );

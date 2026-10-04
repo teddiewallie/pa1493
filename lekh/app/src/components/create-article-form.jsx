@@ -1,5 +1,7 @@
 "use client";
 
+import { CircleArrowLeft } from "lucide-react";
+
 import {
   Field,
   FieldGroup,
@@ -32,6 +34,7 @@ import { MarkdownEditor } from "@/components/markdown-editor";
 import { EquipmentContext } from "@/context/equipment-context";
 
 const CreateArticleForm = ({ onSuccess, onFail, article, articleTypes, typeId, articleId, groupId, itemId, userId, isStudent }) => {
+  const router = useRouter();
   const { items, groups } = useContext(EquipmentContext);
   const schema = createArticleSchema();
 
@@ -73,8 +76,25 @@ const CreateArticleForm = ({ onSuccess, onFail, article, articleTypes, typeId, a
   return (
     <>
       <div className="ml-2 my-4 font-bold">
-        {item && `${item.name} - ${item.serial}`}
-        {group && `${group.name}`}
+        {item && (
+          <a
+            className="cursor-pointer flex items-center"
+            onClick={() => router.push(`/units/by-id/${item.id}`)}
+          >
+            <CircleArrowLeft className="inline mr-2" />
+            {item.name} - {item.serial}
+          </a>
+        )}
+
+        {group && (
+          <a
+            className="cursor-pointer flex items-center"
+            onClick={() => router.push(`/units/by-type/${group.id}`)}
+          >
+            <CircleArrowLeft className="inline mr-2" />
+            {group.name}
+          </a>
+        )}
       </div>
       <form
         onSubmit={form.handleSubmit(handleSubmit)}

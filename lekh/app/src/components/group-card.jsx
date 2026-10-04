@@ -13,8 +13,9 @@ import { useContext } from "react";
 import Image from "next/image";
 import { EquipmentContext } from "@/context/equipment-context";
 import { ItemStatus } from "@/components/item-status";
+import Link from "next/link";
 
-const GroupCard = ({ group, handleClick }) => {
+const GroupCard = ({ group }) => {
   if (!group) {
     return <div />
   }
@@ -36,38 +37,34 @@ const GroupCard = ({ group, handleClick }) => {
   const statusName = `${availableItems}/${totalItems}`;
   const statusId = availableItems > 0 ? 1 : 2;
 
-  const handleActualClick = (e) => {
-    if (handleClick) {
-      handleClick(id);
-    }
-  };
-
   return (
-    <Card onClick={() => handleActualClick()} className="relative overflow-hidden md:max-w-md cursor-pointer">
-      <div className="flex items-center">
-        <CardHeader className="min-w-0 flex-1">
-          <CardTitle>
-            {name}
-          </CardTitle>
+    <Link href={`/units/by-type/${id}`}>
+      <Card className="relative overflow-hidden md:max-w-md cursor-pointer">
+        <div className="flex items-center">
+          <CardHeader className="min-w-0 flex-1">
+            <CardTitle>
+              {name}
+            </CardTitle>
 
-          <CardDescription>
-            {description}
-          </CardDescription>
-        </CardHeader>
-      </div>
+            <CardDescription>
+              {description}
+            </CardDescription>
+          </CardHeader>
+        </div>
 
-      <div className="relative aspect-video w-full flex items-center justify-center">
-        <Image
-          className="print:hidden max-h-full w-auto object-contain rounded-lg"
-          alt={name}
-          width={800}
-          height={600}
-          src={`/api/asset/${assetId}`}
-          unoptimized
-        />
-      </div>
-      <ItemStatus {...{ name: statusName, id: statusId }} />
-    </Card>
+        <div className="relative aspect-video w-full flex items-center justify-center">
+          <Image
+            className="print:hidden max-h-full w-auto object-contain rounded-lg"
+            alt={name}
+            width={800}
+            height={600}
+            src={`/api/asset/${assetId}`}
+            unoptimized
+          />
+        </div>
+        <ItemStatus {...{ name: statusName, id: statusId }} />
+      </Card>
+    </Link>
   );
 };
 

@@ -14,10 +14,6 @@ const ItemList = ({ extraCards, groupId, children }) => {
   const router = useRouter();
   const [message, setMessage] = useState("");
 
-  const handleClick = (id) => {
-    router.push(`/units/by-id/${id}`);
-  };
-
   let curatedItems = groupId ? items.filter((item) => (item.group_id == groupId)) : items;
 
   return (
@@ -38,7 +34,7 @@ const ItemList = ({ extraCards, groupId, children }) => {
       </div>
 
       <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mx-10 my-4">
-        {curatedItems.map((item) => (<ItemCard key={`item-${item.id}`} {...{ item, handleClick, pointer: true }} />))}
+        {curatedItems.map((item) => (<ItemCard key={`item-${item.id}`} {...{ item, pointer: true }} />))}
         {extraCards}
       </div>
    </div>

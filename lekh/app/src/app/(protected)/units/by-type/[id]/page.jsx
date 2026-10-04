@@ -4,16 +4,19 @@ import { useRouter } from "next/navigation";
 import { use, useContext, useState } from "react";
 import { UserContext } from "@/context/user-context";
 import { EquipmentContext } from "@/context/equipment-context";
+import { ArticleContext } from "@/context/article-context";
 import { ItemList } from "@/components/item-list";
 import { ModalWithToast } from "@/components/modal-with-toast";
 import { CreateGroupForm } from "@/components/create-group-form";
 import { SimpleCard } from "@/components/simple-card";
 import { Button } from "@/components/ui/button";
+import { ArticleList } from "@/components/article-list";
 
 const Page = ({params}) => {
   const { id } = use(params);
   const { user } = useContext(UserContext);
   const { groups, refreshGroups } = useContext(EquipmentContext);
+  const { articles, articleTypes } = useContext(ArticleContext);
 
   const router = useRouter();
 
@@ -23,7 +26,18 @@ const Page = ({params}) => {
 
   const onMessageHandled = () => setMessage("");
 
-  const extraCards = <SimpleCard {...{ title: "Known Type Issues", description: group?.known_issues }} />;
+  const handleArticleClick = (id) => router.push(`/article/${id}`);
+
+  const filteredArticles = articles.filter((article) => (article.group_id == id));
+
+  console.log(filteredArticles);
+
+  const extraCards = (
+    <>
+      <ArticleList {...{ articles: filteredArticles, articleTypes, handleClick: handleArticleClick }} />
+      <SimpleCard {...{ title: "Known Type Issues", description: group?.known_issues }} />
+    </>
+  );
 
   const isUngrouped = id == 1;
 
