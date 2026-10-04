@@ -174,7 +174,7 @@ If dummy data is added, then there are a few more accounts you can try out. Adam
 
 ### Fast Track
 
-The app is deployed at https://lekh.ted.pm
+I do continous deployment. As soon as a new branch merges with main, a new version of the app is deployed at https://lekh.ted.pm
 
 ### Installing
 
