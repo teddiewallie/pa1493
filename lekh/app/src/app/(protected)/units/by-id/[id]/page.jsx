@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { CircleArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { use, useContext, useState } from "react";
 import { UserContext } from "@/context/user-context";
@@ -21,7 +22,7 @@ const Page = ({ params }) => {
   const [message, setMessage] = useState("");
 
   const item = items?.find((item) => (item.id == id));
-  const group = groups?.find((group) => group.id == item.group_id);
+  const group = groups?.find((group) => group.id == item?.group_id);
 
   const onMessageHandled = () => setMessage("");
 
@@ -31,7 +32,9 @@ const Page = ({ params }) => {
   return (
     <>
       <div className="container pl-10 md:mx-auto mt-4 text-2xl font-bold">
-        {item && `${item.name} - ${item.serial}`}
+        <div className="flex items-center">
+          <Link href={`/units/by-type/${item?.group_id}`}><CircleArrowLeft className="inline mr-2" />{item && `${item.name} - ${item.serial}`}</Link>
+        </div>
       </div>
       <div className="flex container md:mx-auto">
         { <Link href={`/editor/for-unit/${id}`}>

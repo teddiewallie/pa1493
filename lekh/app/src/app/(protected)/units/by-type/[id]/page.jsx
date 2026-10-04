@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { CircleArrowLeft } from "lucide-react";
 import { redirect } from "next/navigation";
 import { use, useContext, useState } from "react";
 import { UserContext } from "@/context/user-context";
@@ -41,7 +42,9 @@ const Page = ({params}) => {
   return (
     <>
       <div className="container md:mx-auto pl-10 mt-4 text-2xl font-bold">
-        {group && group.name}
+        <div className="flex items-center">
+          <Link href={`/types`}><CircleArrowLeft className="inline mr-2" />{group && group.name}</Link>
+        </div>
       </div>
 
       <ItemList {...{ extraCards, groupId: Number(id) }}>
