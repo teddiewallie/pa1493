@@ -11,7 +11,7 @@ const SignOutButton = ({ type }) => {
   };
 
   if (type === "bottom-bar") {
-    return (<a className="cursor-pointer" onClick={handleSignOut}><LogOut /></a>);
+    return (<button className="cursor-pointer" onClick={handleSignOut}><LogOut /></button>);
   }
 
   return (<Button variant="outline" onClick={handleSignOut}>Sign Out</Button>);

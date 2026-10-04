@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useContext, useState } from "react";
 import { UserContext } from "@/context/user-context";
@@ -33,11 +34,12 @@ const Page = ({ params }) => {
         {item && `${item.name} - ${item.serial}`}
       </div>
       <div className="flex container md:mx-auto">
-        { <Button
-            onClick={() => router.push(`/editor/for-unit/${id}`)}
-            className="ml-10 mt-4 print:hidden"
-            variant="outline"
-          >Add Article</Button> }
+        { <Link href={`/editor/for-unit/${id}`}>
+            <Button
+              className="ml-10 mt-4 print:hidden"
+              variant="outline"
+            >Add Article</Button>
+          </Link>}
         { (user.role_id == 1) && <ModalWithToast {...{ title: "Edit Unit", message, onMessageHandled }}>
           <CreateItemForm {...{
             item,

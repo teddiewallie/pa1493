@@ -67,10 +67,12 @@ const ItemCard = ({ item, pointer, single }) => {
         {single && <div className="flex print:hidden items-center justify-left mx-4 -mt-2">
           <div className="flex-1">Type</div>
           <div className="flex items-center">
-            <span
-              onClick={() => router.push(`/units/by-type/${group?.id}`)}
+            <Link
+              href={`/units/by-type/${group?.id}`}
               className="cursor-pointer underline decoration-dashed"
-            >{group?.name}</span>
+            >
+              {group?.name}
+            </Link>
           </div>
         </div>}
       </Card>

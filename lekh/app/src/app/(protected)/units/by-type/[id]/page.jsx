@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 import { use, useContext, useState } from "react";
 import { UserContext } from "@/context/user-context";
 import { EquipmentContext } from "@/context/equipment-context";
@@ -18,28 +19,24 @@ const Page = ({params}) => {
   const { groups, refreshGroups } = useContext(EquipmentContext);
   const { articles, articleTypes } = useContext(ArticleContext);
 
-  const router = useRouter();
-
   const group = groups.find((group) => (group.id == id));
-
   const [ message, setMessage ] = useState("");
 
   const onMessageHandled = () => setMessage("");
-
-  const handleArticleClick = (id) => router.push(`/article/${id}`);
-
   const filteredArticles = articles.filter((article) => (article.group_id == id));
-
-  console.log(filteredArticles);
 
   const extraCards = (
     <>
-      <ArticleList {...{ articles: filteredArticles, articleTypes, handleClick: handleArticleClick }} />
+      <ArticleList {...{ articles: filteredArticles, articleTypes }} />
       <SimpleCard {...{ title: "Known Type Issues", description: group?.known_issues }} />
     </>
   );
 
   const isUngrouped = id == 1;
+
+  if (id == 0) {
+    redirect("/units");
+  }
 
   return (
     <>
@@ -49,11 +46,12 @@ const Page = ({params}) => {
 
       <ItemList {...{ extraCards, groupId: Number(id) }}>
         { (user?.role_id == 1 && !isUngrouped) &&
-          <Button
-            className="ml-auto mt-4 ml-10 print:hidden"
-            variant="outline"
-            onClick={() => router.push(`/editor/for-type/${id}`)}
-          >Add Article</Button>
+          <Link href={`/editor/for-type/${id}`}>
+            <Button
+              className="ml-auto mt-4 ml-10 print:hidden"
+              variant="outline"
+            >Add Article</Button>
+          </Link>
         }
         { (user.role_id == 1) && <ModalWithToast row {...{ title: "Edit Type", message, onMessageHandled }}>
           <CreateGroupForm {...{
@@ -71,3 +69,4 @@ const Page = ({params}) => {
 };
 
 export default Page;
+

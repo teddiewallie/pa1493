@@ -14,14 +14,6 @@ const Page = () => {
   const { user } = useContext(UserContext);
   const [ message, setMessage ] = useState("");
 
-  const handleClick = (id) => {
-    if (id === 0) {
-      router.push("/units");
-    } else {
-      router.push(`/units/by-type/${id}`);
-    }
-  }
-
   const allItems = {
     id: 0,
     name: "All units",
@@ -48,8 +40,8 @@ const Page = () => {
 
 
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mx-10 my-4">
-          <GroupCard key="group-0" {...{ group: allItems, handleClick }} />
-          {groups.map((group) => <GroupCard key={`group-${group.id}`} {...{ group, handleClick }} />)}
+          <GroupCard key="group-0" {...{ group: allItems }} />
+          {groups.map((group) => <GroupCard key={`group-${group.id}`} {...{ group }} />)}
         </div>
       </div>
     </>

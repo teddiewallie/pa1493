@@ -2,6 +2,7 @@
 
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useContext } from "react";
 import { UserContext } from "@/context/user-context";
@@ -13,7 +14,7 @@ const BottomBar = () => {
   const router = useRouter();
 
   const LinkItem = ({Icon, route}) => (
-    <a onClick={() => router.push(route)} className="mx-3 flex cursor-pointer"><Icon className="inline mr-1" size={32} /></a>
+    <Link href={route} className="mx-3 flex cursor-pointer"><Icon className="inline mr-1" size={32} /></Link>
   );
 
   return (

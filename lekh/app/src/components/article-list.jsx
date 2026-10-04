@@ -6,12 +6,11 @@ import {
   CardTitle
 } from "@/components/ui/card";
 
-import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 
+import { ArticleBadge } from "@/components/article-badge";
+
 const ArticleList = ({ articles, articleTypes }) => {
-  const getTypeName = (id) =>
-    articleTypes.find((articleType) => articleType.id == id).name;
 
   return (
     <Card className="max-h-106">
@@ -33,9 +32,7 @@ const ArticleList = ({ articles, articleTypes }) => {
                 className="cursor-pointer"
               >
                 {article.title}
-                <Badge className="ml-2">
-                  {getTypeName(article.type_id)}
-                </Badge>
+                <ArticleBadge {...{ article, articleTypes }} />
               </Link>
             </li>
           ))}

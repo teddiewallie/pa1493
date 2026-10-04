@@ -2,6 +2,8 @@
 
 import { CircleArrowLeft } from "lucide-react";
 
+import Link from "next/link";
+
 import {
   Field,
   FieldGroup,
@@ -77,23 +79,23 @@ const CreateArticleForm = ({ onSuccess, onFail, article, articleTypes, typeId, a
     <>
       <div className="ml-2 my-4 font-bold">
         {item && (
-          <a
+          <Link
             className="cursor-pointer flex items-center"
-            onClick={() => router.push(`/units/by-id/${item.id}`)}
+            href={`/units/by-id/${item.id}`}
           >
             <CircleArrowLeft className="inline mr-2" />
             {item.name} - {item.serial}
-          </a>
+          </Link>
         )}
 
         {group && (
-          <a
+          <Link
             className="cursor-pointer flex items-center"
-            onClick={() => router.push(`/units/by-type/${group.id}`)}
+            href={`/units/by-type/${group.id}`}
           >
             <CircleArrowLeft className="inline mr-2" />
             {group.name}
-          </a>
+          </Link>
         )}
       </div>
       <form
