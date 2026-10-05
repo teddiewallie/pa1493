@@ -10,6 +10,7 @@ import { ArticleContext } from "@/context/article-context";
 import { ItemCard } from "@/components/item-card";
 import { ModalWithToast } from "@/components/modal-with-toast";
 import { CreateItemForm } from "@/components/create-item-form";
+import { ReportItemForm } from "@/components/report-item-form";
 import { SimpleCard } from "@/components/simple-card";
 import { Button } from "@/components/ui/button";
 import { ArticleList } from "@/components/article-list";
@@ -22,12 +23,16 @@ const Page = ({ params }) => {
   const { items, refreshItems, meta, groups } = useContext(EquipmentContext);
   const { articles, articleTypes } = useContext(ArticleContext);
 
-  const [message, setMessage] = useState("");
+  const [editMessage, setEditMessage] = useState("");
+  const [reportMessage, setReportMessage] = useState("");
 
   const item = items?.find((item) => (item.id == id));
   const group = groups?.find((group) => group.id == item?.group_id);
 
-  const onMessageHandled = () => setMessage("");
+  const onMessageHandled = () => {
+    setEditMessage("");
+    setReportMessage("");
+  }
 
   const itemIssues = item?.known_issues;
   const groupIssues = group?.known_issues;
@@ -53,14 +58,24 @@ const Page = ({ params }) => {
               variant="outline"
             >Add Article</Button>
           </Link>}
-        { (user.role_id == 1) && <ModalWithToast {...{ title: "Edit Unit", message, onMessageHandled }}>
+        <ModalWithToast noContainer {...{ title: "Report Issue", message: reportMessage, onMessageHandled }}>
+          <ReportItemForm {...{
+            item,
+            onSuccess: () => {
+              setReportMessage("Successfully reported item.");
+              refreshItems();
+            },
+            onFail: () => setReportMessage("Failed to report item.")
+          }} />
+        </ModalWithToast>
+        { (user.role_id == 1) && <ModalWithToast noContainer {...{ title: "Edit Unit", message: editMessage, onMessageHandled }}>
           <CreateItemForm {...{
             item,
             onSuccess: () => {
-              setMessage("Item successfully created.");
+              setEditMessage("Item successfully created.");
               refreshItems();
             },
-            onFail: () => setMessage("Failed to create item."),
+            onFail: () => setEditMessage("Failed to create item."),
             statuses: meta?.status
           }} />
         </ModalWithToast> }
@@ -70,8 +85,8 @@ const Page = ({ params }) => {
         <ItemCard {...{ item, single: true }} />
         {itemArticles?.length > 0 && <ArticleList {...{ articles: itemArticles, articleTypes, title: "Unit Articles"}} />}
         {groupArticles?.length > 0 && <ArticleList {...{ articles: groupArticles, articleTypes, title: "Type Articles"}} />}
-        {itemIssues?.length > 0 && <SimpleCard {...{ title: "Known Unit Issues", description: itemIssues }} />}
-        {groupIssues?.length > 0 && <SimpleCard {...{ title: "Known Type Issues", description: groupIssues }} />}
+        {itemIssues?.length > 0 && <SimpleCard {...{ title: "Known Unit Issues", description: "Unit specific issues.", content: itemIssues }} />}
+        {groupIssues?.length > 0 && <SimpleCard {...{ title: "Known Type Issues", description: "Type spanning issues.", content: groupIssues }} />}
       </div>
     </>
   );

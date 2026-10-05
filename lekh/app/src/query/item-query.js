@@ -15,6 +15,17 @@ const columns = [
   "group_id"
 ];
 
+const addReportQuery = async (data) => {
+  const { knownIssues, reportIssue } = data;
+
+  const newKnownIssues = `${reportIssue}\n\n${knownIssues}`;
+
+  await pool.query(
+    "UPDATE item SET known_issues=? WHERE id=?",
+    [newKnownIssues, data.id]
+  );  
+};
+
 const addItemQuery = async (data) => {
   const extension = data.image.name.split(".").pop().toLowerCase();
   const assetId = await addAssetQuery(data.image.type, extension);
@@ -60,6 +71,7 @@ export {
   addItemQuery,
   getItemsQuery,
   getItemStatusMetaQuery,
-  updateItemQuery
+  updateItemQuery,
+  addReportQuery
 };
 
