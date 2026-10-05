@@ -59,8 +59,8 @@ Specifically the aim is to:
 
 **Should**
 
-* ~~The system could allow QR codes to be scanned from PC or phone cameras.~~
-* ~~The system could allow adding QR codes for each item.~~
+* ~~The system should allow QR codes to be scanned from PC or phone cameras.~~
+* ~~The system should allow adding QR codes for each item.~~
 * ~~The system should allow label printing~~.
 * The system should allow searching on the following fields for each item:
     - Item name
@@ -174,7 +174,7 @@ If dummy data is added, then there are a few more accounts you can try out. Adam
 
 ### Fast Track
 
-I do continous deployment. As soon as a new branch merges with main, a new version of the app is deployed at https://lekh.ted.pm
+I do continous delivery. As soon as a new branch merges with main, a new version of the app is deployed at https://lekh.ted.pm
 
 ### Installing
 
