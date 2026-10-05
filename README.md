@@ -107,7 +107,7 @@ Specifically the aim is to:
 | ✅5 | **One unit out of service** | A caretaker marks one unit of a type as out of service, and a student then opens that type. | The type still shows as available, the remaining units can be borrowed, and the broken unit cannot. |
 | ✅6 | **Equipment guide** | A student opens a piece of equipment and looks for instructions. | A setup or usage guide in text for that equipment is reachable from the equipment page. |
 | ✅7 | **Report a fault** | A student reports a fault on a specific unit. | The fault is recorded against that unit, a caretaker can see it, and the fault is visible on the unit. |
-| 8 | **Fault on a whole type** | A caretaker records a known problem against an item type rather than a single unit. | The problem is shown on every unit of that type without being entered again. |
+| ✅8 | **Fault on a whole type** | A caretaker records a known problem against an item type rather than a single unit. | The problem is shown on every unit of that type without being entered again. |
 | 9 | **Borrow request with dates** | A student requests to borrow a unit. | The request covers a period with a start and an end date, and is recorded as pending. |
 | 10 | **Return** | A borrowed unit is returned. | The loan is closed, the unit becomes available again, and the loan appears in that unit’s history. |
 | ✅11 | **Usable on a phone** | A student opens the equipment list and an equipment guide on a phone. | Both are readable and usable on a phone screen, without horizontal scrolling or zooming to read. |
