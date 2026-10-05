@@ -3,14 +3,16 @@ import {
   User,
   Users,
   Keyboard,
-  ScanQrCode
+  ScanQrCode,
+  Search
 } from "lucide-react";
 
 const routes = [
   { key: 1, Icon: User, name: "Profile", route: "/profile", role_id: 100 },
   { key: 2, Icon: Users, name: "Users", route: "/users", role_id: 1 },
   { key: 3, Icon: ScanQrCode, name: "QR", route: "/qr", role_id: 100 },
-  { key: 4, Icon: Keyboard, name: "Equipment", route: "/types", landing: true, role_id: 100 }
+  { key: 4, Icon: Keyboard, name: "Equipment", route: "/types", landing: true, role_id: 100 },
+  { key: 5, Icon: Search, name: "Search", route: "/search", role_id: 100 }
 ];
 
 const getLanding = () => routes.find((route) => route.landing);
