@@ -6,9 +6,7 @@ import {
   CardTitle
 } from "@/components/ui/card";
 
-import Link from "next/link";
-
-import { ArticleBadge } from "@/components/article-badge";
+import { ArticleRow } from "@/components/article-row";
 
 const ArticleList = ({ articles, articleTypes, title }) => {
 
@@ -25,21 +23,16 @@ const ArticleList = ({ articles, articleTypes, title }) => {
         </CardDescription>
       </CardHeader>
 
-      <CardContent className="overflow-scroll -mb-4 pb-8">
-        <ul className="space-y-2">
-          {articles.map((article) => (
-            <li key={`article-${article.id}`}>
-              <Link
-                href={`/article/${article.id}`}
-                className="cursor-pointer"
-              >
-                {article.title}
-                <ArticleBadge {...{ article, articleTypes }} />
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </CardContent>
+    <CardContent className="overflow-scroll -mb-4 pb-8">
+      <ul className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2">
+        {articles.map((article) => (
+          <ArticleRow
+            key={`article-${article.id}`}
+            {...{ article, articleTypes }}
+          />
+        ))}
+      </ul>
+    </CardContent>
     </Card>
   );
 };

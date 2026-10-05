@@ -18,19 +18,31 @@ const TopBar = () => {
   );
 
   return (
-    <header className="hidden lg:flex border-border bg-background sticky top-0 z-20 h-12 w-full shrink-0 items-center justify-between gap-2 border-b px-4">
-      <div className="flex shrink-0 items-center gap-2">
-        <span className="font-bold font-serif mr-8">LEKH</span>
-        <span className="font-bold">{user.name}</span>
-      </div>
-      <div className="flex">
-        {routes.filter((route) => route.role_id >= user.role_id)
-          .map((route) => <LinkItem key={route.key} {...{ Icon: route.Icon, route: route.route, name: route.name }} />)}
-      </div>
-      <div className="hidden lg:flex items-center gap-2">
-        <SignOutButton />
-      </div>
-    </header>
+    <header className="hidden lg:flex relative border-border bg-background sticky top-0 z-20 h-12 w-full shrink-0 items-center justify-between gap-2 border-b px-4">
+    <div className="flex shrink-0 items-center gap-2">
+      <span className="font-bold font-serif mr-8">LEKH</span>
+      <span className="font-bold">{user.name}</span>
+    </div>
+
+    <div className="absolute left-1/2 -translate-x-1/2 flex">
+      {routes
+        .filter((route) => route.role_id >= user.role_id)
+        .map((route) => (
+          <LinkItem
+            key={route.key}
+            {...{
+              Icon: route.Icon,
+              route: route.route,
+              name: route.name
+            }}
+          />
+        ))}
+    </div>
+
+    <div className="hidden lg:flex items-center gap-2">
+      <SignOutButton />
+  </div>
+</header>
   );
 };
 
