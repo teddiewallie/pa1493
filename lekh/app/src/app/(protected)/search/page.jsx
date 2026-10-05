@@ -64,7 +64,7 @@ const Page = () => {
     <>
       <Input
         type="text"
-        className="rounded-none !bg-transparent border-x-0 text-center !text-2xl h-16"
+        className="rounded-none !bg-transparent border-x-0 text-center !text-1xl h-12"
         onKeyUp={(e) => updateQuery(e.target.value)}
       />
       <div className="container mx-auto px-4 lg:px-64 mt-4 mb-12">
