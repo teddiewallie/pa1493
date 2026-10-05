@@ -112,7 +112,7 @@ Specifically the aim is to:
 | 10 | **Return** | A borrowed unit is returned. | The loan is closed, the unit becomes available again, and the loan appears in that unit’s history. |
 | ✅11 | **Usable on a phone** | A student opens the equipment list and an equipment guide on a phone. | Both are readable and usable on a phone screen, without horizontal scrolling or zooming to read. |
 | ✅12 | **Project library** | A student records a finished project and states which equipment was used, then opens that equipment. | The project is saved and is reachable from the equipment it used. |
-| 13 | **Search** | A user searches for a term that appears in equipment, guides and projects. | Matching results are returned across those areas and can be opened. |
+| ✅13 | **Search** | A user searches for a term that appears in equipment, guides and projects. | Matching results are returned across those areas and can be opened. |
 
 
 ## Your Backlog
