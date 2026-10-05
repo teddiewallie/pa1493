@@ -28,8 +28,9 @@ const Page = ({params}) => {
 
   const extraCards = (
     <>
-      <ArticleList {...{ articles: filteredArticles, articleTypes }} />
-      <SimpleCard {...{ title: "Known Type Issues", description: group?.known_issues }} />
+      { filteredArticles.length > 0 && <ArticleList {...{ articles: filteredArticles, articleTypes }} /> }
+      { group?.known_issues.length > 0 &&
+          <SimpleCard{...{ title: "Known Type Issues", description: "Type spanning issues.", content: group?.known_issues }} /> }
     </>
   );
 

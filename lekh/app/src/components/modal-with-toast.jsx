@@ -24,6 +24,7 @@ const ModalWithToast = ({
   onMessageHandled,
   doubleWidth,
   row,
+  noContainer,
   children
 }) => {
   const [ open, onOpenChange ] = useState(false);
@@ -41,7 +42,7 @@ const ModalWithToast = ({
     : "";
 
   contentClassName = `${contentClassName} max-h-[calc(100vh-2rem)] flex-col overflow-y-scroll`;
-  const wrapperClassName = row ? "mt-4" : "container md:mx-auto mt-4";
+  const wrapperClassName = row ? "mt-4" : noContainer ? "mt-4" : "container md:mx-auto mt-4";
 
   return (
     <div className={wrapperClassName}>

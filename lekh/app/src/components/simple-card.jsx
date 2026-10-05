@@ -10,7 +10,7 @@ import {
   CardTitle
 } from "@/components/ui/card";
 
-const SimpleCard = ({ title, description }) => {
+const SimpleCard = ({ title, description, content }) => {
 
   if (!title) {
     return <div />
@@ -18,17 +18,18 @@ const SimpleCard = ({ title, description }) => {
 
   return (
     <Card className="md:max-w-md overflow-scroll print:hidden">
-      <div className="flex items-center">
-        <CardHeader className="min-w-0 flex-1">
-          <CardTitle>
-            {title}
-          </CardTitle>
+      <CardHeader>
+        <CardTitle>
+          {title}
+        </CardTitle>
 
-          <CardDescription>
-            {description}
-          </CardDescription>
-        </CardHeader>
-      </div>
+        <CardDescription>
+          {description}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="whitespace-pre-line">
+        { content }
+      </CardContent>
     </Card>
   );
 };

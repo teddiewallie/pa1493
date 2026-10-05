@@ -3,6 +3,7 @@
 "use server";
 
 import { createItemSchema } from "@/schema/item-schema";
+import { reportSchema } from "@/schema/report-schema";
 import { auth } from "@/auth";
 import fs from "fs/promises";
 import { getAssetPath } from "./asset-path";
@@ -13,10 +14,28 @@ import { removeAsset } from "@/service/remove-asset";
 import {
   addItemQuery,
   getItemStatusMetaQuery,
-  updateItemQuery
+  updateItemQuery,
+  addReportQuery
 } from "@/query/item-query";
 
 import { getGroups } from "./get-groups";
+
+const addReport = async (data) => {
+  const result = reportSchema.safeParse(data);
+  const session = await auth();
+
+  if (!result.success || !session) {
+    return false;
+  }
+
+  try {
+    await addReportQuery(data);
+    return true;
+  } catch (e) {
+    console.log(e);
+    return false;
+  }
+};
 
 const saveItem = async (data) => {
   const statuses = await getItemStatusMetaQuery();
@@ -66,5 +85,8 @@ const saveItem = async (data) => {
   return true;
 };
 
-export { saveItem };
+export {
+  addReport,
+  saveItem
+};
 
