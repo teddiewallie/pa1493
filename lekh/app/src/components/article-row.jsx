@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { ArticleBadge } from "@/components/article-badge";
+import { Badge } from "@/components/badge";
 
 const ArticleRow = ({ article, articleTypes }) => (
   <>
-    <ArticleBadge {...{ article, articleTypes }} />
+    <Badge {...{ article, articleTypes }} />
 
     <Link
       href={`/article/${article.id}`}
