@@ -14,6 +14,7 @@ import { ReportItemForm } from "@/components/report-item-form";
 import { SimpleCard } from "@/components/simple-card";
 import { Button } from "@/components/ui/button";
 import { ArticleList } from "@/components/article-list";
+import { BorrowCard } from "@/components/borrow-card";
 
 const Page = ({ params }) => {
   const { id } = use(params);
@@ -42,7 +43,7 @@ const Page = ({ params }) => {
 
   return (
     <>
-      <div className="container pl-10 md:mx-auto mt-4 text-2xl font-bold">
+      <div className="container px-10 md:mx-auto mt-4 text-2xl font-bold">
         <div className="flex items-center">
           <Link href={`/units/by-type/${item?.group_id}`}>
             <CircleArrowLeft className="inline mr-2" />
@@ -87,6 +88,7 @@ const Page = ({ params }) => {
         {groupArticles?.length > 0 && <ArticleList {...{ articles: groupArticles, articleTypes, title: "Type Articles"}} />}
         {itemIssues?.length > 0 && <SimpleCard {...{ title: "Known Unit Issues", description: "Unit specific issues.", content: itemIssues }} />}
         {groupIssues?.length > 0 && <SimpleCard {...{ title: "Known Type Issues", description: "Type spanning issues.", content: groupIssues }} />}
+        <BorrowCard />
       </div>
     </>
   );
