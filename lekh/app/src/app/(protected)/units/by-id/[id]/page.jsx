@@ -89,7 +89,7 @@ const Page = ({ params }) => {
         {itemIssues?.length > 0 && <SimpleCard {...{ title: "Known Unit Issues", description: "Unit specific issues.", content: itemIssues }} />}
         {groupIssues?.length > 0 && <SimpleCard {...{ title: "Known Type Issues", description: "Type spanning issues.", content: groupIssues }} />}
         { Boolean(item?.borrowable) && <ReservationCard {...{ item, type: "borrow" }} /> }
-        { Boolean(item?.bookable) && <ReservationCard {...{ item, type: "book" }} /> }
+        { Boolean(item?.bookable) && item?.status_name === "Available" && <ReservationCard {...{ item, type: "book" }} /> }
       </div>
     </>
   );

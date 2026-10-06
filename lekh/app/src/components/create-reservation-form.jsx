@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { addDays, setHours, setMinutes } from "date-fns";
+import { slots } from "@/slots";
 
 import {
   RadioGroup,
@@ -25,54 +26,67 @@ const CreateReservationForm = ({ item, type }) => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    let reservation;
 
     if (type === "borrow") {
       if (!dateRange?.from || !dateRange?.to) {
         return;
       }
 
-      const reservation = {
+      reservation = {
         itemId: item.id,
         startAt: dateRange.from,
         endAt: dateRange.to,
       };
-
-      console.log(reservation);
-      return;
     }
 
-    // TODO: type book
+    if (type === "book") {
+      if (!selectedSlot) {
+        return;
+      }
+
+      const [start, end] = selectedSlot.split("-");
+      const [startHours, startMinutes] = start.split(":").map(Number);
+      const [endHours, endMinutes] = end.split(":").map(Number);
+
+      const now = new Date();
+
+      const startAt = setMinutes(
+        setHours(now, startHours),
+        startMinutes
+      );
+
+      const endAt = setMinutes(
+        setHours(now, endHours),
+        endMinutes
+      );
+
+      reservation = {
+        itemId: item.id,
+        startAt,
+        endAt,
+      };
+    }
   };
 
   const buttonText = type === "book"
     ? "Book this Unit"
     : "Request to Borrow";
 
-  const slots = [
-    {
-      value: "08:00-11:00",
-      label: "08:00 – 11:00"
-    },
-    {
-      value: "11:00-14:00",
-      label: "11:00 – 14:00"
-    },
-    {
-      value: "14:00-17:00",
-      label: "14:00 – 17:00"
-    },
-    {
-      value: "17:00-20:00",
-      label: "17:00 – 20:00"
-    },
-  ];
-
-  const bookedSlots = [
+  const mockBookedSlots = [
     "11:00-14:00",
     "17:00-20:00"
   ];
 
-  const bookedDates = [];
+  const bookedDates = [addDays(new Date(), 3)];
+
+  const isSameOrBetween = (date, from, to) => {
+    const time = new Date(date).setHours(0, 0, 0, 0);
+    const start = new Date(from).setHours(0, 0, 0, 0);
+    const end = new Date(to).setHours(0, 0, 0, 0);
+
+    return time >= start && time <= end;
+  };
 
   return (
     <form
@@ -87,9 +101,54 @@ const CreateReservationForm = ({ item, type }) => {
         onSelect={setDateRange}
         numberOfMonths={1}
         className="!w-full bg-transparent"
+        classNames={{
+          today: "font-bold ring-1 ring-muted-foreground/50",
+        }}
         min={1}
         max={7}
-        disabled={bookedDates}
+        disabled={(date) => {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          return (date < today ||
+          bookedDates.some(
+            (bookedDate) =>
+              date.toDateString() === bookedDate.toDateString()
+          ))
+        }}
+        onSelect={(range) => {
+          if (!range?.from || !range?.to) {
+            setDateRange(range);
+            return;
+          }
+
+          const from = new Date(range.from).setHours(0, 0, 0, 0);
+          const to = new Date(range.to).setHours(0, 0, 0, 0);
+
+          const containsBookedDate = bookedDates.some((bookedDate) => {
+            const date = new Date(bookedDate).setHours(0, 0, 0, 0);
+
+            return date > Math.min(from, to) && date < Math.max(from, to);
+          });
+
+          if (!containsBookedDate) {
+            setDateRange(range);
+            return;
+          }
+
+          // Determine which date the user actually clicked.
+          const previous = dateRange?.from
+            ? new Date(dateRange.from).setHours(0, 0, 0, 0)
+            : null;
+
+          const clickedDate = previous === from
+            ? range.to
+            : range.from;
+
+          setDateRange({
+            from: clickedDate,
+            to: clickedDate,
+          });
+        }}       
         modifiers={{
           booked: bookedDates,
         }}
@@ -105,28 +164,28 @@ const CreateReservationForm = ({ item, type }) => {
           className="gap-0 max-h-128 overflow-scroll"
         >
         {slots.map((slot) => {
-          const selected = selectedSlot === slot.value;
-          const booked = bookedSlots.includes(slot.value);
+          const selected = selectedSlot === slot;
+          const booked = mockBookedSlots.includes(slot);
 
           return (
-            <Field key={slot.value}>
+            <Field key={slot}>
               <RadioGroupItem
-                value={slot.value}
-                id={slot.value}
+                value={slot}
+                id={slot}
                 disabled={booked}
                 className="hidden"
               />
 
               <FieldLabel
-                htmlFor={slot.value}
+                htmlFor={slot}
                 className={`
                   flex min-h-12 items-center justify-center
                   border px-4
                   text-lg font-medium
                   ${
                     booked
-                      ? "cursor-not-allowed opacity-40"
-                      : "cursor-pointer"
+                      ? "opacity-40"
+                      : ""
                   }
                   ${
                     selected
@@ -135,7 +194,7 @@ const CreateReservationForm = ({ item, type }) => {
                   }
                 `}
               >
-                {slot.label}
+                {slot.replace("-", " - ")}
               </FieldLabel>
             </Field>
           );
