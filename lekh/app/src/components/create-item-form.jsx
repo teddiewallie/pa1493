@@ -18,9 +18,7 @@ import {
   SelectValue
 } from "@/components/ui/select";
 
-
-
-import { CreateItemReservationRadio } from "@/components/create-item-reservation-radio"; 
+import { CreateItemReservationRadio } from "@/components/create-item-form/create-item-reservation-radio"; 
 
 import { useContext } from "react";
 import { EquipmentContext } from "@/context/equipment-context";
