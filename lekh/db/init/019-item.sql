@@ -5,6 +5,8 @@ CREATE TABLE IF NOT EXISTS item (
     description VARCHAR(255) NOT NULL,
     shelf VARCHAR(255),
     known_issues TEXT NOT NULL,
+    borrowable BOOLEAN NOT NULL DEFAULT FALSE,
+    bookable BOOLEAN NOT NULL DEFAULT FALSE,
     user_id INT NOT NULL,
     asset_id INT NOT NULL,
     status_id INT NOT NULL DEFAULT 1,
@@ -30,4 +32,25 @@ CREATE TABLE IF NOT EXISTS item (
         REFERENCES item_group (id)
         ON DELETE RESTRICT
 );
+
+CREATE VIEW IF NOT EXISTS item_view AS
+SELECT
+    item.id,
+    item.name,
+    item.serial,
+    item.description,
+    item.known_issues,
+    item.shelf,
+    item.group_id,
+    item.borrowable,
+    item.bookable,
+    user.name AS created_by,
+    user.email AS creator_email,
+    item.asset_id,
+    item_status.id AS status_id,
+    item_status.name AS status_name
+FROM item
+JOIN user ON item.user_id = user.id
+JOIN item_status ON item.status_id = item_status.id
+;
 

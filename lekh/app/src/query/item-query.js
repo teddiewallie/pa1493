@@ -12,7 +12,9 @@ const columns = [
   "user_id",
   "asset_id",
   "status_id",
-  "group_id"
+  "group_id",
+  "borrowable",
+  "bookable"
 ];
 
 const addReportQuery = async (data) => {
@@ -23,7 +25,7 @@ const addReportQuery = async (data) => {
   await pool.query(
     "UPDATE item SET known_issues=? WHERE id=?",
     [newKnownIssues, data.id]
-  );  
+  );
 };
 
 const addItemQuery = async (data) => {
@@ -32,7 +34,19 @@ const addItemQuery = async (data) => {
 
   await pool.query(
     `INSERT INTO item (${columns.join(", ")}) VALUES (${columns.map(() => "?").join(", ")})`,
-    [data.name, data.serial, data.description, data.knownIssues, data.shelf, data.userId, assetId, data.statusId, data.groupId]
+    [
+      data.name,
+      data.serial,
+      data.description,
+      data.knownIssues,
+      data.shelf,
+      data.userId,
+      assetId,
+      data.statusId,
+      data.groupId,
+      data.borrowable,
+      data.bookable
+    ]
   );
 
   return { id: assetId, extension };
@@ -51,7 +65,20 @@ const updateItemQuery = async (data) => {
 
   await pool.query(
     `UPDATE item SET ${updateColumns} WHERE id=?`,
-    [data.name, data.serial, data.description, data.knownIssues, data.shelf, data.userId, assetId ?? data.assetId, data.statusId, data.groupId, data.id]
+    [
+      data.name,
+      data.serial,
+      data.description,
+      data.knownIssues,
+      data.shelf,
+      data.userId,
+      assetId ?? data.assetId,
+      data.statusId,
+      data.groupId,
+      data.borrowable,
+      data.bookable,
+      data.id
+    ]
   );
 
   return { id: assetId, extension };

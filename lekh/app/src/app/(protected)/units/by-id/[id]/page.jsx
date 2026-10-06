@@ -14,6 +14,10 @@ import { ReportItemForm } from "@/components/report-item-form";
 import { SimpleCard } from "@/components/simple-card";
 import { Button } from "@/components/ui/button";
 import { ArticleList } from "@/components/article-list";
+<<<<<<< Updated upstream
+=======
+import { ReservationCard } from "@/components/reservation-card";
+>>>>>>> Stashed changes
 
 const Page = ({ params }) => {
   const { id } = use(params);
@@ -72,10 +76,10 @@ const Page = ({ params }) => {
           <CreateItemForm {...{
             item,
             onSuccess: () => {
-              setEditMessage("Item successfully created.");
+              setEditMessage("Item successfully edited.");
               refreshItems();
             },
-            onFail: () => setEditMessage("Failed to create item."),
+            onFail: () => setEditMessage("Failed to edit item."),
             statuses: meta?.status
           }} />
         </ModalWithToast> }
@@ -87,6 +91,11 @@ const Page = ({ params }) => {
         {groupArticles?.length > 0 && <ArticleList {...{ articles: groupArticles, articleTypes, title: "Type Articles"}} />}
         {itemIssues?.length > 0 && <SimpleCard {...{ title: "Known Unit Issues", description: "Unit specific issues.", content: itemIssues }} />}
         {groupIssues?.length > 0 && <SimpleCard {...{ title: "Known Type Issues", description: "Type spanning issues.", content: groupIssues }} />}
+<<<<<<< Updated upstream
+=======
+        { Boolean(item?.borrowable) && <ReservationCard {...{ item, type: "borrow" }} /> }
+        { Boolean(item?.bookable) && <ReservationCard {...{ item, type: "book" }} /> }
+>>>>>>> Stashed changes
       </div>
     </>
   );

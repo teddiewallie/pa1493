@@ -4,7 +4,6 @@
 
 import {
   Field,
-  FieldDescription,
   FieldGroup,
   FieldLabel,
   FieldSet,
@@ -18,6 +17,10 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+
+
+
+import { CreateItemReservationRadio } from "@/components/create-item-reservation-radio"; 
 
 import { useContext } from "react";
 import { EquipmentContext } from "@/context/equipment-context";
@@ -48,7 +51,9 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
       knownIssues: item?.known_issues ?? "",
       shelf: item?.shelf ?? "",
       statusId: item?.status_id ?? Number(statuses[0]?.id),
-      groupId: item?.group_id ?? groupId ?? 1
+      groupId: item?.group_id ?? groupId ?? 1,
+      borrowable: Boolean(item?.borrowable),
+      bookable: Boolean(item?.bookable)
     }
   });
 
@@ -133,7 +138,9 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
                 >
                   <SelectTrigger aria-invalid={fieldState.invalid}>
                     <SelectValue>
-                      {statuses.find((status) => status.id === field.value)?.name}
+                      {statuses.find(
+                        (status) => status.id === field.value
+                      )?.name}
                     </SelectValue>
                   </SelectTrigger>
 
@@ -167,13 +174,17 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
                 >
                   <SelectTrigger aria-invalid={fieldState.invalid}>
                     <SelectValue>
-                      {groups.find((group) => group.id === field.value)?.name ?? "Select Type"}
+                      {groups.find(
+                        (group) => group.id === field.value
+                      )?.name ?? "Select Type"}
                     </SelectValue>
                   </SelectTrigger>
 
                   <SelectContent>
                     {groups
-                      .sort((group1, group2) => group1.name.localeCompare(group2.name))
+                      .sort((group1, group2) =>
+                        group1.name.localeCompare(group2.name)
+                      )
                       .map((group) => (
                         <SelectItem
                           key={group.id}
@@ -196,6 +207,7 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel>Image</FieldLabel>
+
                 <ImagePicker
                   current={item ? `/api/asset/${item.asset_id}` : null}
                   onChange={(file) => {
@@ -203,8 +215,17 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
                     form.trigger("image");
                   }}
                 />
+
                 <FieldError errors={[fieldState.error]} />
               </Field>
+            )}
+          />
+
+          <Controller
+            name="borrowable"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <CreateItemReservationRadio {...{ form, field, fieldState }} />
             )}
           />
 
@@ -220,4 +241,3 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
 };
 
 export { CreateItemForm };
-

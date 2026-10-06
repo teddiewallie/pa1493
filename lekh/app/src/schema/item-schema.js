@@ -24,6 +24,8 @@ const createItemSchema = (groups, statuses, editing = false) => {
     knownIssues: z.string(),
     shelf: z.string(),
     serial: z.string().min(1, "Serial is required"),
+    borrowable: z.boolean(),
+    bookable: z.boolean(),
 
     statusId: z.number().refine(
       (id) => statusIds.includes(id),
