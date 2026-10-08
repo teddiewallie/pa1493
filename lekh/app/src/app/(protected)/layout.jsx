@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { UserProvider } from "@/provider/user-provider";
 import { EquipmentProvider } from "@/provider/equipment-provider";
 import { ArticleProvider } from "@/provider/article-provider";
+import { ReservationsProvider } from "@/provider/reservations-provider";
 import { TopBar } from "@/components/top-bar";
 import { BottomBar } from "@/components/bottom-bar";
 import { Toaster } from "@/components/ui/toast";
@@ -22,10 +23,12 @@ const ProtectedLayout = async ({ children }) => {
     <UserProvider {...{ user }}>
       <EquipmentProvider>
         <ArticleProvider>
-          <TopBar />
-            {children}
-          <Toaster />
-          <BottomBar />
+          <ReservationsProvider>
+            <TopBar />
+              {children}
+            <Toaster />
+            <BottomBar />
+          </ReservationsProvider>
         </ArticleProvider>
       </EquipmentProvider>
     </UserProvider>
