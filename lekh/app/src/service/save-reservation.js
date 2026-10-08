@@ -3,7 +3,11 @@
 
 import { auth } from "@/auth";
 import { reservationSchema } from "@/schema/reservation-schema";
-import { addReservationQuery } from "@/query/reservation-query";
+import {
+  addReservationQuery,
+  approveReservationQuery,
+  denyReservationQuery
+} from "@/query/reservation-query";
 
 const addReservation = async (reservation) => {
   const session = await auth();
@@ -24,5 +28,39 @@ const addReservation = async (reservation) => {
   return true; 
 };
 
-export { addReservation };
+const approveReservation = async (reservationId) => {
+  const result = await reservationResponse(reservationId, true);
+  return result;
+};
+
+const denyReservation = async (reservationId) => {
+  const result = await reservationResponse(reservationId, false);
+  return result;
+};
+
+const reservationResponse = async (reservationId, isApproved) => {
+  const session = await auth();
+  const { user } = session;
+
+  if (!session || user.role_id !== 1) {
+    return false;
+  }
+
+  try {
+    if (isApproved) {
+      await approveReservationQuery(reservationId);
+    } else {
+      await denyReservationQuery(reservationId);
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
+export {
+  addReservation,
+  approveReservation,
+  denyReservation
+};
 
