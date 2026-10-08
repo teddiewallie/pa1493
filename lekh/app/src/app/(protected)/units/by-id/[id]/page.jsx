@@ -43,7 +43,7 @@ const Page = ({ params }) => {
 
   return (
     <>
-      <div className="container pl-10 md:mx-auto mt-4 text-2xl font-bold">
+      <div className="container px-10 md:mx-auto mt-4 text-2xl font-bold">
         <div className="flex items-center">
           <Link href={`/units/by-type/${item?.group_id}`}>
             <CircleArrowLeft className="inline mr-2" />

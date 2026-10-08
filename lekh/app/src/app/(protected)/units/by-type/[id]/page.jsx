@@ -42,7 +42,7 @@ const Page = ({params}) => {
 
   return (
     <>
-      <div className="container md:mx-auto pl-10 mt-4 text-2xl font-bold">
+      <div className="container md:mx-auto px-10 mt-4 text-2xl font-bold">
         <div className="flex items-center">
           <Link href={`/types`}><CircleArrowLeft className="inline mr-2" />{group && group.name}</Link>
         </div>

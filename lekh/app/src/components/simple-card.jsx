@@ -17,7 +17,7 @@ const SimpleCard = ({ title, description, content }) => {
   }
 
   return (
-    <Card className="md:max-w-md overflow-scroll print:hidden">
+    <Card className="overflow-scroll print:hidden">
       <CardHeader>
         <CardTitle>
           {title}
