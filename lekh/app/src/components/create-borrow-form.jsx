@@ -1,22 +1,38 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { addDays, setHours } from "date-fns";
+import {
+  addDays,
+  startOfDay,
+  startOfHour,
+  eachDayOfInterval
+} from "date-fns";
 
+const getFirstAvailableDate = (borrowings) => {
+  let date = startOfDay(new Date());
 
+  while (
+    borrowings.some((bookedDate) => startOfDay(
+      new Date(bookedDate)).getTime() === date.getTime())
+  ) {
+    date = addDays(date, 1);
+  }
 
-const CreateBorrowForm = ({ item }) => {
+  return date;
+};
+
+const CreateBorrowForm = ({ item, callback, borrowings }) => {
+  const firstAvailable = getFirstAvailableDate(borrowings);
+
   const [dateRange, setDateRange] = useState({
-    from: new Date(),
-    to: addDays(new Date(), 1),
+    from: getFirstAvailableDate(borrowings),
+    to: addDays(firstAvailable, 1),
   });
 
-  const bookedDates = [addDays(new Date(), 3)];
-
   const isSameOrBetween = (date, from, to) => {
-    const time = new Date(date).setHours(0, 0, 0, 0);
-    const start = new Date(from).setHours(0, 0, 0, 0);
-    const end = new Date(to).setHours(0, 0, 0, 0);
+    const time = startOfHour(new Date(date));
+    const start = startOfHour(new Date(from));
+    const end = startOfHour(new Date(to));
 
     return time >= start && time <= end;
   };
@@ -30,9 +46,11 @@ const CreateBorrowForm = ({ item }) => {
 
     const reservation = {
       itemId: item.id,
-      startAt: dateRange.from,
-      endAt: dateRange.to,
+      startAt: startOfDay(dateRange.from),
+      endAt: startOfDay(dateRange.to)
     };
+
+    callback(reservation);
   };
 
   return (
@@ -49,15 +67,15 @@ const CreateBorrowForm = ({ item }) => {
           numberOfMonths={1}
           className="!w-full bg-transparent"
           classNames={{
-            today: "font-bold ring-1 ring-muted-foreground/50",
+            today: "font-bold ring-1 ring-muted-foreground/50"
           }}
           min={1}
           max={6}
           disabled={(date) => {
             const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            today.setHours(0,0,0,0);
             return (date < today ||
-            bookedDates.some(
+            borrowings.some(
               (bookedDate) =>
                 date.toDateString() === bookedDate.toDateString()
             ))
@@ -68,11 +86,11 @@ const CreateBorrowForm = ({ item }) => {
               return;
             }
 
-            const from = new Date(range.from).setHours(0, 0, 0, 0);
-            const to = new Date(range.to).setHours(0, 0, 0, 0);
+            const from = new Date(range.from).setHours(0,0,0,0);
+            const to = new Date(range.to).setHours(0,0,0,0);
 
-            const containsBookedDate = bookedDates.some((bookedDate) => {
-              const date = new Date(bookedDate).setHours(0, 0, 0, 0);
+            const containsBookedDate = borrowings.some((bookedDate) => {
+              const date = new Date(bookedDate).setHours(0,0,0,0);
 
               return date > Math.min(from, to) && date < Math.max(from, to);
             });
@@ -84,7 +102,7 @@ const CreateBorrowForm = ({ item }) => {
 
             // Determine which date the user actually clicked.
             const previous = dateRange?.from
-              ? new Date(dateRange.from).setHours(0, 0, 0, 0)
+              ? new Date(dateRange.from).setHours(0,0,0,0)
               : null;
 
             const clickedDate = previous === from
@@ -93,14 +111,14 @@ const CreateBorrowForm = ({ item }) => {
 
             setDateRange({
               from: clickedDate,
-              to: clickedDate,
+              to: clickedDate
             });
           }}       
           modifiers={{
-            booked: bookedDates,
+            booked: borrowings 
           }}
           modifiersClassNames={{
-            booked: "[&>button]:line-through opacity-100",
+            booked: "[&>button]:line-through opacity-100"
           }}
         />
       </div>

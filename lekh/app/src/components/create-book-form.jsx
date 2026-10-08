@@ -1,27 +1,22 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { slots } from "@/slots";
-import { setHours, setMinutes } from "date-fns";
+import { setHours, setMinutes, startOfMinute } from "date-fns";
 
 import {
   Field,
   FieldGroup,
   FieldLabel,
-  FieldSet,
+  FieldSet
 } from "@/components/ui/field";
 
 import {
   RadioGroup,
-  RadioGroupItem,
+  RadioGroupItem
 } from "@/components/ui/radio-group";
 
-const CreateBookForm = ({ item }) => {
+const CreateBookForm = ({ item, callback, bookings }) => {
   const [ selectedSlot, setSelectedSlot ] = useState(null);
-
-  const mockBookedSlots = [
-    "11:00-14:00",
-    "17:00-20:00"
-  ];
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -35,21 +30,25 @@ const CreateBookForm = ({ item }) => {
 
     const now = new Date();
 
-    const startAt = setMinutes(
+    const startAt = startOfMinute(setMinutes(
       setHours(now, startHours),
       startMinutes
-    );
+    ));
 
-    const endAt = setMinutes(
+    console.log(startAt);
+
+    const endAt = startOfMinute(setMinutes(
       setHours(now, endHours),
       endMinutes
-    );
+    ));
 
     const reservation = {
       itemId: item.id,
       startAt,
-      endAt,
+      endAt
     };
+
+    callback(reservation);
   }
 
   return (
@@ -66,7 +65,7 @@ const CreateBookForm = ({ item }) => {
           >
           {slots.map((slot) => {
             const selected = selectedSlot === slot;
-            const booked = mockBookedSlots.includes(slot);
+            const booked = bookings.includes(slot);
 
             return (
               <Field key={slot}>
@@ -85,7 +84,7 @@ const CreateBookForm = ({ item }) => {
                     text-lg font-medium
                     ${
                       booked
-                        ? "opacity-40"
+                        ? "opacity-40 line-through"
                         : ""
                     }
                     ${
@@ -117,3 +116,4 @@ const CreateBookForm = ({ item }) => {
 };
 
 export { CreateBookForm };
+

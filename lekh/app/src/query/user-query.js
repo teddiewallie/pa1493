@@ -23,7 +23,7 @@ const getAllUsersQuery = async () => await pool.query(
   "SELECT id, name, email, role_id FROM user"
 );
 
-const addUserQuery = async (data) =>{
+const addUserQuery = async (data) => {
   const addColumns = [...columns];
   addColumns.splice(addColumns.length - 1, 0, "password");
 

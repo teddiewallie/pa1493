@@ -88,8 +88,8 @@ const Page = ({ params }) => {
         {groupArticles?.length > 0 && <ArticleList {...{ articles: groupArticles, articleTypes, title: "Type Articles"}} />}
         {itemIssues?.length > 0 && <SimpleCard {...{ title: "Known Unit Issues", description: "Unit specific issues.", content: itemIssues }} />}
         {groupIssues?.length > 0 && <SimpleCard {...{ title: "Known Type Issues", description: "Type spanning issues.", content: groupIssues }} />}
-        { Boolean(item?.borrowable) && <ReservationCard {...{ item, type: "borrow" }} /> }
-        { Boolean(item?.bookable) && item?.status_name === "Available" && <ReservationCard {...{ item, type: "book" }} /> }
+        { Boolean(item?.borrowable) && <ReservationCard {...{ item }} /> }
+        { Boolean(item?.bookable) && item?.status_name === "Available" && <ReservationCard {...{ item }} /> }
       </div>
     </>
   );
