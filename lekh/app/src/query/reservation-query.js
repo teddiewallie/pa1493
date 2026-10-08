@@ -9,5 +9,24 @@ const addReservationQuery = async (reservation, userId) => {
 
 const getReservationsQuery = async () => await pool.query("SELECT * FROM reservation");
 
-export { addReservationQuery, getReservationsQuery };
+const approveReservationQuery = async (reservationId) => {
+  await pool.query(
+    "UPDATE reservation SET is_pending=? WHERE id=?",
+    [0, reservationId]
+  );
+};
+
+const denyReservationQuery = async (reservationId) => {
+  await pool.query(
+    "DELETE FROM reservation WHERE id=?",
+    [reservationId]
+  );
+};
+
+export {
+  addReservationQuery,
+  getReservationsQuery,
+  approveReservationQuery,
+  denyReservationQuery
+};
 

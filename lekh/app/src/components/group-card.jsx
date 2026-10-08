@@ -12,15 +12,17 @@ import {
 import { useContext } from "react";
 import Image from "next/image";
 import { EquipmentContext } from "@/context/equipment-context";
+import { ReservationsContext } from "@/context/reservations-context";
 import { ItemStatus } from "@/components/item-status";
 import Link from "next/link";
 
 const GroupCard = ({ group }) => {
   if (!group) {
-    return <div />
+    return <div />;
   }
 
   const { items } = useContext(EquipmentContext);
+  const { reservations } = useContext(ReservationsContext);
 
   const { id, name, description } = group;
 
@@ -32,10 +34,28 @@ const GroupCard = ({ group }) => {
     assetId = groupItems[0]?.asset_id;
   }
 
+  const now = new Date();
+
+  const availableItems = groupItems.filter((item) => {
+    if (item.status_name !== "Available") {
+      return false;
+    }
+
+    const itemReservations = reservations
+      .filter((reservation) => reservation.item_id === item.id)
+      .sort((a, b) => new Date(a.start_at) - new Date(b.start_at));
+
+    const activeReservation = itemReservations.find((reservation) => (
+        reservation.returned_at === null &&
+        new Date(reservation.start_at) <= now
+    ));
+
+    return !activeReservation;
+  }).length;
+
   const totalItems = groupItems.length;
-  const availableItems = groupItems.filter((item) => (item.status_id == 1)).length;
-  const statusName = `${availableItems}/${totalItems}`;
-  const statusId = availableItems > 0 ? 1 : 2;
+  const stock = `${availableItems}/${totalItems}`;
+  const statusName = availableItems ? "Available" : "Unavailable";
 
   return (
     <Link href={`/units/by-type/${id}`}>
@@ -62,7 +82,8 @@ const GroupCard = ({ group }) => {
             unoptimized
           />
         </div>
-        <ItemStatus {...{ name: statusName, id: statusId }} />
+
+        <ItemStatus {...{ name: statusName, extra: stock }} />
       </Card>
     </Link>
   );

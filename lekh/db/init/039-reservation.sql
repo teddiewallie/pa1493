@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS reservation (
     start_at DATETIME NOT NULL,
     end_at DATETIME NOT NULL,
     is_pending BOOLEAN NOT NULL DEFAULT TRUE,
+    returned_at DATETIME DEFAULT NULL,
     item_id INT NOT NULL,
     user_id INT NOT NULL,
 

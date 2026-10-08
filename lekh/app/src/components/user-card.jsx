@@ -18,7 +18,7 @@ const NavCard = ({ user }) => (
 );
 
 const SingleCard = ({ user }) => (
-  <Card className="text-center mx-4 md:max-w-104">
+  <Card className="text-center">
     <CardHeader className="font-bold text-xl">
       { user?.name }
     </CardHeader>

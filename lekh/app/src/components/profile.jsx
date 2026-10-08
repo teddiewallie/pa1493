@@ -4,10 +4,10 @@ import { use, useContext, useState } from "react";
 import { ModalWithToast } from "@/components/modal-with-toast";
 import { CreateUserForm } from "@/components/create-user-form";
 import { UserCard } from "@/components/user-card";
+import { PendingsWrapper } from "@/components/pendings-wrapper";
 
 const Profile = ({user, refresh}) => {
   const [message, setMessage] = useState("");
-
   const onMessageHandled = () => setMessage("");
 
   return (
@@ -25,9 +25,12 @@ const Profile = ({user, refresh}) => {
         }} />
       </ModalWithToast>
 
-      <div className="container md:mx-auto my-4 px-6">
+      <div className="container px-6 md:mx-auto grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 my-4">
         <UserCard {...{ user, single: true }} />
       </div>
+      { user.role_id == 1 && <div className="container px-6 md:mx-auto grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 my-4">
+        <PendingsWrapper />
+      </div> }
     </>
   );
 };

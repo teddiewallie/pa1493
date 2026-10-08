@@ -1,6 +1,5 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { UsersProvider } from "@/provider/users-provider";
 import { getLanding } from "@/routes";
 
 const MaintainerLayout = async ({ children }) => {
@@ -11,9 +10,9 @@ const MaintainerLayout = async ({ children }) => {
   }
 
   return (
-    <UsersProvider>
+    <>
       {children}
-    </UsersProvider>
+    </>
   );
 };
 

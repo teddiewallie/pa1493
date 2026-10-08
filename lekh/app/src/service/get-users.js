@@ -10,7 +10,7 @@ const getUsers = async () => {
   const { role_id } = session?.user;
 
   if (!role_id || role_id != 1) {
-    return false;
+    return [];
   }
 
   try {
@@ -18,10 +18,10 @@ const getUsers = async () => {
     return users;
   } catch (e) {
     console.log(e);
-    return false;
+    return [];
   }
 
-  return false;
+  return [];
 };
 
 export { getUsers };
