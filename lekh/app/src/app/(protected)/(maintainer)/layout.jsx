@@ -10,7 +10,9 @@ const MaintainerLayout = async ({ children }) => {
   }
 
   return (
-    {children}
+    <>
+      {children}
+    </>
   );
 };
 
