@@ -49,7 +49,6 @@ const CreateReservation = ({ item }) => {
   }, [reservations, item]);
 
   const callback = async (reservation) => {
-    console.log(reservation);
     reservation.itemId = item.id;
     reservation.isPending = Boolean(item.borrowable);
 
