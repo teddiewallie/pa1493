@@ -1,10 +1,10 @@
 import { Card } from "@/components/ui/card";
-import { CreateReservationForm } from "@/components/create-reservation-form";
+import { CreateReservation } from "@/components/create-reservation";
 
 const ReservationCard = ({ item, type }) => {
   return (
     <Card className="flex flex-row p-0 overflow-hidden print:hidden">
-      <CreateReservationForm {...{ item, type }} />
+      <CreateReservation {...{ item, type }} />
     </Card>
   );
 };
