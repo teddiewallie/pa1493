@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { CircleArrowLeft } from "lucide-react";
-import { redirect } from "next/navigation";
-import { use, useContext, useState } from "react";
+import { useRouter, redirect } from "next/navigation";
+import { use, useContext, useEffect, useState } from "react";
 import { UserContext } from "@/context/user-context";
 import { EquipmentContext } from "@/context/equipment-context";
 import { ArticleContext } from "@/context/article-context";
@@ -18,13 +18,15 @@ import { ArticleList } from "@/components/article-list";
 const Page = ({params}) => {
   const { id } = use(params);
   const { user } = useContext(UserContext);
-  const { groups, refreshGroups } = useContext(EquipmentContext);
-  const { articles, articleTypes } = useContext(ArticleContext);
+  const { groups, refreshGroups, refreshItems } = useContext(EquipmentContext);
+  const { articles, articleTypes, refreshArticles } = useContext(ArticleContext);
+  const router = useRouter();
 
   const group = groups.find((group) => (group.id == id));
   const [ message, setMessage ] = useState("");
 
   const onMessageHandled = () => setMessage("");
+
   const filteredArticles = articles.filter((article) => (article.group_id == id));
 
   const extraCards = (
@@ -41,6 +43,12 @@ const Page = ({params}) => {
     redirect("/units");
   }
 
+  useEffect(() => {
+    if (!group) {
+      router.replace("/types");
+    }
+  }, [group, router]);
+
   return (
     <>
       <div className="container md:mx-auto px-10 mt-4 text-2xl font-bold">
@@ -49,7 +57,7 @@ const Page = ({params}) => {
         </div>
       </div>
 
-      <ItemList {...{ extraCards, groupId: Number(id),onMessageHandled }}>
+      <ItemList {...{ extraCards, groupId: Number(id), onMessageHandled }}>
         { !isUngrouped && <LinkButton href={`/editor/for-type/${id}`}>Add Article</LinkButton> }
         { (user.role_id == 1) && <ModalWithToast row {...{ title: "Edit Type", message, onMessageHandled }}>
           <CreateGroupForm {...{
@@ -59,6 +67,14 @@ const Page = ({params}) => {
               refreshGroups();
             },
             onFail: () => setMessage("Failed to update type."),
+            onDeleteSuccess: () => {
+              setMessage("Type successfully deleted.");
+              refreshGroups();
+              refreshItems();
+              refreshArticles();
+              router.replace("/units/by-type/1");
+            },
+            onDeleteFail: () => setMessage("Failed to delete type.")
           }} />
         </ModalWithToast> }
       </ItemList>

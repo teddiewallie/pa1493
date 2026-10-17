@@ -2,7 +2,8 @@ CREATE TABLE IF NOT EXISTS item_group (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description VARCHAR(255) NOT NULL,
-    known_issues TEXT NOT NULL
+    known_issues TEXT NOT NULL,
+    deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 INSERT INTO item_group (id, name, description, known_issues) VALUES

@@ -23,7 +23,7 @@ const denyReservationQuery = async (reservationId) => {
   );
 };
 
-const denyReservationsByUserIdQuery = async (userId) => pool.query(
+const denyReservationsByUserIdQuery = async (userId) => await pool.query(
   "DELETE FROM reservation WHERE user_id=?",
   [userId]
 );

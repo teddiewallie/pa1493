@@ -37,10 +37,16 @@ const getArticlesQuery = async () => {
   return groups;
 };
 
+const setGroupArticlesAsUnsortedQuery = async (groupId) => await pool.query(
+  "UPDATE article SET group_id=1 WHERE group_id=?",
+  [groupId]
+);
+
 export {
   getArticlesQuery,
   getArticleTypesQuery,
   addArticleQuery,
-  updateArticleQuery
+  updateArticleQuery,
+  setGroupArticlesAsUnsortedQuery
 };
 

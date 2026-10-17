@@ -15,9 +15,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 import { saveGroup } from "@/service/save-group";
+import { deleteGroup } from "@/service/delete-group";
 import { createGroupSchema } from "@/schema/group-schema";
 
-const CreateGroupForm = ({ onSuccess, onFail, group, groupId }) => {
+const CreateGroupForm = ({ onSuccess, onFail, onDeleteSuccess, onDeleteFail, group, groupId }) => {
   const schema = createGroupSchema();
 
   const form = useForm({
@@ -74,9 +75,19 @@ const CreateGroupForm = ({ onSuccess, onFail, group, groupId }) => {
             <FieldError errors={[form.formState.errors.knownIssues]} />
           </Field>
 
-          <div className="container flex items-center gap-12">
-            <Button className="flex mt-7" type="submit">
-              Save Group
+          <div className="grid grid-cols-2 gap-6">
+            <Button variant="destructive" onClick={async () => {
+              const result = await deleteGroup(group?.id);
+              console.log(result);
+
+              if (result) {
+                onDeleteSuccess();
+              } else {
+                onDeleteFail();
+              }
+            }}>Delete Type</Button>
+            <Button className="flex" type="submit">
+              Save Type
             </Button>
           </div>
         </FieldGroup>

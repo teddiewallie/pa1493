@@ -94,11 +94,16 @@ const getItemStatusMetaQuery = async () => {
   return statusMeta;
 };
 
+const setGroupItemsAsUnsortedQuery = async (id) => await pool.query(
+  "UPDATE item SET group_id=1 WHERE group_id=?", [id]
+);
+
 export {
   addItemQuery,
   getItemsQuery,
   getItemStatusMetaQuery,
   updateItemQuery,
-  addReportQuery
+  addReportQuery,
+  setGroupItemsAsUnsortedQuery
 };
 
