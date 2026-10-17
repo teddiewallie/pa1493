@@ -21,9 +21,8 @@ import { ItemStatus } from "@/components/item-status";
 
 import { isWithinInterval } from "date-fns";
 
-const ItemCard = ({ item, pointer, single }) => {
+const ItemCard = ({ item, pointer, single, activeReservation }) => {
   const { groups } = useContext(EquipmentContext);
-  const { reservations } = useContext(ReservationsContext);
 
   const router = useRouter();
 
@@ -36,23 +35,17 @@ const ItemCard = ({ item, pointer, single }) => {
   const { id, name, serial, description, shelf, asset_id, status_name } = item;
   let status = status_name;
 
-  const itemReservations = reservations.filter((reservation) => (
-    reservation.item_id === id
-  )).sort((a, b) => (new Date(a.start_at) - new Date(b.start_at)));
-
-  const now = new Date();
-
-  const activeReservation = itemReservations.find((reservation) => (
-    reservation.returned_at === null
-    && new Date(reservation.start_at) <= now
-  ));
-
   if (status_name === "Available" && activeReservation) {
-    if (new Date(activeReservation.end_at) > now) {
-      status = item.borrowable ? "Borrowed"
-        : item.bookable
-          ? "Booked"
-          : "Unknown";
+    if (new Date(activeReservation.end_at) > new Date()) {
+      /*
+       * Hi and welcome to Jackass, this is "The Ternary Centipede".
+       * Don't try this at home.
+       */
+      status = activeReservation.is_pending ? "Reserved"
+        : item.borrowable ? "Borrowed"
+          : item.bookable
+            ? "Booked"
+            : "Unknown";
     } else {
       status = "Overdue";
     }
