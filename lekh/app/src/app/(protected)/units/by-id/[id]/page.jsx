@@ -126,8 +126,8 @@ const Page = ({ params }) => {
         {groupIssues?.length > 0 && <SimpleCard {...{ title: "Known Type Issues", description: "Type spanning issues.", content: groupIssues }} />}
         { Boolean(item?.borrowable) && <ReservationCard {...{ item }} /> }
         { Boolean(item?.bookable) && item?.status_name === "Available" && <ReservationCard {...{ item }} /> }
-        { Boolean(item?.borrowable) && <ReservationHistoryCard reservations={itemReservations} /> }
-        { Boolean(item?.bookable) && <ReservationHistoryCard reservations={itemReservations} showTime /> }
+        { Boolean(item?.borrowable) && Boolean(itemReservations.length) && <ReservationHistoryCard reservations={itemReservations} /> }
+        { Boolean(item?.bookable) && Boolean(itemReservations.length) && <ReservationHistoryCard reservations={itemReservations} showTime /> }
       </div>
     </>
   );
