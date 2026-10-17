@@ -27,13 +27,18 @@ const updateGroupQuery = async (data) => {
 };
 
 const getGroupsQuery = async () => {
-  const groups = await pool.query("SELECT * FROM item_group");
+  const groups = await pool.query("SELECT * FROM item_group WHERE deleted=FALSE");
   return groups;
 };
+
+const deleteGroupQuery = async (id) => await pool.query(
+  "UPDATE item_group SET deleted=1 WHERE id=?", [id]
+);
 
 export {
   addGroupQuery,
   updateGroupQuery,
-  getGroupsQuery
+  getGroupsQuery,
+  deleteGroupQuery
 };
 
