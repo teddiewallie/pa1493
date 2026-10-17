@@ -23,6 +23,11 @@ const denyReservationQuery = async (reservationId) => {
   );
 };
 
+const denyReservationsByUserIdQuery = async (userId) => pool.query(
+  "DELETE FROM reservation WHERE user_id=?",
+  [userId]
+);
+
 const setReturnedQuery = async (id) => {
   const returned_at = new Date();
 
@@ -39,6 +44,7 @@ export {
   getReservationsQuery,
   approveReservationQuery,
   denyReservationQuery,
+  denyReservationsByUserIdQuery,
   setReturnedQuery
 };
 

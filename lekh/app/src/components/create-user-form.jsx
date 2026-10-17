@@ -3,6 +3,7 @@
 // https://ui.shadcn.com/docs/forms/react-hook-form#Checkbox
 
 import { useContext } from "react";
+import { useRouter } from "next/navigation";
 
 import {
   Field,
@@ -25,7 +26,8 @@ import { saveUser } from "@/service/save-user";
 
 import { createUserSchema } from "@/schema/user-schema";
 
-const CreateUserForm = ({ title, onSuccess, onFail, user }) => {
+const CreateUserForm = ({ title, onSuccess, onFail, onDelete, user, canDelete }) => {
+  const router = useRouter();
   const editing = Boolean(user);
   const schema = createUserSchema(editing);
 
@@ -102,9 +104,17 @@ const CreateUserForm = ({ title, onSuccess, onFail, user }) => {
                     </FieldLabel>
                   </Field>
                 )} />}
-            <Button className="flex mt-7" type="submit">Save User</Button>
+
           </div>
         </FieldGroup>
+      </FieldSet>
+      <FieldSet className="grid grid-cols-2 mt-6">
+        { canDelete && <Button
+          variant="destructive"
+          onClick={() => onDelete()}
+        >Delete User</Button>}
+        { !canDelete && <div />}
+        <Button type="submit">Save User</Button>
       </FieldSet>
     </form>
   );
