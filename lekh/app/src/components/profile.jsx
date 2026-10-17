@@ -12,23 +12,25 @@ const Profile = ({user, refresh}) => {
 
   return (
     <>
-      <ModalWithToast {...{ title: "Edit User", message, onMessageHandled }}>
-        <CreateUserForm {...{
-          onSuccess: (data) => {
-            setMessage("User successfully edited.");
-            if (user.role_id == 1) {
-              refresh(data);
-            }
-          },
-          onFail: () => setMessage("Failed to edit user."),
-          user
-        }} />
-      </ModalWithToast>
+      <div className="container grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6 md:mx-auto px-10 mt-4">
+        <ModalWithToast {...{ title: "Edit User", message, onMessageHandled }}>
+          <CreateUserForm {...{
+            onSuccess: (data) => {
+              setMessage("User successfully edited.");
+              if (user.role_id == 1) {
+                refresh(data);
+              }
+            },
+            onFail: () => setMessage("Failed to edit user."),
+            user
+          }} />
+        </ModalWithToast>
+      </div>
 
-      <div className="container px-6 md:mx-auto grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 my-4">
+      <div className="container px-10 md:mx-auto grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 my-4">
         <UserCard {...{ user, single: true }} />
       </div>
-      { user.role_id == 1 && <div className="container px-6 md:mx-auto grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 my-4">
+      { user.role_id == 1 && <div className="container px-10 md:mx-auto grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 my-4">
         <PendingsWrapper />
       </div> }
     </>

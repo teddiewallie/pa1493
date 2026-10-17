@@ -13,6 +13,7 @@ import { CreateItemForm } from "@/components/create-item-form";
 import { ReportItemForm } from "@/components/report-item-form";
 import { SimpleCard } from "@/components/simple-card";
 import { Button } from "@/components/ui/button";
+import { LinkButton } from "@/components/link-button"
 import { ArticleList } from "@/components/article-list";
 import { ReservationCard } from "@/components/reservation-card";
 
@@ -52,13 +53,8 @@ const Page = ({ params }) => {
           </Link>
         </div>
       </div>
-      <div className="flex container md:mx-auto">
-        { user.role_id == 1 && <Link href={`/editor/for-unit/${id}`}>
-            <Button
-              className="ml-10 mt-4 print:hidden"
-              variant="outline"
-            >Add Article</Button>
-          </Link>}
+      <div className="container grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6 md:mx-auto px-10 mt-2">
+        { user.role_id == 1 && <LinkButton href={`/editor/for-unit/${id}`}>Add Article</LinkButton> }
         <ModalWithToast noContainer {...{ title: "Report Issue", message: reportMessage, onMessageHandled }}>
           <ReportItemForm {...{
             item,
@@ -80,6 +76,7 @@ const Page = ({ params }) => {
             statuses: meta?.status
           }} />
         </ModalWithToast> }
+        { user.role_id == 1 && <Button variant="outline">Mark as Returned</Button> }
       </div>
 
       <div className="container px-10 md:mx-auto grid grid-cols-1 gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 my-4">

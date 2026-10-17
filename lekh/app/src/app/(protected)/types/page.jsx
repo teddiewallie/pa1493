@@ -28,15 +28,18 @@ const Page = () => {
         All Types
       </div>
       <div className="container mx-auto">
-        { (user.role_id == 1) && <ModalWithToast {...{ title: "Add Type", message, onMessageHandled }}>
-          <CreateGroupForm {...{
-            onSuccess: () => {
-              setMessage("Type successfully added.");
-              refreshGroups();
-            },
-            onFail: () => setMessage("Failed to add type.")
-          }} />
-        </ModalWithToast> }
+        { (user.role_id == 1) &&
+          <div className="container grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6 md:mx-auto px-10 mt-2">
+            <ModalWithToast {...{ title: "Add Type", message, onMessageHandled }}>
+              <CreateGroupForm {...{
+                onSuccess: () => {
+                  setMessage("Type successfully added.");
+                  refreshGroups();
+                },
+                onFail: () => setMessage("Failed to add type.")
+              }} />
+            </ModalWithToast>
+          </div> }
 
 
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mx-10 my-4">

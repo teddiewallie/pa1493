@@ -18,7 +18,7 @@ const ItemList = ({ extraCards, groupId, children, onMessageHandled }) => {
 
   return (
     <div className="container md:mx-auto">
-      <div className="flex">
+      <div className="container grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6 md:mx-auto px-10 mt-2">
         {children}
         { (user.role_id == 1) && <ModalWithToast row {...{ title: "Add Unit", message, onMessageHandled }}>
           <CreateItemForm {...{
