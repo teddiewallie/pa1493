@@ -50,11 +50,12 @@ Specifically the aim is to:
 * ~~The system must allow students to submit articles to the idea catalogue.~~
 * ~~The system must allow students to read articles in the idea catalogue.~~
 * ~~The system must allow students to (request to) borrow items, with start and end dates.~~
-* The system must allow the unit to be returned.
+* ~~The system must allow the unit to be returned.~~
 * ~~The system must allow to mark an item as out of service.~~
 * ~~The system must allow users to report a known fault on a specific unit.~~
 * ~~The system must allow caretakers to report a known fault on a whole type.~~
 * ~~The system must allow users to record a finished project and link the article to the used equipment.~~
+* The system must allow maintainers to delete units, types, and users.
 
 **Should**
 
