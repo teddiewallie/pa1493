@@ -6,7 +6,7 @@ import { CreateUserForm } from "@/components/create-user-form";
 import { UserCard } from "@/components/user-card";
 import { PendingsWrapper } from "@/components/pendings-wrapper";
 
-const Profile = ({user, refresh}) => {
+const Profile = ({user, refresh, canDelete, onDelete}) => {
   const [message, setMessage] = useState("");
   const onMessageHandled = () => setMessage("");
 
@@ -15,6 +15,7 @@ const Profile = ({user, refresh}) => {
       <div className="container grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6 md:mx-auto px-10 mt-4">
         <ModalWithToast {...{ title: "Edit User", message, onMessageHandled }}>
           <CreateUserForm {...{
+            canDelete,
             onSuccess: (data) => {
               setMessage("User successfully edited.");
               if (user.role_id == 1) {
@@ -22,6 +23,7 @@ const Profile = ({user, refresh}) => {
               }
             },
             onFail: () => setMessage("Failed to edit user."),
+            onDelete,
             user
           }} />
         </ModalWithToast>

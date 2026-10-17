@@ -10,17 +10,17 @@ const columns = [
 ];
 
 const getUsersByEmailQuery = async (email) => await pool.query(
-  "SELECT id, name, email, password, role_id FROM user WHERE email = ?",
+  "SELECT id, name, email, password, role_id FROM user WHERE email=? AND deleted=FALSE",
   [email]
 );
 
 const getUsersByIdQuery = async (id) => await pool.query(
-  "SELECT id, name, email, role_id FROM user WHERE id = ?",
+  "SELECT id, name, email, role_id FROM user WHERE id=? AND deleted=FALSE",
   [id]
 );
 
 const getAllUsersQuery = async () => await pool.query(
-  "SELECT id, name, email, role_id FROM user"
+  "SELECT id, name, email, deleted, role_id FROM user WHERE deleted=FALSE"
 );
 
 const addUserQuery = async (data) => {
@@ -61,11 +61,25 @@ const updateUserQuery = async (data, isAdmin) => {
   return true;
 };
 
+const deleteUserQuery  = async (id) => {
+  const admins = pool.query("SELECT id FROM user WHERE role_id=1");
+
+  if (admins.length === 1) {
+    throw new Error("Can't delete last elevated user.");
+  }
+
+  pool.query(
+    "UPDATE user SET deleted=? WHERE id=?",
+    [1, id]
+  );
+};
+
 export {
   getAllUsersQuery,
   getUsersByEmailQuery,
   getUsersByIdQuery,
   addUserQuery,
-  updateUserQuery
+  updateUserQuery,
+  deleteUserQuery
 };
 

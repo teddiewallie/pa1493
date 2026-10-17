@@ -10,6 +10,7 @@ const PendingsWrapper = () => {
   const { users } = useContext(UsersContext);
 
   const pendings = reservations.filter((reservation) => reservation.is_pending);
+
   pendings.forEach((pending) => {
     pending.item = items.find((item) => (item.id == pending.item_id))
     pending.user = users.find((user) => (user.id == pending.user_id))
