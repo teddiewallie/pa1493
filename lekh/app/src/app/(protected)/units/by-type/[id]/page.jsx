@@ -12,6 +12,7 @@ import { ModalWithToast } from "@/components/modal-with-toast";
 import { CreateGroupForm } from "@/components/create-group-form";
 import { SimpleCard } from "@/components/simple-card";
 import { Button } from "@/components/ui/button";
+import { LinkButton } from "@/components/link-button";
 import { ArticleList } from "@/components/article-list";
 
 const Page = ({params}) => {
@@ -49,14 +50,7 @@ const Page = ({params}) => {
       </div>
 
       <ItemList {...{ extraCards, groupId: Number(id),onMessageHandled }}>
-        { !isUngrouped &&
-          <Link href={`/editor/for-type/${id}`}>
-            <Button
-              className="ml-auto mt-4 ml-10 print:hidden"
-              variant="outline"
-            >Add Article</Button>
-          </Link>
-        }
+        { !isUngrouped && <LinkButton href={`/editor/for-type/${id}`}>Add Article</LinkButton> }
         { (user.role_id == 1) && <ModalWithToast row {...{ title: "Edit Type", message, onMessageHandled }}>
           <CreateGroupForm {...{
             group,

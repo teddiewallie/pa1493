@@ -7,6 +7,7 @@ import {
 
 const statusIcon = {
   "Available": { icon: CircleCheck, color: "text-green-500" },
+  "Reserved": { icon: CircleMinus, color: "text-red-500" },
   "Borrowed": { icon: CircleMinus, color: "text-red-500" },
   "Unavailable": { icon: CircleMinus, color: "text-red-500" },
   "Booked": { icon: CircleMinus, color: "text-red-500" },
@@ -17,7 +18,7 @@ const statusIcon = {
 };
 
 const ItemStatus = ({ name, extra }) => {
-  const Icon = statusIcon[name].icon || CircleX;
+  const Icon = statusIcon[name]?.icon || CircleX;
 
   return (
     <div className="flex print:hidden items-center justify-left mx-4">

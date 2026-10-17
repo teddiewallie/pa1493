@@ -33,6 +33,7 @@ const CreateReservation = ({ item }) => {
     if (item.bookable) {
       setBookings(itemReservations.filter((reservation) => (
         isSameDay(reservation.start_at, reservation.end_at)
+        && reservation.returned_at == null
         && getHours(reservation.start_at) !== 0
         && isToday(reservation.start_at)
       )).map((r) => (`${format(r.start_at, "HH:mm")}-${format(r.end_at, "HH:mm")}`)));
@@ -40,7 +41,8 @@ const CreateReservation = ({ item }) => {
 
     if (item.borrowable) {
       setBorrowings(itemReservations.filter((reservation) => (
-        getHours(reservation.start_at) === 0
+        reservation.returned_at == null
+        && getHours(reservation.start_at) === 0
       )).flatMap((reservation) => eachDayOfInterval({
         start: reservation.start_at,
         end: reservation.end_at

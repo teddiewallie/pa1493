@@ -23,10 +23,22 @@ const denyReservationQuery = async (reservationId) => {
   );
 };
 
+const setReturnedQuery = async (id) => {
+  const returned_at = new Date();
+
+  await pool.query(
+    `UPDATE reservation
+     SET returned_at=?, end_at=?
+     WHERE id=?`,
+    [returned_at, returned_at, id]
+  );
+};
+
 export {
   addReservationQuery,
   getReservationsQuery,
   approveReservationQuery,
-  denyReservationQuery
+  denyReservationQuery,
+  setReturnedQuery
 };
 

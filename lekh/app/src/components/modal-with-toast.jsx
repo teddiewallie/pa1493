@@ -23,8 +23,6 @@ const ModalWithToast = ({
   message,
   onMessageHandled,
   doubleWidth,
-  row,
-  noContainer,
   children
 }) => {
   const [ open, onOpenChange ] = useState(false);
@@ -42,24 +40,21 @@ const ModalWithToast = ({
     : "";
 
   contentClassName = `${contentClassName} max-h-[calc(100vh-2rem)] flex-col overflow-y-scroll`;
-  const wrapperClassName = row ? "mt-4" : noContainer ? "mt-4" : "container md:mx-auto mt-4";
 
   return (
-    <div className={wrapperClassName}>
-      <Dialog {...{ open, onOpenChange }}>
-        <DialogTrigger render={
-          <Button className="ml-auto ml-10 print:hidden" variant="outline">{title}</Button>
-        } />
-        <DialogContent className={contentClassName}>
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>
-            </DialogDescription>
-          </DialogHeader>
-          { children }
-        </DialogContent>
-      </Dialog>
-    </div>
+    <Dialog {...{ open, onOpenChange }}>
+      <DialogTrigger render={
+        <Button className="print:hidden" variant="outline">{title}</Button>
+      } />
+      <DialogContent className={contentClassName}>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+          </DialogDescription>
+        </DialogHeader>
+        { children }
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -10,14 +10,14 @@ import {
   CardTitle
 } from "@/components/ui/card";
 
-const SimpleCard = ({ title, description, content }) => {
+const SimpleCard = ({ title, description, maxHeight, content }) => {
 
   if (!title) {
     return <div />
   }
 
   return (
-    <Card className="overflow-scroll print:hidden">
+    <Card className="print:hidden">
       <CardHeader>
         <CardTitle>
           {title}
@@ -27,7 +27,9 @@ const SimpleCard = ({ title, description, content }) => {
           {description}
         </CardDescription>
       </CardHeader>
-      <CardContent className="whitespace-pre-line">
+      <CardContent
+        className="whitespace-pre-line overflow-scroll"
+        style={maxHeight ? { maxHeight } : undefined}>
         { content }
       </CardContent>
     </Card>
