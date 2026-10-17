@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { LinkButton } from "@/components/link-button"
 import { ArticleList } from "@/components/article-list";
 import { ReservationCard } from "@/components/reservation-card";
+import { ReservationHistoryCard } from "@/components/reservation-history-card";
 import { setReturned } from "@/service/set-returned";
 import { toast } from "@/components/ui/toast";
 
@@ -125,6 +126,8 @@ const Page = ({ params }) => {
         {groupIssues?.length > 0 && <SimpleCard {...{ title: "Known Type Issues", description: "Type spanning issues.", content: groupIssues }} />}
         { Boolean(item?.borrowable) && <ReservationCard {...{ item }} /> }
         { Boolean(item?.bookable) && item?.status_name === "Available" && <ReservationCard {...{ item }} /> }
+        { Boolean(item?.borrowable) && <ReservationHistoryCard reservations={itemReservations} /> }
+        { Boolean(item?.bookable) && <ReservationHistoryCard reservations={itemReservations} showTime /> }
       </div>
     </>
   );
