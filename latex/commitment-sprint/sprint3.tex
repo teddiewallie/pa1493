@@ -1,0 +1,98 @@
+\newgeometry{top=1cm, bottom=1cm}
+\section*{Sprint Information}
+
+\begin{itemize}[noitemsep]
+    \item \textbf{Project Name:} Lab Equipment Knowledge Hub
+    \item \textbf{Customer Name:} Zeth Danielsson
+    \item \textbf{Sprint Goal:} Maintainers can delete users and types. Application is reviewed from a security perspective. Code is linted and relevant components have unit tests.
+\end{itemize}
+
+\section*{Backlog}
+\committable{
+\commitrow
+{136}
+{
+As a maintainer
+I want to manage the returning of the equipment
+so that I can document faults, state of equpment kits, and mark the equipment as available again.
+}
+{M}
+{
+\begin{itemize}[label=$\square$, noitemsep]
+\item Only maintainers can return equipment.
+\item Returning equipment sets \texttt{returned\_at} cell in the database.
+\item The unit is available to borrow again.
+\end{itemize}
+}
+{}
+
+\commitrow
+{156}
+{
+As a maintainer
+I want to delete users
+so that they cannot use the app anymore.
+}
+{M}
+{
+\begin{itemize}[label=$\square$, noitemsep]
+\item Only maintainers can delete users.
+\item Deleted users are not able to log in.
+\item Deleted users are visible in the users list.
+\end{itemize}
+}
+{Not actually deleted, just a \texttt{deleted} flag in the database. Don't tell GDPR.}
+
+\commitrow
+{157}
+{
+As a maintainer
+I want to delete types
+so that they don't clog the UI.
+}
+{M}
+{
+\begin{itemize}[label=$\square$, noitemsep]
+\item Only maintainers can delete types.
+\item Deleted types are not visible in the types list.
+\item Orphans are moved to the Unsorted type.
+\end{itemize}
+}
+{Not actually deleted, just a \texttt{deleted} flag in the database.}
+
+\commitrow
+{162}
+{
+Technical story. Hardening the app where needed.
+}
+{XL}
+{
+\begin{itemize}[label=$\square$, noitemsep]
+\item Students can't use the maintainer functions, even if the UI is manipulated so that the elevated UI is exposed.
+\item Forms and server actions reject all invalid data.
+\end{itemize}
+}
+{}
+
+\commitrow
+{163}
+{
+Technical story. Testing and linting the app where needed.
+}
+{XL}
+{
+\begin{itemize}[label=$\square$, noitemsep]
+\item The project's linting checks pass.
+\item All unit tests pass.
+\item A test coverage report is generated.
+\item The report shows at least 75\% coverage of code considered suitable for unit testing, if the test framework allows setting up testing scopes.
+\end{itemize}
+}
+{}
+}
+
+\section*{QA}
+
+This sprint focuses on reducing technical debt and will function as a base for future quality assurance. Code will be linted, relevant components will be unit tested, and the application will be reviewed from a security perspective.
+\restoregeometry
+
