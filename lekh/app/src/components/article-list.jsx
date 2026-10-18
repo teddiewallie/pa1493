@@ -8,10 +8,7 @@ import {
 
 import { ArticleRow } from "@/components/article-row";
 
-const ArticleList = ({ articles, articleTypes, title }) => {
-
-  title = title ?? "Articles";
-
+const ArticleList = ({ articles, articleTypes, title="Articles" }) => {
   return (
     <Card className="max-h-106">
       <CardHeader className="pt-2">

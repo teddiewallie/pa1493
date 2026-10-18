@@ -3,7 +3,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useContext } from "react";
 import { UserContext } from "@/context/user-context";
 import { SignOutButton } from "@/components/sign-out-button";
@@ -11,7 +10,6 @@ import { routes } from "@/routes";
 
 const TopBar = () => {
   const { user } = useContext(UserContext);
-  const router = useRouter();
 
   const LinkItem = ({Icon, route, name}) => (
     <Link href={route} className="mx-3 flex cursor-pointer"><Icon className="inline mr-1" />{name}</Link>

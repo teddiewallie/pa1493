@@ -180,7 +180,7 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
 
                   <SelectContent>
                     {groups
-                      .sort((group1, group2) =>
+                      .toSorted((group1, group2) =>
                         group1.name.localeCompare(group2.name)
                       )
                       .map((group) => (

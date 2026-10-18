@@ -58,7 +58,7 @@ const PendingCard = ({ item, pending, user, refresh }) => {
           <div className="mt-4 relative aspect-video w-full flex items-center justify-center">
             <Image
               className="print:hidden max-h-full w-auto object-contain rounded-lg"
-              alt={name}
+              alt=""
               width={800}
               height={600}
               src={`/api/asset/${item.asset_id}`}

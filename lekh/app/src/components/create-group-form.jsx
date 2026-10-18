@@ -76,7 +76,7 @@ const CreateGroupForm = ({ onSuccess, onFail, onDeleteSuccess, onDeleteFail, gro
           </Field>
 
           <div className="grid grid-cols-2 gap-6">
-            <Button variant="destructive" onClick={async () => {
+            <Button variant="destructive" type="button" onClick={async () => {
               const result = await deleteGroup(group?.id);
               console.log(result);
 
