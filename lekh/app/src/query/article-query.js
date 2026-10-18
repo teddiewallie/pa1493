@@ -42,11 +42,31 @@ const setGroupArticlesAsUnsortedQuery = async (groupId) => await pool.query(
   [groupId]
 );
 
+const getArticlesByIdAndUserIdQuery = async (articleId, userId) => {
+  const rows = await pool.query(
+    "SELECT id FROM article WHERE id = ? AND user_id = ?",
+    [articleId, userId]
+  );
+
+  return rows[0];
+};
+
+const getArticleByIdQuery = async (id) => {
+  const rows = await pool.query(
+    "SELECT * FROM article WHERE id = ?",
+    [id]
+  );
+
+  return rows[0];
+};
+
 export {
   getArticlesQuery,
   getArticleTypesQuery,
   addArticleQuery,
   updateArticleQuery,
+  getArticleByIdQuery,
+  getArticlesByIdAndUserIdQuery,
   setGroupArticlesAsUnsortedQuery
 };
 
