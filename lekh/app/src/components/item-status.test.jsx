@@ -1,0 +1,70 @@
+
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import { ItemStatus } from "./item-status";
+
+vi.mock("lucide-react", () => ({
+  CircleCheck: (props) => <svg data-testid="icon-check" {...props} />,
+  CircleMinus: (props) => <svg data-testid="icon-minus" {...props} />,
+  CircleAlert: (props) => <svg data-testid="icon-alert" {...props} />,
+  CircleX: (props) => <svg data-testid="icon-x" {...props} />,
+}));
+
+describe("ItemStatus", () => {
+  it("renders the status label and Available icon", () => {
+    render(<ItemStatus name="Available" />);
+
+    expect(screen.getByText("Status")).toBeInTheDocument();
+    expect(screen.getByText("Available")).toBeInTheDocument();
+    expect(screen.getByTestId("icon-check")).toHaveClass("text-green-500");
+  });
+
+  it.each([
+    "Reserved",
+    "Borrowed",
+    "Unavailable",
+    "Booked",
+    "Overdue",
+  ])("uses the minus icon for %s", (name) => {
+    render(<ItemStatus name={name} />);
+
+    expect(screen.getByTestId("icon-minus")).toHaveClass("text-red-500");
+  });
+
+  it("uses the alert icon for In Repair", () => {
+    render(<ItemStatus name="In Repair" />);
+
+    expect(screen.getByTestId("icon-alert")).toHaveClass("text-orange-500");
+  });
+
+  it.each(["Out of Service", "Retired"])(
+    "uses the X icon for %s",
+    (name) => {
+      render(<ItemStatus name={name} />);
+
+      expect(screen.getByTestId("icon-x")).toHaveClass("text-red-500");
+    }
+  );
+
+  it("falls back to the X icon for an unknown status", () => {
+    render(<ItemStatus name="Something New" />);
+
+    expect(screen.getByTestId("icon-x")).toHaveClass("text-red-500");
+    expect(screen.getByText("Something New")).toBeInTheDocument();
+  });
+
+  it("renders extra information before the status", () => {
+    render(<ItemStatus name="Available" extra="3/5" />);
+
+    expect(screen.getByText("3/5 - Available")).toBeInTheDocument();
+  });
+
+  it("does not render a separator when extra is omitted", () => {
+    render(<ItemStatus name="Available" />);
+
+    expect(screen.getByText("Available")).toBeInTheDocument();
+    expect(screen.queryByText(/ - Available/)).not.toBeInTheDocument();
+  });
+});
+
