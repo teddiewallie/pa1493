@@ -1,0 +1,82 @@
+import {
+  render,
+  screen,
+} from "@testing-library/react";
+import {
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
+import { ArticleRow } from "./article-row";
+
+vi.mock("next/link", () => ({
+  default: ({ href, children, ...props }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
+
+vi.mock("@/components/badge", () => ({
+  Badge: ({ article, articleTypes }) => (
+    <span data-testid="article-badge">
+      {JSON.stringify({ article, articleTypes })}
+    </span>
+  ),
+}));
+
+describe("ArticleRow", () => {
+  const article = {
+    id: 42,
+    title: "Getting Started",
+  };
+
+  const articleTypes = [
+    { id: 1, name: "Guide" },
+    { id: 2, name: "Documentation" },
+  ];
+
+  it("renders the article title as a link to the article page", () => {
+    render(
+      <ArticleRow
+        article={article}
+        articleTypes={articleTypes}
+      />
+    );
+
+    const link = screen.getByRole("link", {
+      name: "Getting Started",
+    });
+
+    expect(link).toHaveAttribute("href", "/article/42");
+  });
+
+  it("passes the article and article types to Badge", () => {
+    render(
+      <ArticleRow
+        article={article}
+        articleTypes={articleTypes}
+      />
+    );
+
+    expect(screen.getByTestId("article-badge")).toHaveTextContent(
+      JSON.stringify({ article, articleTypes })
+    );
+  });
+
+  it("renders the correct URL for different article IDs", () => {
+    render(
+      <ArticleRow
+        article={{ ...article, id: 7 }}
+        articleTypes={articleTypes}
+      />
+    );
+
+    expect(
+      screen.getByRole("link", { name: "Getting Started" })
+    ).toHaveAttribute("href", "/article/7");
+  });
+});
+
