@@ -1,0 +1,75 @@
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { SignOutButton } from "./sign-out-button";
+import { signOut } from "next-auth/react";
+
+vi.mock("next-auth/react", () => ({
+  signOut: vi.fn(),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+  }),
+}));
+
+vi.mock("@/components/ui/button", () => ({
+  Button: ({ children, ...props }) => <button {...props}>{children}</button>,
+}));
+
+vi.mock("lucide-react", () => ({
+  LogOut: () => <svg data-testid="logout-icon" />,
+}));
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  signOut.mockResolvedValue(undefined);
+});
+
+describe("SignOutButton", () => {
+  it("renders the standard sign-out button by default", () => {
+    render(<SignOutButton />);
+
+    expect(
+      screen.getByRole("button", { name: "Sign Out" })
+    ).toBeInTheDocument();
+
+    expect(screen.queryByTestId("logout-icon")).not.toBeInTheDocument();
+  });
+
+  it("signs out and redirects to login when the standard button is clicked", async () => {
+    render(<SignOutButton type="default" />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Sign Out" }));
+
+    await waitFor(() => {
+      expect(signOut).toHaveBeenCalledWith({ redirectTo: "/login" });
+    });
+
+    expect(signOut).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders the icon-only button for the bottom bar", () => {
+    render(<SignOutButton type="bottom-bar" />);
+
+    expect(screen.getByTestId("logout-icon")).toBeInTheDocument();
+    expect(screen.getByRole("button")).toHaveClass("cursor-pointer");
+    expect(
+      screen.queryByRole("button", { name: "Sign Out" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("signs out and redirects to login when the bottom-bar button is clicked", async () => {
+    render(<SignOutButton type="bottom-bar" />);
+
+    fireEvent.click(screen.getByRole("button"));
+
+    await waitFor(() => {
+      expect(signOut).toHaveBeenCalledWith({ redirectTo: "/login" });
+    });
+
+    expect(signOut).toHaveBeenCalledTimes(1);
+  });
+});
