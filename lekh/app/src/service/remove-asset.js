@@ -1,5 +1,3 @@
-"use server";
-
 import { auth } from "@/auth";
 import { removeAssetQuery } from "@/query/asset-query";
 
