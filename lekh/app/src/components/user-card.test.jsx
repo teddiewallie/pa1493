@@ -1,0 +1,66 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import { UserCard } from "./user-card";
+
+vi.mock("next/link", () => ({
+  default: ({ href, children, ...props }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
+
+const user = {
+  id: 42,
+  name: "Test User",
+  email: "test@example.com",
+};
+
+describe("UserCard", () => {
+  it("renders the user's name and email in navigation mode", () => {
+    render(<UserCard user={user} single={false} />);
+
+    expect(screen.getByText("Test User")).toBeInTheDocument();
+    expect(screen.getByText("test@example.com")).toBeInTheDocument();
+  });
+
+  it("links to the user's page in navigation mode", () => {
+    render(<UserCard user={user} single={false} />);
+
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/users/42");
+  });
+
+  it("renders the user's name and email in single mode", () => {
+    render(<UserCard user={user} single />);
+
+    expect(screen.getByText("Test User")).toBeInTheDocument();
+    expect(screen.getByText("test@example.com")).toBeInTheDocument();
+  });
+
+  it("does not render a navigation link in single mode", () => {
+    render(<UserCard user={user} single />);
+
+    expect(screen.queryByRole("link")).not.toBeInTheDocument();
+  });
+
+  it("renders empty name and email when user properties are missing", () => {
+    render(<UserCard user={{ id: 42 }} single />);
+
+    expect(screen.queryByText("Test User")).not.toBeInTheDocument();
+    expect(screen.queryByText("test@example.com")).not.toBeInTheDocument();
+  });
+
+  it("renders only the single card when single is true", () => {
+    const { container } = render(<UserCard user={user} single />);
+
+    expect(container.querySelectorAll("[data-slot='card']")).toHaveLength(1);
+  });
+
+  it("renders only the navigation card when single is false", () => {
+    const { container } = render(<UserCard user={user} single={false} />);
+
+    expect(container.querySelectorAll("[data-slot='card']")).toHaveLength(1);
+  });
+});
+
