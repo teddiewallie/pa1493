@@ -1,0 +1,198 @@
+
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import { ItemCard } from "./item-card";
+import { EquipmentContext } from "@/context/equipment-context";
+
+vi.mock("next/link", () => ({
+  default: ({ href, children, ...props }) => (
+    <a href={href} {...props}>{children}</a>
+  ),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+}));
+
+vi.mock("next/image", () => ({
+  default: (props) => <img {...props} />,
+}));
+
+vi.mock("@/components/ui/card", () => ({
+  Card: ({ children, ...props }) => <div {...props}>{children}</div>,
+  CardDescription: ({ children }) => <p>{children}</p>,
+  CardFooter: ({ children }) => <div>{children}</div>,
+  CardHeader: ({ children }) => <div>{children}</div>,
+  CardContent: ({ children }) => <div>{children}</div>,
+  CardTitle: ({ children }) => <h2>{children}</h2>,
+}));
+
+vi.mock("@/components/qr-code", () => ({
+  QRCode: ({ value }) => <div data-testid="qr-code">{value}</div>,
+}));
+
+vi.mock("@/components/item-status", () => ({
+  ItemStatus: ({ name }) => <div data-testid="item-status">{name}</div>,
+}));
+
+const baseItem = {
+  id: 42,
+  name: "Oscilloscope",
+  serial: "OSC-123",
+  description: "Digital oscilloscope",
+  shelf: "A3",
+  asset_id: 99,
+  group_id: 7,
+  status_name: "Available",
+  borrowable: false,
+  bookable: false,
+};
+
+const renderComponent = ({
+  item = baseItem,
+  groups = [{ id: 7, name: "Test Equipment" }],
+  ...props
+} = {}) =>
+  render(
+    <EquipmentContext.Provider value={{ groups }}>
+      <ItemCard item={item} {...props} />
+    </EquipmentContext.Provider>
+  );
+
+describe("ItemCard", () => {
+  it("renders nothing when item is missing", () => {
+    const { container } = renderComponent({ item: null });
+
+    expect(container.firstChild).toBeEmptyDOMElement();
+  });
+
+  it("renders item details and links to the item page", () => {
+    renderComponent();
+
+    expect(screen.getByRole("heading", { name: /Oscilloscope/ })).toBeInTheDocument();
+    expect(screen.getByText("A3")).toBeInTheDocument();
+    expect(screen.getByText("Digital oscilloscope")).toBeInTheDocument();
+    expect(screen.getByText("OSC-123", { selector: "span" })).toBeInTheDocument();
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/units/by-id/42");
+  });
+
+  it("uses the item asset ID for its image", () => {
+    renderComponent();
+
+    expect(screen.getByRole("img", { name: "Oscilloscope" })).toHaveAttribute(
+      "src",
+      "/api/asset/99"
+    );
+  });
+
+  it("renders QR codes containing the serial number", () => {
+    renderComponent();
+
+    expect(screen.getAllByTestId("qr-code")).toHaveLength(2);
+    expect(screen.getAllByTestId("qr-code").map((node) => node.textContent)).toEqual([
+      "OSC-123",
+      "OSC-123",
+    ]);
+  });
+
+  it("shows the original status when there is no active reservation", () => {
+    renderComponent();
+
+    expect(screen.getByTestId("item-status")).toHaveTextContent("Available");
+  });
+
+  it("shows Reserved for a pending reservation that has not expired", () => {
+    renderComponent({
+      activeReservation: {
+        end_at: new Date(Date.now() + 60_000),
+        is_pending: true,
+      },
+    });
+
+    expect(screen.getByTestId("item-status")).toHaveTextContent("Reserved");
+  });
+
+  it("shows Borrowed for a non-pending reservation on a borrowable item", () => {
+    renderComponent({
+      item: { ...baseItem, borrowable: true },
+      activeReservation: {
+        end_at: new Date(Date.now() + 60_000),
+        is_pending: false,
+      },
+    });
+
+    expect(screen.getByTestId("item-status")).toHaveTextContent("Borrowed");
+  });
+
+  it("shows Booked for a non-pending reservation on a bookable item", () => {
+    renderComponent({
+      item: { ...baseItem, bookable: true },
+      activeReservation: {
+        end_at: new Date(Date.now() + 60_000),
+        is_pending: false,
+      },
+    });
+
+    expect(screen.getByTestId("item-status")).toHaveTextContent("Booked");
+  });
+
+  it("shows Unknown when the reservation is not pending and the item supports neither action", () => {
+    renderComponent({
+      activeReservation: {
+        end_at: new Date(Date.now() + 60_000),
+        is_pending: false,
+      },
+    });
+
+    expect(screen.getByTestId("item-status")).toHaveTextContent("Unknown");
+  });
+
+  it("shows Overdue when the reservation end time has passed", () => {
+    renderComponent({
+      item: { ...baseItem, borrowable: true },
+      activeReservation: {
+        end_at: new Date(Date.now() - 60_000),
+        is_pending: false,
+      },
+    });
+
+    expect(screen.getByTestId("item-status")).toHaveTextContent("Overdue");
+  });
+
+  it("does not override a non-Available item status", () => {
+    renderComponent({
+      item: { ...baseItem, status_name: "On Loan", borrowable: true },
+      activeReservation: {
+        end_at: new Date(Date.now() + 60_000),
+        is_pending: true,
+      },
+    });
+
+    expect(screen.getByTestId("item-status")).toHaveTextContent("On Loan");
+  });
+
+  it("shows the item's group when single is true", () => {
+    renderComponent({ single: true });
+
+    expect(screen.getByText("Type")).toBeInTheDocument();
+    expect(screen.getByText("Test Equipment")).toBeInTheDocument();
+  });
+
+  it("omits the group row when single is false", () => {
+    renderComponent({ single: false });
+
+    expect(screen.queryByText("Type")).not.toBeInTheDocument();
+  });
+
+  it("handles an item whose group cannot be found", () => {
+    renderComponent({
+      single: true,
+      groups: [],
+    });
+
+    expect(screen.getByText("Type")).toBeInTheDocument();
+    expect(screen.queryByText("Test Equipment")).not.toBeInTheDocument();
+  });
+});
+
