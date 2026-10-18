@@ -68,7 +68,7 @@ const CreateArticleForm = ({ onSuccess, onFail, article, articleTypes, typeId, a
     itemId,
     userId
   });
-}, [articleId, article, articleTypes, groupId, itemId, typeId, form]);
+}, [articleId, article, articleTypes, groupId, itemId, typeId, form, userId]);
 
   const handleSubmit = async (data) => {
     const result = await saveArticle(data);
