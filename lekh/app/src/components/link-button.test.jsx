@@ -1,0 +1,62 @@
+
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import { LinkButton } from "./link-button";
+import { buttonVariants } from "@/components/ui/button";
+
+vi.mock("next/link", () => ({
+  default: ({ href, className, children }) => (
+    <a href={href} className={className}>{children}</a>
+  ),
+}));
+
+vi.mock("@/components/ui/button", () => ({
+  buttonVariants: vi.fn(({ variant, size }) => `button-${variant}-${size}`),
+}));
+
+describe("LinkButton", () => {
+  it("renders its children as a link", () => {
+    render(<LinkButton href="/units">View units</LinkButton>);
+
+    const link = screen.getByRole("link", { name: "View units" });
+    expect(link).toHaveAttribute("href", "/units");
+    expect(link).toHaveClass("button-outline-default");
+  });
+
+  it("uses the default outline variant and default size", () => {
+    render(<LinkButton href="/units">View units</LinkButton>);
+
+    expect(buttonVariants).toHaveBeenCalledWith({
+      variant: "outline",
+      size: "default",
+    });
+  });
+
+  it("passes custom variant and size to buttonVariants", () => {
+    render(
+      <LinkButton href="/units/new" variant="destructive" size="sm">
+        Create unit
+      </LinkButton>
+    );
+
+    const link = screen.getByRole("link", { name: "Create unit" });
+    expect(link).toHaveAttribute("href", "/units/new");
+    expect(link).toHaveClass("button-destructive-sm");
+    expect(buttonVariants).toHaveBeenCalledWith({
+      variant: "destructive",
+      size: "sm",
+    });
+  });
+
+  it("renders nested children", () => {
+    render(
+      <LinkButton href="/units">
+        <span>Browse</span> units
+      </LinkButton>
+    );
+
+    expect(screen.getByRole("link")).toHaveTextContent("Browse units");
+  });
+});
+
