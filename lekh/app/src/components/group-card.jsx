@@ -3,10 +3,8 @@
 import {
   Card,
   CardDescription,
-  CardFooter,
   CardHeader,
-  CardContent,
-  CardTitle
+  CardTitle,
 } from "@/components/ui/card";
 
 import { useContext } from "react";
@@ -17,12 +15,12 @@ import { ItemStatus } from "@/components/item-status";
 import Link from "next/link";
 
 const GroupCard = ({ group }) => {
+  const { items } = useContext(EquipmentContext);
+  const { reservations } = useContext(ReservationsContext);
+
   if (!group) {
     return <div />;
   }
-
-  const { items } = useContext(EquipmentContext);
-  const { reservations } = useContext(ReservationsContext);
 
   const { id, name, description } = group;
 
@@ -30,7 +28,7 @@ const GroupCard = ({ group }) => {
   let assetId = 0;
 
   if (id !== 0) {
-    groupItems = items.filter((item) => (item.group_id == group.id));
+    groupItems = items.filter((item) => item.group_id == group.id);
     assetId = groupItems[0]?.asset_id;
   }
 
@@ -45,10 +43,11 @@ const GroupCard = ({ group }) => {
       .filter((reservation) => reservation.item_id === item.id)
       .sort((a, b) => new Date(a.start_at) - new Date(b.start_at));
 
-    const activeReservation = itemReservations.find((reservation) => (
+    const activeReservation = itemReservations.find(
+      (reservation) =>
         reservation.returned_at === null &&
         new Date(reservation.start_at) <= now
-    ));
+    );
 
     return !activeReservation;
   }).length;
@@ -62,13 +61,8 @@ const GroupCard = ({ group }) => {
       <Card className="relative overflow-hidden md:max-w-md cursor-pointer">
         <div className="flex items-center">
           <CardHeader className="min-w-0 flex-1">
-            <CardTitle>
-              {name}
-            </CardTitle>
-
-            <CardDescription>
-              {description}
-            </CardDescription>
+            <CardTitle>{name}</CardTitle>
+            <CardDescription>{description}</CardDescription>
           </CardHeader>
         </div>
 

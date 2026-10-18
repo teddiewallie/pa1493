@@ -43,5 +43,5 @@ const EquipmentProvider = ({ children }) => {
   );
 };
 
-export { EquipmentProvider, loading };
+export { EquipmentProvider };
 

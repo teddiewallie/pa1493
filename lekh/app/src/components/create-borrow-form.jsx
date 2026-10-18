@@ -5,15 +5,16 @@ import {
   addDays,
   startOfDay,
   startOfHour,
-  eachDayOfInterval
 } from "date-fns";
 
 const getFirstAvailableDate = (borrowings) => {
   let date = startOfDay(new Date());
 
   while (
-    borrowings.some((bookedDate) => startOfDay(
-      new Date(bookedDate)).getTime() === date.getTime())
+    borrowings.some(
+      (bookedDate) =>
+        startOfDay(new Date(bookedDate)).getTime() === date.getTime()
+    )
   ) {
     date = addDays(date, 1);
   }
@@ -25,7 +26,7 @@ const CreateBorrowForm = ({ item, callback, borrowings }) => {
   const firstAvailable = getFirstAvailableDate(borrowings);
 
   const [dateRange, setDateRange] = useState({
-    from: getFirstAvailableDate(borrowings),
+    from: firstAvailable,
     to: addDays(firstAvailable, 1),
   });
 
@@ -47,38 +48,37 @@ const CreateBorrowForm = ({ item, callback, borrowings }) => {
     const reservation = {
       itemId: item.id,
       startAt: startOfDay(dateRange.from),
-      endAt: startOfDay(dateRange.to)
+      endAt: startOfDay(dateRange.to),
     };
 
     callback(reservation);
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex w-full flex-row"
-    >
+    <form onSubmit={handleSubmit} className="flex w-full flex-row">
       <div className="min-w-0 flex-1">
         <Calendar
           mode="range"
           defaultMonth={dateRange?.from}
           selected={dateRange}
-          onSelect={setDateRange}
           numberOfMonths={1}
           className="!w-full bg-transparent"
           classNames={{
-            today: "font-bold ring-1 ring-muted-foreground/50"
+            today: "font-bold ring-1 ring-muted-foreground/50",
           }}
           min={1}
           max={6}
           disabled={(date) => {
             const today = new Date();
-            today.setHours(0,0,0,0);
-            return (date < today ||
-            borrowings.some(
-              (bookedDate) =>
-                date.toDateString() === bookedDate.toDateString()
-            ))
+            today.setHours(0, 0, 0, 0);
+
+            return (
+              date < today ||
+              borrowings.some(
+                (bookedDate) =>
+                  date.toDateString() === bookedDate.toDateString()
+              )
+            );
           }}
           onSelect={(range) => {
             if (!range?.from || !range?.to) {
@@ -86,11 +86,11 @@ const CreateBorrowForm = ({ item, callback, borrowings }) => {
               return;
             }
 
-            const from = new Date(range.from).setHours(0,0,0,0);
-            const to = new Date(range.to).setHours(0,0,0,0);
+            const from = new Date(range.from).setHours(0, 0, 0, 0);
+            const to = new Date(range.to).setHours(0, 0, 0, 0);
 
             const containsBookedDate = borrowings.some((bookedDate) => {
-              const date = new Date(bookedDate).setHours(0,0,0,0);
+              const date = new Date(bookedDate).setHours(0, 0, 0, 0);
 
               return date > Math.min(from, to) && date < Math.max(from, to);
             });
@@ -100,9 +100,8 @@ const CreateBorrowForm = ({ item, callback, borrowings }) => {
               return;
             }
 
-            // Determine which date the user actually clicked.
             const previous = dateRange?.from
-              ? new Date(dateRange.from).setHours(0,0,0,0)
+              ? new Date(dateRange.from).setHours(0, 0, 0, 0)
               : null;
 
             const clickedDate = previous === from
@@ -111,14 +110,14 @@ const CreateBorrowForm = ({ item, callback, borrowings }) => {
 
             setDateRange({
               from: clickedDate,
-              to: clickedDate
+              to: clickedDate,
             });
-          }}       
+          }}
           modifiers={{
-            booked: borrowings 
+            booked: borrowings,
           }}
           modifiersClassNames={{
-            booked: "[&>button]:line-through opacity-100"
+            booked: "[&>button]:line-through opacity-100",
           }}
         />
       </div>

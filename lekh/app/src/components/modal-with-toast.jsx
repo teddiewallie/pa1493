@@ -1,21 +1,15 @@
-// https://ui.shadcn.com/docs/components/base/dialog
-// https://ui.shadcn.com/docs/components/base/toast
-
 "use client";
 
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { CreateUserForm } from "@/components/create-user-form";
-import { useState, useEffect } from "react";
 import { toast } from "@/components/ui/toast";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from "@/components/ui/dialog";
 
 const ModalWithToast = ({
@@ -23,36 +17,45 @@ const ModalWithToast = ({
   message,
   onMessageHandled,
   doubleWidth,
-  children
+  children,
 }) => {
-  const [ open, onOpenChange ] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    onOpenChange(false);
-    if (message != "") {
-      toast.add({ title: message });
-      onMessageHandled();
+  const handleMessage = useCallback(() => {
+    if (!message) {
+      return;
     }
-  }, [message]);
 
-  let contentClassName = doubleWidth
-    ? "sm:max-w-[95vw] lg:max-w-[960px]"
-    : "";
+    toast.add({ title: message });
+    onMessageHandled();
+    setOpen(false);
+  }, [message, onMessageHandled]);
 
-  contentClassName = `${contentClassName} max-h-[calc(100vh-2rem)] flex-col overflow-y-scroll`;
+  // Handle messages when the dialog is closed or a submission finishes.
+  if (message && open) {
+    handleMessage();
+  }
+
+  const contentClassName = [
+    doubleWidth ? "sm:max-w-[95vw] lg:max-w-[960px]" : "",
+    "max-h-[calc(100vh-2rem)] flex-col overflow-y-scroll",
+  ].filter(Boolean).join(" ");
 
   return (
-    <Dialog {...{ open, onOpenChange }}>
-      <DialogTrigger render={
-        <Button className="print:hidden" variant="outline">{title}</Button>
-      } />
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger
+        render={
+          <Button className="print:hidden" variant="outline">
+            {title}
+          </Button>
+        }
+      />
       <DialogContent className={contentClassName}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
-          </DialogDescription>
+          <DialogDescription />
         </DialogHeader>
-        { children }
+        {children}
       </DialogContent>
     </Dialog>
   );
