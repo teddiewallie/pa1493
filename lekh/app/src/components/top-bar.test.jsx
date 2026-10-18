@@ -1,0 +1,99 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import { TopBar } from "./top-bar";
+import { UserContext } from "@/context/user-context";
+import { routes } from "@/routes";
+
+vi.mock("@/components/sign-out-button", () => ({
+  SignOutButton: () => <button>Sign out</button>,
+}));
+
+vi.mock("next/link", () => ({
+  default: ({ href, children, ...props }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
+
+const renderTopBar = (user) =>
+  render(
+    <UserContext.Provider value={{ user }}>
+      <TopBar />
+    </UserContext.Provider>
+  );
+
+describe("TopBar", () => {
+  it("renders the application name and user name", () => {
+    renderTopBar({
+      name: "Test User",
+      role_id: 1,
+    });
+
+    expect(screen.getByText("LEKH")).toBeInTheDocument();
+    expect(screen.getByText("Test User")).toBeInTheDocument();
+  });
+
+  it("renders only routes permitted for the user's role", () => {
+    const user = {
+      name: "Student",
+      role_id: 2,
+    };
+
+    renderTopBar(user);
+
+    const visibleRoutes = routes.filter(
+      (route) => route.role_id >= user.role_id
+    );
+
+    const hiddenRoutes = routes.filter(
+      (route) => route.role_id < user.role_id
+    );
+
+    for (const route of visibleRoutes) {
+      const link = screen.getByRole("link", { name: route.name });
+
+      expect(link).toHaveAttribute("href", route.route);
+    }
+
+    for (const route of hiddenRoutes) {
+      expect(
+        screen.queryByRole("link", { name: route.name })
+      ).not.toBeInTheDocument();
+    }
+  });
+
+  it("renders all routes available to a maintainer", () => {
+    renderTopBar({
+      name: "Maintainer",
+      role_id: 1,
+    });
+
+    for (const route of routes.filter((route) => route.role_id >= 1)) {
+      expect(
+        screen.getByRole("link", { name: route.name })
+      ).toHaveAttribute("href", route.route);
+    }
+  });
+
+  it("renders the sign-out button", () => {
+    renderTopBar({
+      name: "Test User",
+      role_id: 2,
+    });
+
+    expect(
+      screen.getByRole("button", { name: "Sign out" })
+    ).toBeInTheDocument();
+  });
+
+  it("applies responsive visibility classes to the header", () => {
+    renderTopBar({
+      name: "Test User",
+      role_id: 2,
+    });
+
+    expect(screen.getByRole("banner")).toHaveClass("hidden", "lg:flex");
+  });
+});
