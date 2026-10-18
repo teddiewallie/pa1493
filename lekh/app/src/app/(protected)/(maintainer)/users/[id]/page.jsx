@@ -32,7 +32,7 @@ const Page = ({params}) => {
 
   return <Profile {...{
     user,
-    refreshUsers,
+    refresh: refreshUsers,
     canDelete: true,
     onDelete: async () => {
       const result = await deleteUser(id);
