@@ -1,26 +1,22 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useContext, useState } from "react";
+import { useContext } from "react";
 import { EquipmentContext } from "@/context/equipment-context";
 import { UserContext } from "@/context/user-context";
 import { GroupCard } from "@/components/group-card";
 import { ModalWithToast } from "@/components/modal-with-toast";
 import { CreateGroupForm } from "@/components/create-group-form";
+import { toast } from "@/components/ui/toast";
 
 const Page = () => {
-  const router = useRouter();
   const { groups, refreshGroups } = useContext(EquipmentContext);
   const { user } = useContext(UserContext);
-  const [ message, setMessage ] = useState("");
 
   const allItems = {
     id: 0,
     name: "All units",
-    description: "List all units"
+    description: "List all units",
   };
-
-  const onMessageHandled = () => setMessage("");
 
   return (
     <>
@@ -28,23 +24,27 @@ const Page = () => {
         All Types
       </div>
       <div className="container mx-auto">
-        { (user.role_id == 1) &&
+        {user.role_id == 1 && (
           <div className="container grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6 md:mx-auto px-10 mt-2">
-            <ModalWithToast {...{ title: "Add Type", message, onMessageHandled }}>
-              <CreateGroupForm {...{
-                onSuccess: () => {
-                  setMessage("Type successfully added.");
+            <ModalWithToast title="Add Type">
+              <CreateGroupForm
+                onSuccess={() => {
+                  toast.add({ title: "Type successfully added." });
                   refreshGroups();
-                },
-                onFail: () => setMessage("Failed to add type.")
-              }} />
+                }}
+                onFail={() => {
+                  toast.add({ title: "Failed to add type." });
+                }}
+              />
             </ModalWithToast>
-          </div> }
-
+          </div>
+        )}
 
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 mx-10 my-4">
-          <GroupCard key="group-0" {...{ group: allItems }} />
-          {groups.map((group) => <GroupCard key={`group-${group.id}`} {...{ group }} />)}
+          <GroupCard key="group-0" group={allItems} />
+          {groups.map((group) => (
+            <GroupCard key={`group-${group.id}`} group={group} />
+          ))}
         </div>
       </div>
     </>
@@ -52,3 +52,4 @@ const Page = () => {
 };
 
 export default Page;
+

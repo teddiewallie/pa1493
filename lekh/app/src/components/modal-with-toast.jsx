@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { cloneElement, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/toast";
 import {
   Dialog,
   DialogContent,
@@ -13,26 +12,32 @@ import {
 
 const ModalWithToast = ({
   title,
-  message,
-  onMessageHandled,
   doubleWidth,
   children,
 }) => {
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    if (!message) {
-      return;
+  const callbackNames = [
+    "onSuccess",
+    "onFail",
+    "onDelete",
+    "onDeleteSuccess",
+    "onDeleteFail",
+  ];
+
+  const childCallbacks = {};
+
+  callbackNames.forEach((name) => {
+    const callback = children.props?.[name];
+
+    if (typeof callback === "function") {
+      childCallbacks[name] = (...args) => {
+        const result = callback(...args);
+        setOpen(false);
+        return result;
+      };
     }
-
-    toast.add({ title: message });
-
-    if (onMessageHandled) {
-      onMessageHandled();
-    }
-
-    setOpen(false);
-  }, [message, onMessageHandled]);
+  });
 
   const contentClassName = [
     doubleWidth ? "sm:max-w-[95vw] lg:max-w-[960px]" : "",
@@ -52,7 +57,7 @@ const ModalWithToast = ({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        {children}
+        {cloneElement(children, childCallbacks)}
       </DialogContent>
     </Dialog>
   );
