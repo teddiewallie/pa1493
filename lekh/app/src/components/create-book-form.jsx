@@ -1,55 +1,70 @@
+"use client";
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { slots } from "@/slots";
-import { setHours, setMinutes, startOfMinute } from "date-fns";
+import { setHours, setMinutes, addDays } from "date-fns";
 
 import {
   Field,
-  FieldGroup,
   FieldLabel,
-  FieldSet
 } from "@/components/ui/field";
 
 import {
   RadioGroup,
-  RadioGroupItem
+  RadioGroupItem,
 } from "@/components/ui/radio-group";
 
 const CreateBookForm = ({ item, callback, bookings }) => {
-  const [ selectedSlot, setSelectedSlot ] = useState(null);
+  const [selectedSlot, setSelectedSlot] = useState(null);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    if (!selectedSlot) {
-      return;
-    }
+  const now = new Date();
 
-    const [start, end] = selectedSlot.split("-");
+  const getSlotTimes = (slot) => {
+    const [start, end] = slot.split("-");
     const [startHours, startMinutes] = start.split(":").map(Number);
     const [endHours, endMinutes] = end.split(":").map(Number);
 
-    const now = new Date();
-
-    const startAt = startOfMinute(setMinutes(
-      setHours(now, startHours),
+    const startAt = setMinutes(
+      setHours(new Date(), startHours),
       startMinutes
-    ));
+    );
 
-    console.log(startAt);
-
-    const endAt = startOfMinute(setMinutes(
-      setHours(now, endHours),
+    let endAt = setMinutes(
+      setHours(new Date(), endHours),
       endMinutes
-    ));
+    );
+
+    // Support slots that cross midnight.
+    if (endAt <= startAt) {
+      endAt = addDays(endAt, 1);
+    }
+
+    return { startAt, endAt };
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!selectedSlot) return;
+
+    const { startAt, endAt } = getSlotTimes(selectedSlot);
+
+    // Recheck at submission time in case the selected slot has expired.
+    if (startAt <= new Date()) {
+      setSelectedSlot(null);
+      return;
+    }
 
     const reservation = {
       itemId: item.id,
       startAt,
-      endAt
+      endAt,
+      reservationType: "book",
     };
 
-    callback(reservation);
-  }
+    await callback(reservation);
+  };
 
   return (
     <form
@@ -61,50 +76,54 @@ const CreateBookForm = ({ item, callback, bookings }) => {
           <RadioGroup
             value={selectedSlot}
             onValueChange={setSelectedSlot}
-            className="gap-0 max-h-128 overflow-scroll"
+            className="max-h-128 gap-0 overflow-scroll"
           >
-          {slots.map((slot) => {
-            const selected = selectedSlot === slot;
-            const booked = bookings.includes(slot);
+            {slots.map((slot) => {
+              const selected = selectedSlot === slot;
+              const booked = bookings.includes(slot);
+              const { startAt } = getSlotTimes(slot);
+              const expired = startAt <= now;
+              const disabled = booked || expired;
 
-            return (
-              <Field key={slot}>
-                <RadioGroupItem
-                  value={slot}
-                  id={slot}
-                  disabled={booked}
-                  className="hidden"
-                />
+              return (
+                <Field key={slot}>
+                  <RadioGroupItem
+                    value={slot}
+                    id={slot}
+                    disabled={disabled}
+                    className="hidden"
+                  />
 
-                <FieldLabel
-                  htmlFor={slot}
-                  className={`
-                    flex min-h-12 items-center justify-center
-                    border px-4
-                    text-lg font-medium
-                    ${
-                      booked
-                        ? "opacity-40 line-through"
-                        : ""
-                    }
-                    ${
-                      selected
-                        ? "bg-primary text-primary-foreground"
-                        : "hover:bg-muted"
-                    }
-                  `}
-                >
-                  {slot.replace("-", " - ")}
-                </FieldLabel>
-              </Field>
-            );
-          })}
+                  <FieldLabel
+                    htmlFor={slot}
+                    className={`
+                      flex min-h-12 items-center justify-center
+                      border px-4
+                      text-lg font-medium
+                      ${
+                        disabled
+                          ? "pointer-events-none opacity-40 line-through"
+                          : ""
+                      }
+                      ${
+                        selected
+                          ? "bg-primary text-primary-foreground"
+                          : "hover:bg-muted"
+                      }
+                    `}
+                  >
+                    {slot.replace("-", " - ")}
+                  </FieldLabel>
+                </Field>
+              );
+            })}
           </RadioGroup>
         </div>
       </div>
 
       <Button
         type="submit"
+        disabled={!selectedSlot}
         className="w-12 h-auto shrink-0 rounded-none border-l-0"
       >
         <span className="rotate-90 whitespace-nowrap">

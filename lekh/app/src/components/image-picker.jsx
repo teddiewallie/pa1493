@@ -1,6 +1,6 @@
+/* eslint @next/next/no-img-element: "off" */
 "use client";
 
-import Image from "next/image";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -29,8 +29,8 @@ const ImagePicker = ({ onChange, current }) => {
         onChange={handleChange}
       />
       <Button onClick={() => inputRef.current?.click()}>Select Image</Button>
-      {file && <Image src={URL.createObjectURL(file)} alt="Preview" className="max-w-md" />}
-      {!file && current && <Image src={current} className="max-w-md mx-auto" alt="Preview" />}
+      {file && <img src={URL.createObjectURL(file)} alt="Preview" className="max-w-md" />}
+      {!file && current && <img src={current} className="max-w-md mx-auto" alt="Preview" />}
     </>
   );
 }

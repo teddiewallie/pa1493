@@ -49,6 +49,7 @@ const CreateBorrowForm = ({ item, callback, borrowings }) => {
       itemId: item.id,
       startAt: startOfDay(dateRange.from),
       endAt: startOfDay(dateRange.to),
+      reservationType: "borrow"
     };
 
     callback(reservation);

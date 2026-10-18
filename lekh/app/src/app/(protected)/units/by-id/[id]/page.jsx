@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { CircleArrowLeft } from "lucide-react";
-import { use, useContext, useState } from "react";
+import { use, useContext } from "react";
 import { UserContext } from "@/context/user-context";
 import { ReservationsContext } from "@/context/reservations-context";
 import { EquipmentContext } from "@/context/equipment-context";
@@ -28,17 +28,8 @@ const Page = ({ params }) => {
   const { articles, articleTypes } = useContext(ArticleContext);
   const { reservations, refreshReservations } = useContext(ReservationsContext);
 
-  const [editMessage, setEditMessage] = useState("");
-  const [reportMessage, setReportMessage] = useState("");
-
   const item = items?.find((thisItem) => thisItem.id == id);
-
   const group = groups?.find((thisGroup) => thisGroup.id == item?.group_id);
-
-  const onMessageHandled = () => {
-    setEditMessage("");
-    setReportMessage("");
-  };
 
   const itemIssues = item?.known_issues;
   const groupIssues = group?.known_issues;
@@ -57,8 +48,8 @@ const Page = ({ params }) => {
 
   const activeReservation = itemReservations.find(
     (reservation) =>
-      reservation.returned_at === null
-      && new Date(reservation.start_at) <= new Date()
+      reservation.returned_at === null &&
+      new Date(reservation.start_at) <= new Date()
   );
 
   const isNotPending = !Boolean(activeReservation?.is_pending);
@@ -82,49 +73,31 @@ const Page = ({ params }) => {
           </LinkButton>
         )}
 
-        <ModalWithToast
-          noContainer
-          {...{
-            title: "Report Issue",
-            message: reportMessage,
-            onMessageHandled,
-          }}
-        >
+        <ModalWithToast title="Report Issue" noContainer>
           <ReportItemForm
-            {...{
-              item,
-              onSuccess: () => {
-                setReportMessage("Successfully reported item.");
-                refreshItems();
-              },
-              onFail: () => {
-                setReportMessage("Failed to report item.");
-              },
+            item={item}
+            onSuccess={() => {
+              toast.add({ title: "Successfully reported item." });
+              refreshItems();
+            }}
+            onFail={() => {
+              toast.add({ title: "Failed to report item." });
             }}
           />
         </ModalWithToast>
 
         {user.role_id == 1 && (
-          <ModalWithToast
-            noContainer
-            {...{
-              title: "Edit Unit",
-              message: editMessage,
-              onMessageHandled,
-            }}
-          >
+          <ModalWithToast title="Edit Unit" noContainer>
             <CreateItemForm
-              {...{
-                item,
-                onSuccess: () => {
-                  setEditMessage("Item successfully edited.");
-                  refreshItems();
-                },
-                onFail: () => {
-                  setEditMessage("Failed to edit item.");
-                },
-                statuses: meta?.status,
+              item={item}
+              onSuccess={() => {
+                toast.add({ title: "Item successfully edited." });
+                refreshItems();
               }}
+              onFail={() => {
+                toast.add({ title: "Failed to edit item." });
+              }}
+              statuses={meta?.status}
             />
           </ModalWithToast>
         )}
@@ -149,53 +122,45 @@ const Page = ({ params }) => {
         )}
       </div>
 
-      <div className="container px-10 md:mx-auto grid grid-cols-1 gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 my-4">
-        <ItemCard {...{ item, single: true, activeReservation }} />
+      <div className="container px-10 md:mx-auto grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 my-4">
+        <ItemCard item={item} single activeReservation={activeReservation} />
 
         {itemArticles?.length > 0 && (
           <ArticleList
-            {...{
-              articles: itemArticles,
-              articleTypes,
-              title: "Unit Articles",
-            }}
+            articles={itemArticles}
+            articleTypes={articleTypes}
+            title="Unit Articles"
           />
         )}
 
         {groupArticles?.length > 0 && (
           <ArticleList
-            {...{
-              articles: groupArticles,
-              articleTypes,
-              title: "Type Articles",
-            }}
+            articles={groupArticles}
+            articleTypes={articleTypes}
+            title="Type Articles"
           />
         )}
 
         {itemIssues?.length > 0 && (
           <SimpleCard
-            {...{
-              title: "Known Unit Issues",
-              description: "Unit specific issues.",
-              content: itemIssues,
-            }}
+            title="Known Unit Issues"
+            description="Unit specific issues."
+            content={itemIssues}
           />
         )}
 
         {groupIssues?.length > 0 && (
           <SimpleCard
-            {...{
-              title: "Known Type Issues",
-              description: "Type spanning issues.",
-              content: groupIssues,
-            }}
+            title="Known Type Issues"
+            description="Type spanning issues."
+            content={groupIssues}
           />
         )}
 
-        {Boolean(item?.borrowable) && <ReservationCard {...{ item }} />}
+        {Boolean(item?.borrowable) && <ReservationCard item={item} />}
 
         {Boolean(item?.bookable) && item?.status_name === "Available" && (
-          <ReservationCard {...{ item }} />
+          <ReservationCard item={item} />
         )}
 
         {Boolean(item?.borrowable) && Boolean(itemReservations.length) && (
@@ -203,10 +168,7 @@ const Page = ({ params }) => {
         )}
 
         {Boolean(item?.bookable) && Boolean(itemReservations.length) && (
-          <ReservationHistoryCard
-            reservations={itemReservations}
-            showTime
-          />
+          <ReservationHistoryCard reservations={itemReservations} showTime />
         )}
       </div>
     </>

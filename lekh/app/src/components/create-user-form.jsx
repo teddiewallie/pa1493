@@ -110,6 +110,7 @@ const CreateUserForm = ({ title, onSuccess, onFail, onDelete, user, canDelete })
       </FieldSet>
       <FieldSet className="grid grid-cols-2 mt-6">
         { canDelete && <Button
+          type="button"
           variant="destructive"
           onClick={() => onDelete()}
         >Delete User</Button>}

@@ -1,12 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { cloneElement, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/toast";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -14,27 +12,32 @@ import {
 
 const ModalWithToast = ({
   title,
-  message,
-  onMessageHandled,
   doubleWidth,
   children,
 }) => {
   const [open, setOpen] = useState(false);
 
-  const handleMessage = useCallback(() => {
-    if (!message) {
-      return;
+  const callbackNames = [
+    "onSuccess",
+    "onFail",
+    "onDelete",
+    "onDeleteSuccess",
+    "onDeleteFail",
+  ];
+
+  const childCallbacks = {};
+
+  callbackNames.forEach((name) => {
+    const callback = children.props?.[name];
+
+    if (typeof callback === "function") {
+      childCallbacks[name] = (...args) => {
+        const result = callback(...args);
+        setOpen(false);
+        return result;
+      };
     }
-
-    toast.add({ title: message });
-    onMessageHandled();
-    setOpen(false);
-  }, [message, onMessageHandled]);
-
-  // Handle messages when the dialog is closed or a submission finishes.
-  if (message && open) {
-    handleMessage();
-  }
+  });
 
   const contentClassName = [
     doubleWidth ? "sm:max-w-[95vw] lg:max-w-[960px]" : "",
@@ -53,9 +56,8 @@ const ModalWithToast = ({
       <DialogContent className={contentClassName}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription />
         </DialogHeader>
-        {children}
+        {cloneElement(children, childCallbacks)}
       </DialogContent>
     </Dialog>
   );

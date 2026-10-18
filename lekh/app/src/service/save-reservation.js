@@ -1,48 +1,84 @@
-
 "use server";
 
 import { auth } from "@/auth";
 import { reservationSchema } from "@/schema/reservation-schema";
 import {
   addReservationQuery,
+  getReservationsQuery,
   approveReservationQuery,
-  denyReservationQuery
+  denyReservationQuery,
 } from "@/query/reservation-query";
 
 const addReservation = async (reservation) => {
   const session = await auth();
-  const { user } = session;
-  const result = await reservationSchema.safeParse(reservation);
 
-  if (!result.success || !session || reservation.id) {
+  if (!session?.user) return false;
+
+  const result = reservationSchema.safeParse(reservation);
+
+  if (!result.success || reservation.id) {
     return false;
   }
+
+  const data = result.data;
+  const userId = Number(session.user.id);
+
+  if (!Number.isInteger(userId) || userId <= 0) return false;
 
   try {
-    addReservationQuery(reservation, user.id);
+    // Reject reservations that start in the past.
+    if (data.startAt <= new Date()) return false;
+
+    // Check for overlapping reservations on this item.
+    const reservations = await getReservationsQuery();
+
+    const hasConflict = reservations.some((existing) => {
+      if (Number(existing.item_id) !== data.itemId) return false;
+      if (existing.returned_at != null) return false;
+
+      const existingStart = new Date(existing.start_at);
+      const existingEnd = new Date(existing.end_at);
+
+      return (
+        existingStart < data.endAt &&
+        existingEnd > data.startAt
+      );
+    });
+
+    if (hasConflict) return false;
+
+    // Approval status is controlled by the server, not the client.
+    await addReservationQuery(
+      {
+        ...data,
+        isPending: true,
+      },
+      userId
+    );
+
+    return true;
   } catch (e) {
-    console.log(e);
+    console.error(e);
     return false;
   }
-
-  return true; 
 };
 
 const approveReservation = async (reservationId) => {
-  const result = await reservationResponse(reservationId, true);
-  return result;
+  return await reservationResponse(reservationId, true);
 };
 
 const denyReservation = async (reservationId) => {
-  const result = await reservationResponse(reservationId, false);
-  return result;
+  return await reservationResponse(reservationId, false);
 };
 
 const reservationResponse = async (reservationId, isApproved) => {
   const session = await auth();
-  const { user } = session;
 
-  if (!session || user.role_id !== 1) {
+  if (!session?.user || session.user.role_id !== 1) {
+    return false;
+  }
+
+  if (!Number.isInteger(reservationId) || reservationId <= 0) {
     return false;
   }
 
@@ -52,8 +88,10 @@ const reservationResponse = async (reservationId, isApproved) => {
     } else {
       await denyReservationQuery(reservationId);
     }
+
     return true;
   } catch (e) {
+    console.error(e);
     return false;
   }
 };
@@ -61,6 +99,6 @@ const reservationResponse = async (reservationId, isApproved) => {
 export {
   addReservation,
   approveReservation,
-  denyReservation
+  denyReservation,
 };
 

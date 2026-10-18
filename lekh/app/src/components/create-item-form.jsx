@@ -67,7 +67,7 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
             <FieldLabel htmlFor="name">Name</FieldLabel>
             <Input
               id="name"
-              type="name"
+              type="text"
               placeholder="Raspberry PI 4"
               {...form.register("name")}
               aria-invalid={Boolean(form.formState.errors.name)}
@@ -79,7 +79,7 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
             <FieldLabel htmlFor="serial">Serial</FieldLabel>
             <Input
               id="serial"
-              type="serial"
+              type="text"
               placeholder="S3R1-A1"
               {...form.register("serial")}
               aria-invalid={Boolean(form.formState.errors.serial)}
@@ -91,7 +91,7 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
             <FieldLabel htmlFor="description">Description</FieldLabel>
             <Input
               id="description"
-              type="description"
+              type="text"
               placeholder="description"
               {...form.register("description")}
               aria-invalid={Boolean(form.formState.errors.description)}
@@ -115,7 +115,7 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
             <FieldLabel htmlFor="shelf">Shelf</FieldLabel>
             <Input
               id="shelf"
-              type="shelf"
+              type="text"
               placeholder="shelf"
               {...form.register("shelf")}
               aria-invalid={Boolean(form.formState.errors.shelf)}
@@ -180,7 +180,7 @@ const CreateItemForm = ({ onSuccess, onFail, statuses, item, groupId }) => {
 
                   <SelectContent>
                     {groups
-                      .sort((group1, group2) =>
+                      .toSorted((group1, group2) =>
                         group1.name.localeCompare(group2.name)
                       )
                       .map((group) => (

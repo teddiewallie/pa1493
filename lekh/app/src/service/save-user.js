@@ -28,11 +28,10 @@ const saveUser = async (data) => {
   try {
     let result = false;
     if (data.id) {
-      result = await updateUserQuery(data, session.user.role_id == 1);
+      await updateUserQuery(data, session.user.role_id == 1);
     } else {
-      result = await addUserQuery(data);
+      await addUserQuery(data);
     }
-    return result;
   } catch (e) {
     return false;
   }
