@@ -1,0 +1,146 @@
+import { describe, expect, it } from "vitest";
+import { createUserSchema } from "./user-schema";
+
+const validUser = {
+  name: "Test User",
+  email: "test@example.com",
+  password: "pass",
+  maintainer: false,
+};
+
+describe("createUserSchema", () => {
+  it("accepts a valid user in create mode", () => {
+    expect(createUserSchema(false).safeParse(validUser).success).toBe(true);
+  });
+
+  it("accepts a valid user in edit mode", () => {
+    expect(createUserSchema(true).safeParse(validUser).success).toBe(true);
+  });
+
+  it("accepts an optional numeric ID", () => {
+    expect(
+      createUserSchema(false).safeParse({ ...validUser, id: 42 }).success
+    ).toBe(true);
+  });
+
+  it("rejects a non-numeric ID", () => {
+    expect(
+      createUserSchema(false).safeParse({ ...validUser, id: "42" }).success
+    ).toBe(false);
+  });
+
+  it("currently accepts decimal IDs", () => {
+    expect(
+      createUserSchema(false).safeParse({ ...validUser, id: 1.5 }).success
+    ).toBe(true);
+  });
+
+  it("rejects an empty name with the expected message", () => {
+    const result = createUserSchema(false).safeParse({
+      ...validUser,
+      name: "",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error.issues).toContainEqual(
+      expect.objectContaining({ message: "Name is required", path: ["name"] })
+    );
+  });
+
+  it("rejects an invalid email", () => {
+    expect(
+      createUserSchema(false).safeParse({
+        ...validUser,
+        email: "not-an-email",
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects a missing email", () => {
+    const user = { ...validUser };
+    delete user.email;
+
+    expect(createUserSchema(false).safeParse(user).success).toBe(false);
+  });
+
+  it("requires a password of at least four characters when creating", () => {
+    for (const password of ["", "a", "abc"]) {
+      const result = createUserSchema(false).safeParse({
+        ...validUser,
+        password,
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error.issues).toContainEqual(
+        expect.objectContaining({
+          message: "Password must be at least 4 characters",
+          path: ["password"],
+        })
+      );
+    }
+  });
+
+  it("accepts a password of exactly four characters when creating", () => {
+    expect(
+      createUserSchema(false).safeParse({
+        ...validUser,
+        password: "abcd",
+      }).success
+    ).toBe(true);
+  });
+
+  it("allows an empty password when editing", () => {
+    expect(
+      createUserSchema(true).safeParse({
+        ...validUser,
+        password: "",
+      }).success
+    ).toBe(true);
+  });
+
+  it("rejects a password shorter than four characters when editing", () => {
+    const result = createUserSchema(true).safeParse({
+      ...validUser,
+      password: "abc",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error.issues).toContainEqual(
+      expect.objectContaining({
+        message: "Password must be at least 4 characters",
+        path: ["password"],
+      })
+    );
+  });
+
+  it("accepts a password of exactly four characters when editing", () => {
+    expect(
+      createUserSchema(true).safeParse({
+        ...validUser,
+        password: "abcd",
+      }).success
+    ).toBe(true);
+  });
+
+  it("rejects a non-boolean maintainer value", () => {
+    expect(
+      createUserSchema(false).safeParse({
+        ...validUser,
+        maintainer: 1,
+      }).success
+    ).toBe(false);
+  });
+
+  it("rejects missing required fields", () => {
+    for (const field of ["name", "email", "password", "maintainer"]) {
+      const user = { ...validUser };
+      delete user[field];
+
+      expect(
+        createUserSchema(false).safeParse(user).success,
+        `field: ${field}`
+      ).toBe(false);
+    }
+  });
+});
+

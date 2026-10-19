@@ -1,0 +1,50 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import { ReservationCard } from "./reservation-card";
+
+vi.mock("@/components/ui/card", () => ({
+  Card: ({ children, ...props }) => <div {...props}>{children}</div>,
+}));
+
+vi.mock("@/components/create-reservation", () => ({
+  CreateReservation: ({ item, type }) => (
+    <div data-testid="create-reservation">
+      <span>{item.name}</span>
+      <span>{type}</span>
+    </div>
+  ),
+}));
+
+describe("ReservationCard", () => {
+  const item = {
+    id: 42,
+    name: "Oscilloscope",
+  };
+
+  it("renders CreateReservation with the supplied item and type", () => {
+    render(<ReservationCard item={item} type="equipment" />);
+
+    expect(screen.getByTestId("create-reservation")).toHaveTextContent(
+      "Oscilloscope"
+    );
+    expect(screen.getByTestId("create-reservation")).toHaveTextContent(
+      "equipment"
+    );
+  });
+
+  it("applies the expected card classes", () => {
+    const { container } = render(
+      <ReservationCard item={item} type="equipment" />
+    );
+
+    expect(container.firstChild).toHaveClass(
+      "flex",
+      "flex-row",
+      "p-0",
+      "overflow-hidden",
+      "print:hidden"
+    );
+  });
+});
+

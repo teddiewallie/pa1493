@@ -1,0 +1,163 @@
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { ReportItemForm } from "./report-item-form";
+import { addReport } from "@/service/save-item";
+
+vi.mock("@/service/save-item", () => ({
+  addReport: vi.fn(),
+}));
+
+vi.mock("@/components/ui/field", () => ({
+  Field: ({ children, ...props }) => <div {...props}>{children}</div>,
+  FieldError: ({ errors }) => {
+    const error = errors?.[0];
+
+    return error?.message ? <p role="alert">{error.message}</p> : null;
+  },
+  FieldGroup: ({ children, ...props }) => <div {...props}>{children}</div>,
+  FieldLabel: ({ children, ...props }) => <label {...props}>{children}</label>,
+  FieldSet: ({ children, ...props }) => <fieldset {...props}>{children}</fieldset>,
+}));
+
+vi.mock("@/components/ui/textarea", () => ({
+  Textarea: (props) => <textarea {...props} />,
+}));
+
+vi.mock("@/components/ui/button", () => ({
+  Button: ({ children, ...props }) => <button {...props}>{children}</button>,
+}));
+
+const item = {
+  id: 42,
+  known_issues: "Occasional connection drop",
+};
+
+const renderForm = (props = {}) => {
+  const defaults = {
+    item,
+    onSuccess: vi.fn(),
+    onFail: vi.fn(),
+  };
+
+  return {
+    ...defaults,
+    ...props,
+    ...render(<ReportItemForm {...defaults} {...props} />),
+  };
+};
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+describe("ReportItemForm", () => {
+  it("renders the issue textarea and submit button", () => {
+    renderForm();
+
+    expect(
+      screen.getByPlaceholderText("Describe a new issue with this unit")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByRole("button", { name: "Report Issue" })
+    ).toBeInTheDocument();
+
+    expect(document.querySelector("form"))
+      .toHaveAttribute("autocomplete", "off");
+  });
+
+  it("submits the report and calls onSuccess when addReport succeeds", async () => {
+    addReport.mockResolvedValue(true);
+    const onSuccess = vi.fn();
+    const onFail = vi.fn();
+
+    renderForm({ onSuccess, onFail });
+
+    fireEvent.change(
+      screen.getByPlaceholderText("Describe a new issue with this unit"),
+      { target: { value: "The power button sticks" } }
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Report Issue" }));
+
+    await waitFor(() => {
+      expect(addReport).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 42,
+          reportIssue: "The power button sticks",
+          knownIssues: "Occasional connection drop",
+        })
+      );
+
+      expect(onSuccess).toHaveBeenCalledTimes(1);
+    });
+
+    expect(onFail).not.toHaveBeenCalled();
+  });
+
+  it("calls onFail when addReport returns false", async () => {
+    addReport.mockResolvedValue(false);
+    const onSuccess = vi.fn();
+    const onFail = vi.fn();
+
+    renderForm({ onSuccess, onFail });
+
+    fireEvent.change(
+      screen.getByPlaceholderText("Describe a new issue with this unit"),
+      { target: { value: "The display flickers" } }
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Report Issue" }));
+
+    await waitFor(() => {
+      expect(addReport).toHaveBeenCalled();
+      expect(onFail).toHaveBeenCalledTimes(1);
+    });
+
+    expect(onSuccess).not.toHaveBeenCalled();
+  });
+
+  it("calls onFail when submitting an empty report fails", async () => {
+    addReport.mockResolvedValue(false);
+    const onSuccess = vi.fn();
+    const onFail = vi.fn();
+
+    renderForm({ onSuccess, onFail });
+
+    fireEvent.click(screen.getByRole("button", { name: "Report Issue" }));
+
+    await waitFor(() => {
+      expect(addReport).toHaveBeenCalled();
+      expect(onFail).toHaveBeenCalledTimes(1);
+    });
+
+    expect(onSuccess).not.toHaveBeenCalled();
+  });
+
+  it("defaults known issues to an empty string when the item has none", async () => {
+    addReport.mockResolvedValue(true);
+
+    renderForm({
+      item: { id: 99, known_issues: null },
+    });
+
+    fireEvent.change(
+      screen.getByPlaceholderText("Describe a new issue with this unit"),
+      { target: { value: "The unit overheats" } }
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Report Issue" }));
+
+    await waitFor(() => {
+      expect(addReport).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 99,
+          reportIssue: "The unit overheats",
+          knownIssues: "",
+        })
+      );
+    });
+  });
+});
+

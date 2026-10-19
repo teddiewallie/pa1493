@@ -1,0 +1,59 @@
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { auth, setReturnedQuery } = vi.hoisted(() => ({
+  auth: vi.fn(),
+  setReturnedQuery: vi.fn(),
+}));
+
+vi.mock("@/auth", () => ({ auth }));
+
+vi.mock("@/query/reservation-query", () => ({
+  setReturnedQuery,
+}));
+
+import { setReturned } from "./set-returned";
+
+describe("setReturned", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    auth.mockResolvedValue({
+      user: { id: 1, role_id: 1 },
+    });
+
+    setReturnedQuery.mockResolvedValue(undefined);
+  });
+
+  it("marks a reservation as returned for a maintainer", async () => {
+    await expect(setReturned(42)).resolves.toBe(true);
+
+    expect(setReturnedQuery).toHaveBeenCalledWith(42);
+  });
+
+  it("returns false when there is no session", async () => {
+    auth.mockResolvedValue(null);
+
+    await expect(setReturned(42)).resolves.toBe(false);
+
+    expect(setReturnedQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns false when the user is not a maintainer", async () => {
+    auth.mockResolvedValue({
+      user: { id: 2, role_id: 2 },
+    });
+
+    await expect(setReturned(42)).resolves.toBe(false);
+
+    expect(setReturnedQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns false when the query fails", async () => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    setReturnedQuery.mockRejectedValue(new Error("Database error"));
+
+    await expect(setReturned(42)).resolves.toBe(false);
+  });
+});
+

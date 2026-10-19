@@ -1,0 +1,67 @@
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+
+const { router } = vi.hoisted(() => ({
+  router: {
+    refresh: vi.fn(),
+  },
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => router,
+}));
+
+vi.mock("@/components/profile", () => ({
+  Profile: ({ user, refresh }) => (
+    <div>
+      <output data-testid="user">{JSON.stringify(user)}</output>
+      <button onClick={() => refresh({ name: "Updated" })}>
+        Refresh
+      </button>
+    </div>
+  ),
+}));
+
+import { UserContext } from "@/context/user-context";
+import Page from "./page";
+
+const renderPage = (user) =>
+  render(
+    <UserContext.Provider value={{ user }}>
+      <Page />
+    </UserContext.Provider>,
+  );
+
+describe("Profile page", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("passes the current user to the Profile component", () => {
+    const user = {
+      id: 7,
+      username: "student",
+      role_id: 2,
+    };
+
+    renderPage(user);
+
+    expect(JSON.parse(screen.getByTestId("user").textContent)).toEqual(user);
+  });
+
+  it("passes an undefined user through when no user is available", () => {
+    renderPage(undefined);
+
+    expect(screen.getByTestId("user").textContent).toBe("");
+  });
+
+  it("refreshes the router when the Profile component requests a refresh", () => {
+    renderPage({ id: 7, role_id: 2 });
+
+    fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
+
+    expect(router.refresh).toHaveBeenCalledOnce();
+  });
+});
+

@@ -1,0 +1,144 @@
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+
+vi.mock("react", async (importOriginal) => {
+  const actual = await importOriginal();
+
+  return {
+    ...actual,
+    use: (value) => value,
+  };
+});
+
+vi.mock("next/link", () => ({
+  default: ({ href, children, ...props }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
+
+vi.mock("@/components/ui/button", () => ({
+  Button: ({ children, ...props }) => (
+    <button {...props}>{children}</button>
+  ),
+}));
+
+vi.mock("lucide-react", () => ({
+  CircleArrowLeft: () => <span data-testid="back-icon" />,
+}));
+
+vi.mock("@uiw/react-md-editor", () => ({
+  default: {
+    Markdown: ({ source }) => (
+      <div data-testid="markdown">{source}</div>
+    ),
+  },
+}));
+
+import { ArticleContext } from "@/context/article-context";
+import { UserContext } from "@/context/user-context";
+import Page from "./page";
+
+const article = {
+  id: 12,
+  title: "Oscilloscope guide",
+  content: "How to use the oscilloscope.",
+  user_id: 7,
+  item_id: null,
+  group_id: 3,
+};
+
+const renderPage = ({
+  user = { id: 7, role_id: 2 },
+  articles = [article],
+  id = "12",
+} = {}) =>
+  render(
+    <UserContext.Provider value={{ user }}>
+      <ArticleContext.Provider value={{ articles }}>
+        <Page params={{ id }} />
+      </ArticleContext.Provider>
+    </UserContext.Provider>,
+  );
+
+describe("Article page", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("renders the article and links back to its group", () => {
+    renderPage();
+
+    expect(
+      screen.getByRole("link", { name: /oscilloscope guide/i }).getAttribute("href"),
+    ).toBe("/units/by-type/3");
+
+    expect(screen.getByTestId("markdown").textContent).toBe(
+      "How to use the oscilloscope.",
+    );
+  });
+
+  it("allows the article owner to edit", () => {
+    renderPage();
+
+    expect(
+      screen.getByRole("link", { name: /edit article/i }).getAttribute("href"),
+    ).toBe("/editor/for-type/3/12");
+  });
+
+  it("does not allow another regular user to edit", () => {
+    renderPage({
+      user: { id: 8, role_id: 2 },
+    });
+
+    expect(
+      screen.queryByRole("link", { name: /edit article/i }),
+    ).toBeNull();
+  });
+
+  it("allows a maintainer to edit another user's article", () => {
+    renderPage({
+      user: { id: 8, role_id: 1 },
+    });
+
+    expect(
+      screen.getByRole("link", { name: /edit article/i }).getAttribute("href"),
+    ).toBe("/editor/for-type/3/12");
+  });
+
+  it("uses the unit routes for an article associated with an item", () => {
+    renderPage({
+      articles: [
+        {
+          ...article,
+          item_id: 42,
+          group_id: null,
+        },
+      ],
+    });
+
+    expect(
+      screen.getByRole("link", { name: /oscilloscope guide/i }).getAttribute("href"),
+    ).toBe("/units/by-id/42");
+
+    expect(
+      screen.getByRole("link", { name: /edit article/i }).getAttribute("href"),
+    ).toBe("/editor/for-unit/42/12");
+  });
+
+  it("does not show the edit link when the article is not found", () => {
+    renderPage({
+      user: { id: 8, role_id: 2 },
+      articles: [],
+    });
+
+    expect(
+      screen.queryByRole("link", { name: /edit article/i }),
+    ).toBeNull();
+
+    expect(screen.getByTestId("markdown").textContent).toBe("");
+  });
+});
+

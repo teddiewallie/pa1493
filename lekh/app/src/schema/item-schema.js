@@ -9,7 +9,7 @@ const createItemSchema = (groups, statuses, editing = false) => {
   const imageSchema = z.instanceof(File)
     .refine(
       (file) => file.size <= MAX_IMAGE_SIZE,
-      "Image must be smaller than 5MB."
+      "Image must be smaller than or equal to 5MB."
     )
     .refine(
       (file) => file.type.startsWith("image/"),

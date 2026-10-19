@@ -1,0 +1,233 @@
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+
+vi.mock("next/link", () => ({
+  default: ({ href, children, ...props }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
+
+vi.mock("@/components/ui/input", () => ({
+  Input: (props) => <input {...props} />,
+}));
+
+vi.mock("@/components/article-row", () => ({
+  ArticleRow: ({ article }) => (
+    <>
+      <span>Article</span>
+      <a href={`/article/${article.id}`}>{article.title}</a>
+    </>
+  ),
+}));
+
+vi.mock("@/components/badge", () => ({
+  Badge: ({ label }) => <span>{label}</span>,
+}));
+
+import { ArticleContext } from "@/context/article-context";
+import { EquipmentContext } from "@/context/equipment-context";
+import Page from "./page";
+
+const articles = [
+  {
+    id: 1,
+    title: "Oscilloscope Guide",
+    content: "How to measure a signal",
+    type_id: 1,
+  },
+  {
+    id: 2,
+    title: "Soldering Basics",
+    content: "Learn to solder electronic components",
+    type_id: 2,
+  },
+];
+
+const items = [
+  {
+    id: 10,
+    name: "Oscilloscope",
+    serial: "SCOPE-123",
+    shelf: "A1",
+  },
+  {
+    id: 11,
+    name: "Soldering Station",
+    serial: "SOLDER-456",
+    shelf: "B2",
+  },
+];
+
+const groups = [
+  { id: 20, name: "Measurement Equipment" },
+  { id: 21, name: "Soldering Tools" },
+];
+
+const articleTypes = [
+  { id: 1, name: "Guide" },
+  { id: 2, name: "Equipment" },
+];
+
+const renderPage = ({
+  articleData = articles,
+  itemData = items,
+  groupData = groups,
+} = {}) =>
+  render(
+    <ArticleContext.Provider
+      value={{
+        articles: articleData,
+        articleTypes,
+      }}
+    >
+      <EquipmentContext.Provider
+        value={{
+          items: itemData,
+          groups: groupData,
+        }}
+      >
+        <Page />
+      </EquipmentContext.Provider>
+    </ArticleContext.Provider>,
+  );
+
+const search = (value) => {
+  const input = screen.getByRole("textbox");
+
+  fireEvent.change(input, { target: { value } });
+  fireEvent.keyUp(input, { key: "Enter", code: "Enter" });
+};
+
+describe("Search page", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("shows all articles, groups, and items initially", () => {
+    renderPage();
+
+    expect(screen.getByRole("link", { name: "Oscilloscope Guide" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Soldering Basics" })).toBeTruthy();
+
+    expect(
+      screen.getByRole("link", { name: "Measurement Equipment" }).getAttribute("href"),
+    ).toBe("/units/by-type/20");
+
+    expect(
+      screen.getByRole("link", { name: "Soldering Tools" }).getAttribute("href"),
+    ).toBe("/units/by-type/21");
+
+    expect(
+      screen.getByRole("link", { name: "Oscilloscope - SCOPE-123" }).getAttribute("href"),
+    ).toBe("/units/by-id/10");
+
+    expect(
+      screen.getByRole("link", { name: "Soldering Station - SOLDER-456" }).getAttribute("href"),
+    ).toBe("/units/by-id/11");
+  });
+
+  it("searches article titles without regard to case", () => {
+    renderPage();
+
+    search("oScIlLoScOpE");
+
+    expect(screen.getByRole("link", { name: "Oscilloscope Guide" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Soldering Basics" })).toBeNull();
+  });
+
+  it("searches article content", () => {
+    renderPage();
+
+    search("measure a signal");
+
+    expect(screen.getByRole("link", { name: "Oscilloscope Guide" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Soldering Basics" })).toBeNull();
+  });
+
+  it("searches item names", () => {
+    renderPage();
+
+    search("soldering station");
+
+    expect(
+      screen.getByRole("link", { name: "Soldering Station - SOLDER-456" }),
+    ).toBeTruthy();
+
+    expect(
+      screen.queryByRole("link", { name: "Oscilloscope - SCOPE-123" }),
+    ).toBeNull();
+  });
+
+  it("searches item serial numbers", () => {
+    renderPage();
+
+    search("scope-123");
+
+    expect(
+      screen.getByRole("link", { name: "Oscilloscope - SCOPE-123" }),
+    ).toBeTruthy();
+
+    expect(
+      screen.queryByRole("link", { name: "Soldering Station - SOLDER-456" }),
+    ).toBeNull();
+  });
+
+  it("searches item shelf locations", () => {
+    renderPage();
+
+    search("b2");
+
+    expect(
+      screen.getByRole("link", { name: "Soldering Station - SOLDER-456" }),
+    ).toBeTruthy();
+
+    expect(
+      screen.queryByRole("link", { name: "Oscilloscope - SCOPE-123" }),
+    ).toBeNull();
+  });
+
+  it("searches group names", () => {
+    renderPage();
+
+    search("measurement");
+
+    expect(
+      screen.getByRole("link", { name: "Measurement Equipment" }),
+    ).toBeTruthy();
+
+    expect(
+      screen.queryByRole("link", { name: "Soldering Tools" }),
+    ).toBeNull();
+  });
+
+  it("shows no results when nothing matches", () => {
+    renderPage();
+
+    search("no-such-equipment");
+
+    expect(screen.queryByRole("link", { name: "Oscilloscope Guide" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Measurement Equipment" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Oscilloscope - SCOPE-123" })).toBeNull();
+  });
+
+  it("restores all results when the query is cleared", () => {
+    renderPage();
+
+    search("soldering");
+
+    expect(screen.queryByRole("link", { name: "Oscilloscope Guide" })).toBeNull();
+
+    search("");
+
+    expect(screen.getByRole("link", { name: "Oscilloscope Guide" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Soldering Basics" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Measurement Equipment" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Soldering Tools" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Oscilloscope - SCOPE-123" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Soldering Station - SOLDER-456" })).toBeTruthy();
+  });
+});
+

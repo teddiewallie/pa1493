@@ -1,0 +1,61 @@
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+
+const mocks = vi.hoisted(() => ({
+  auth: vi.fn(),
+  redirect: vi.fn(),
+  getLanding: vi.fn(),
+}));
+
+vi.mock("@/auth", () => ({
+  auth: mocks.auth,
+}));
+
+vi.mock("next/navigation", () => ({
+  redirect: mocks.redirect,
+}));
+
+vi.mock("@/routes", () => ({
+  getLanding: mocks.getLanding,
+}));
+
+vi.mock("@/components/login-form", () => ({
+  LoginForm: () => <div data-testid="login-form">Login form</div>,
+}));
+
+import Page from "./page";
+
+describe("Login page", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.getLanding.mockReturnValue({ route: "/equipment" });
+
+    // Next.js redirect() throws to terminate rendering.
+    mocks.redirect.mockImplementation((path) => {
+      throw new Error(`NEXT_REDIRECT:${path}`);
+    });
+  });
+
+  it("renders the login form when unauthenticated", async () => {
+    mocks.auth.mockResolvedValue(null);
+
+    const page = await Page({});
+    render(page);
+
+    expect(screen.getByTestId("login-form")).toBeTruthy();
+    expect(mocks.redirect).not.toHaveBeenCalled();
+  });
+
+  it("redirects authenticated users to their landing page", async () => {
+    mocks.auth.mockResolvedValue({
+      user: { id: "7", role_id: 1 },
+    });
+
+    await expect(Page({})).rejects.toThrow("NEXT_REDIRECT:/equipment");
+
+    expect(mocks.getLanding).toHaveBeenCalledOnce();
+    expect(mocks.redirect).toHaveBeenCalledWith("/equipment");
+  });
+});
+

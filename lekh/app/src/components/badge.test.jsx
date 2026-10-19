@@ -1,0 +1,76 @@
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import { Badge } from "./badge";
+
+vi.mock("@/components/ui/badge", () => ({
+  Badge: ({ children, className }) => (
+    <span className={className}>{children}</span>
+  ),
+}));
+
+describe("Badge", () => {
+  const articleTypes = [
+    { id: 1, name: "Guide" },
+    { id: 2, name: "Documentation" },
+    { id: 3, name: "Equipment" },
+  ];
+
+  it("renders the article type name for an article", () => {
+    render(
+      <Badge
+        article={{ type_id: 2 }}
+        articleTypes={articleTypes}
+      />
+    );
+
+    expect(screen.getByText("Documentation")).toBeInTheDocument();
+  });
+
+  it("renders the supplied label when no article is provided", () => {
+    render(
+      <Badge label="Available" color="green" />
+    );
+
+    expect(screen.getByText("Available")).toBeInTheDocument();
+  });
+
+  it("uses the green colour classes when green is supplied", () => {
+    render(
+      <Badge label="Available" color="green" />
+    );
+
+    expect(screen.getByText("Available")).toHaveClass(
+      "bg-green-50",
+      "text-green-700"
+    );
+  });
+
+  it("uses yellow for items by default", () => {
+    render(<Badge label="Item" type="item" />);
+
+    expect(screen.getByText("Item")).toHaveClass(
+      "bg-yellow-50",
+      "text-yellow-700"
+    );
+  });
+
+  it("uses orange for groups by default", () => {
+    render(<Badge label="Group" type="group" />);
+
+    expect(screen.getByText("Group")).toHaveClass(
+      "bg-orange-50",
+      "text-orange-700"
+    );
+  });
+
+  it("uses olive by default for other types", () => {
+    render(<Badge label="Other" type="other" />);
+
+    expect(screen.getByText("Other")).toHaveClass(
+      "bg-olive-50",
+      "text-olive-700"
+    );
+  });
+});
+

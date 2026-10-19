@@ -12,13 +12,11 @@ import {
 const addReservation = async (reservation) => {
   const session = await auth();
 
-  if (!session?.user) return false;
+  if (!session?.user || reservation?.id) return false;
 
   const result = reservationSchema.safeParse(reservation);
 
-  if (!result.success || reservation.id) {
-    return false;
-  }
+  if (!result.success) return false;
 
   const data = result.data;
   const userId = Number(session.user.id);
@@ -47,13 +45,13 @@ const addReservation = async (reservation) => {
 
     if (hasConflict) return false;
 
-    // Approval status is controlled by the server, not the client.
+    // Approval status is controlled by the server.
     await addReservationQuery(
       {
         ...data,
         isPending: true,
       },
-      userId
+      userId,
     );
 
     return true;
@@ -96,9 +94,5 @@ const reservationResponse = async (reservationId, isApproved) => {
   }
 };
 
-export {
-  addReservation,
-  approveReservation,
-  denyReservation,
-};
+export { addReservation, approveReservation, denyReservation };
 

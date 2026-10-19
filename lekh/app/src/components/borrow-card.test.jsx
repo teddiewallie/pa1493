@@ -1,0 +1,101 @@
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
+
+import { BorrowCard } from "./borrow-card";
+
+vi.mock("@/components/ui/card", () => ({
+  Card: ({ children }) => <div>{children}</div>,
+}));
+
+vi.mock("@/components/ui/button", () => ({
+  Button: ({ children, onClick, ...props }) => (
+    <button onClick={onClick} {...props}>
+      {children}
+    </button>
+  ),
+}));
+
+vi.mock("@/components/ui/calendar", () => ({
+  Calendar: ({
+    mode,
+    selected,
+    onSelect,
+    min,
+    max,
+    disabled,
+    modifiers,
+    numberOfMonths,
+  }) => (
+    <div>
+      <span data-testid="calendar-mode">{mode}</span>
+      <span data-testid="calendar-min">{min}</span>
+      <span data-testid="calendar-max">{max}</span>
+      <span data-testid="calendar-months">{numberOfMonths}</span>
+      <span data-testid="calendar-disabled-count">{disabled.length}</span>
+      <span data-testid="calendar-booked-count">
+        {modifiers.booked.length}
+      </span>
+      <span data-testid="selected-range">
+        {selected?.from?.toISOString()}|{selected?.to?.toISOString()}
+      </span>
+      <button
+        type="button"
+        onClick={() =>
+          onSelect({
+            from: new Date(2026, 5, 1),
+            to: new Date(2026, 5, 5),
+          })
+        }
+      >
+        Select test range
+      </button>
+    </div>
+  ),
+}));
+
+describe("BorrowCard", () => {
+  it("configures the calendar for a one-to-seven-day range", () => {
+    render(<BorrowCard />);
+
+    expect(screen.getByTestId("calendar-mode")).toHaveTextContent("range");
+    expect(screen.getByTestId("calendar-min")).toHaveTextContent("1");
+    expect(screen.getByTestId("calendar-max")).toHaveTextContent("7");
+    expect(screen.getByTestId("calendar-months")).toHaveTextContent("1");
+  });
+
+  it("marks the fifteen booked dates as disabled", () => {
+    render(<BorrowCard />);
+
+    expect(
+      screen.getByTestId("calendar-disabled-count")
+    ).toHaveTextContent("15");
+
+    expect(
+      screen.getByTestId("calendar-booked-count")
+    ).toHaveTextContent("15");
+  });
+
+  it("updates the selected date range when a range is selected", async () => {
+    const user = userEvent.setup();
+
+    render(<BorrowCard />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Select test range" })
+    );
+
+    expect(screen.getByTestId("selected-range")).toHaveTextContent(
+      `${new Date(2026, 5, 1).toISOString()}|${new Date(2026, 5, 5).toISOString()}`
+    );
+  });
+
+  it("renders the borrow request button", () => {
+    render(<BorrowCard />);
+
+    expect(
+      screen.getByRole("button", { name: "Request to Borrow" })
+    ).toBeInTheDocument();
+  });
+});
+

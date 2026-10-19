@@ -7,7 +7,7 @@ import { getAllUsersQuery } from "@/query/user-query";
 const getUsers = async () => {
   const session = await auth();
 
-  const { role_id } = session?.user;
+  const { role_id } = session?.user ?? {};
 
   if (!role_id || role_id != 1) {
     return [];
@@ -20,8 +20,6 @@ const getUsers = async () => {
     console.log(e);
     return [];
   }
-
-  return [];
 };
 
 export { getUsers };

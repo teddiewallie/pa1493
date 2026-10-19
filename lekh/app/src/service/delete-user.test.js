@@ -1,0 +1,68 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const {
+  auth,
+  deleteUserQuery,
+  denyReservationsByUserIdQuery,
+} = vi.hoisted(() => ({
+  auth: vi.fn(),
+  deleteUserQuery: vi.fn(),
+  denyReservationsByUserIdQuery: vi.fn(),
+}));
+
+vi.mock("@/auth", () => ({ auth }));
+vi.mock("@/query/user-query.js", () => ({ deleteUserQuery }));
+vi.mock("@/query/reservation-query", () => ({
+  denyReservationsByUserIdQuery,
+}));
+
+import { deleteUser } from "./delete-user";
+
+describe("deleteUser", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    auth.mockResolvedValue({ user: { role_id: 1 } });
+    denyReservationsByUserIdQuery.mockResolvedValue(undefined);
+    deleteUserQuery.mockResolvedValue(undefined);
+  });
+
+  it("denies reservations before deleting the user", async () => {
+    await expect(deleteUser(42)).resolves.toBe(true);
+
+    expect(denyReservationsByUserIdQuery).toHaveBeenCalledWith(42);
+    expect(deleteUserQuery).toHaveBeenCalledWith(42);
+
+    expect(denyReservationsByUserIdQuery.mock.invocationCallOrder[0])
+      .toBeLessThan(deleteUserQuery.mock.invocationCallOrder[0]);
+  });
+
+  it("returns false when denying reservations fails", async () => {
+    denyReservationsByUserIdQuery.mockRejectedValue(
+      new Error("Database error")
+    );
+    vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await expect(deleteUser(42)).resolves.toBe(false);
+    expect(deleteUserQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns false when deleting the user fails", async () => {
+    deleteUserQuery.mockRejectedValue(new Error("Database error"));
+    vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await expect(deleteUser(42)).resolves.toBe(false);
+    expect(denyReservationsByUserIdQuery).toHaveBeenCalledWith(42);
+  });
+
+  it("logs errors when a query fails", async () => {
+    const error = new Error("Database error");
+    denyReservationsByUserIdQuery.mockRejectedValue(error);
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await deleteUser(42);
+
+    expect(log).toHaveBeenCalledWith(error);
+  });
+});
+

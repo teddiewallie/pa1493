@@ -14,9 +14,10 @@ const setReturned = async (id) => {
     await setReturnedQuery(id);
     return true;
   } catch (e) {
-    console.error(e);
+    console.log(e);
     return false;
   }
 };
 
 export { setReturned };
+

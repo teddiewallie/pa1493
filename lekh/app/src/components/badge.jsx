@@ -34,7 +34,13 @@ const Badge = ({article, articleTypes, color, label, type}) => {
   const getTypeName = (id) => articleTypes
     .find((articleType) => articleType.id == id).name;
 
-  color = color ?? type === "item" ? "yellow" : type === "group" ? "orange" : "olive";
+  color = color ?? (
+    type === "item"
+      ? "yellow"
+      : type === "group"
+        ? "orange"
+        : "olive"
+  );
 
   return (
     <>

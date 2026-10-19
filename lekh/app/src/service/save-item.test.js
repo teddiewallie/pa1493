@@ -1,0 +1,270 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const {
+  auth,
+  fs,
+  getAssetPath,
+  getAsset,
+  removeAsset,
+  getGroups,
+  createItemSchema,
+  reportSchema,
+  addItemQuery,
+  updateItemQuery,
+  getItemStatusMetaQuery,
+  addReportQuery,
+} = vi.hoisted(() => ({
+  auth: vi.fn(),
+  fs: {
+    writeFile: vi.fn(),
+    unlink: vi.fn(),
+  },
+  getAssetPath: vi.fn(),
+  getAsset: vi.fn(),
+  removeAsset: vi.fn(),
+  getGroups: vi.fn(),
+  createItemSchema: vi.fn(),
+  reportSchema: { safeParse: vi.fn() },
+  addItemQuery: vi.fn(),
+  updateItemQuery: vi.fn(),
+  getItemStatusMetaQuery: vi.fn(),
+  addReportQuery: vi.fn(),
+}));
+
+vi.mock("@/auth", () => ({ auth }));
+vi.mock("fs/promises", () => ({ default: fs }));
+vi.mock("./asset-path", () => ({ getAssetPath }));
+vi.mock("@/service/get-asset", () => ({ getAsset }));
+vi.mock("@/service/remove-asset", () => ({ removeAsset }));
+vi.mock("./get-groups", () => ({ getGroups }));
+vi.mock("@/schema/item-schema", () => ({ createItemSchema }));
+vi.mock("@/schema/report-schema", () => ({ reportSchema }));
+vi.mock("@/query/item-query", () => ({
+  addItemQuery,
+  updateItemQuery,
+  getItemStatusMetaQuery,
+  addReportQuery,
+}));
+
+import { addReport, saveItem } from "./save-item";
+
+const validItem = {
+  name: "Oscilloscope",
+  description: "Digital oscilloscope",
+  knownIssues: "",
+  shelf: "A1",
+  serial: "OSC-123",
+  borrowable: true,
+  bookable: false,
+  statusId: 1,
+  groupId: 1,
+  image: new File(["image"], "scope.png", { type: "image/png" }),
+};
+
+const validReport = {
+  id: 42,
+  reportIssue: "Device does not start",
+  knownIssues: "",
+};
+
+describe("addReport", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    auth.mockResolvedValue({ user: { id: 7, role_id: 1 } });
+    reportSchema.safeParse.mockReturnValue({ success: true });
+    addReportQuery.mockResolvedValue(undefined);
+  });
+
+  it("adds a valid report for an authenticated user", async () => {
+    await expect(addReport(validReport)).resolves.toBe(true);
+
+    expect(reportSchema.safeParse).toHaveBeenCalledWith(validReport);
+    expect(addReportQuery).toHaveBeenCalledWith(validReport);
+  });
+
+  it("returns false when report validation fails", async () => {
+    reportSchema.safeParse.mockReturnValue({ success: false });
+
+    await expect(addReport(validReport)).resolves.toBe(false);
+    expect(addReportQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns false when there is no session", async () => {
+    auth.mockResolvedValue(null);
+
+    await expect(addReport(validReport)).resolves.toBe(false);
+    expect(addReportQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns false when adding the report fails", async () => {
+    const error = new Error("Database error");
+    addReportQuery.mockRejectedValue(error);
+    vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await expect(addReport(validReport)).resolves.toBe(false);
+    expect(console.log).toHaveBeenCalledWith(error);
+  });
+});
+
+describe("saveItem", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    auth.mockResolvedValue({ user: { id: 7, role_id: 1 } });
+    getItemStatusMetaQuery.mockResolvedValue([{ id: 1, name: "Available" }]);
+    getGroups.mockResolvedValue({ groups: [{ id: 1, name: "Equipment" }] });
+
+    createItemSchema.mockReturnValue({
+      safeParse: vi.fn().mockReturnValue({ success: true }),
+    });
+
+    addItemQuery.mockResolvedValue({ id: 42, extension: null });
+    updateItemQuery.mockResolvedValue({ id: 42, extension: null });
+
+    getAssetPath.mockImplementation((id, extension) => `/assets/${id}.${extension}`);
+    getAsset.mockResolvedValue(null);
+    removeAsset.mockResolvedValue(undefined);
+    fs.writeFile.mockResolvedValue(undefined);
+    fs.unlink.mockResolvedValue(undefined);
+  });
+
+  it("creates an item for a maintainer", async () => {
+    const created = { id: 42, extension: null };
+    addItemQuery.mockResolvedValue(created);
+
+    await expect(saveItem(validItem)).resolves.toEqual(created);
+
+    expect(createItemSchema).toHaveBeenCalledWith(
+      [{ id: 1, name: "Equipment" }],
+      [{ id: 1, name: "Available" }],
+      false
+    );
+    expect(addItemQuery).toHaveBeenCalledWith({
+      ...validItem,
+      userId: 7,
+    });
+    expect(updateItemQuery).not.toHaveBeenCalled();
+  });
+
+  it("updates an existing item", async () => {
+    const item = { ...validItem, id: 42, image: undefined };
+    updateItemQuery.mockResolvedValue({ id: 42, extension: null });
+
+    await expect(saveItem(item)).resolves.toEqual({
+      id: 42,
+      extension: null,
+    });
+
+    expect(createItemSchema).toHaveBeenCalledWith(
+      [{ id: 1, name: "Equipment" }],
+      [{ id: 1, name: "Available" }],
+      true
+    );
+    expect(updateItemQuery).toHaveBeenCalledWith({
+      ...item,
+      userId: 7,
+    });
+    expect(addItemQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns false when validation fails", async () => {
+    createItemSchema.mockReturnValue({
+      safeParse: vi.fn().mockReturnValue({ success: false }),
+    });
+
+    await expect(saveItem(validItem)).resolves.toBe(false);
+    expect(addItemQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns false when there is no session", async () => {
+    auth.mockResolvedValue(null);
+
+    await expect(saveItem(validItem)).resolves.toBe(false);
+    expect(addItemQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns false when the user is not a maintainer", async () => {
+    auth.mockResolvedValue({ user: { id: 8, role_id: 2 } });
+
+    await expect(saveItem(validItem)).resolves.toBe(false);
+    expect(addItemQuery).not.toHaveBeenCalled();
+  });
+
+  it("writes the image file when the saved item has an asset extension", async () => {
+    const created = { id: 42, extension: "png" };
+    addItemQuery.mockResolvedValue(created);
+
+    await expect(saveItem(validItem)).resolves.toEqual(created);
+
+    expect(getAssetPath).toHaveBeenCalledWith(42, "png");
+    expect(fs.writeFile).toHaveBeenCalledWith(
+      "/assets/42.png",
+      expect.any(Buffer)
+    );
+  });
+
+  it("removes an old asset after writing the replacement", async () => {
+    const item = { ...validItem, assetId: 9 };
+    addItemQuery.mockResolvedValue({ id: 42, extension: "png" });
+    getAsset.mockResolvedValue({ id: 9, extension: "jpg" });
+
+    await expect(saveItem(item)).resolves.toEqual({
+      id: 42,
+      extension: "png",
+    });
+
+    expect(getAsset).toHaveBeenCalledWith(9);
+    expect(getAssetPath).toHaveBeenCalledWith(9, "jpg");
+    expect(fs.unlink).toHaveBeenCalledWith("/assets/9.jpg");
+    expect(removeAsset).toHaveBeenCalledWith(9);
+
+    expect(fs.writeFile.mock.invocationCallOrder[0])
+      .toBeLessThan(fs.unlink.mock.invocationCallOrder[0]);
+    expect(fs.unlink.mock.invocationCallOrder[0])
+      .toBeLessThan(removeAsset.mock.invocationCallOrder[0]);
+  });
+
+  it("does not remove an old asset when none exists", async () => {
+    addItemQuery.mockResolvedValue({ id: 42, extension: "png" });
+    getAsset.mockResolvedValue(null);
+
+    await saveItem({ ...validItem, assetId: 9 });
+
+    expect(fs.writeFile).toHaveBeenCalledOnce();
+    expect(fs.unlink).not.toHaveBeenCalled();
+    expect(removeAsset).not.toHaveBeenCalled();
+  });
+
+  it("returns false when saving the item fails", async () => {
+    const error = new Error("Database error");
+    addItemQuery.mockRejectedValue(error);
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await expect(saveItem(validItem)).resolves.toBe(false);
+    expect(log).toHaveBeenCalledWith(error);
+  });
+
+  it("returns false when writing the asset fails", async () => {
+    const error = new Error("Filesystem error");
+    addItemQuery.mockResolvedValue({ id: 42, extension: "png" });
+    fs.writeFile.mockRejectedValue(error);
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await expect(saveItem(validItem)).resolves.toBe(false);
+    expect(log).toHaveBeenCalledWith(error);
+  });
+
+  it("returns false when removing an old asset fails", async () => {
+    const error = new Error("Filesystem error");
+    addItemQuery.mockResolvedValue({ id: 42, extension: "png" });
+    getAsset.mockResolvedValue({ id: 9, extension: "jpg" });
+    fs.unlink.mockRejectedValue(error);
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await expect(saveItem({ ...validItem, assetId: 9 })).resolves.toBe(false);
+    expect(removeAsset).not.toHaveBeenCalled();
+    expect(log).toHaveBeenCalledWith(error);
+  });
+});
+

@@ -1,0 +1,31 @@
+
+import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import Page from "./page";
+import { useRouter } from "next/navigation";
+
+const mockPush = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useRouter: vi.fn(),
+}));
+
+describe("Units by type redirect page", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useRouter.mockReturnValue({ push: mockPush });
+  });
+
+  it("redirects to /types", () => {
+    render(<Page />);
+
+    expect(mockPush).toHaveBeenCalledExactlyOnceWith("/types");
+  });
+
+  it("renders a redirecting message", () => {
+    render(<Page />);
+
+    expect(screen.getByText("Redirecting...")).toBeInTheDocument();
+  });
+});
+

@@ -20,6 +20,10 @@ const ProtectedLayout = async ({ children }) => {
   const users = await getUsersByIdQuery(Number(session.user.id));
   const user = users[0];
 
+  if (!user) {
+    redirect("/login");
+  }
+
   return (
     <UserProvider {...{ user }}>
       <EquipmentProvider>

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const createArticleSchema = () => {
   return z.object({
-    id: z.number().optional(),
+    id: z.number().int().optional(),
     title: z.string().min(1, "Title is required"),
     content: z.string().min(1, "Content is required"),
     typeId: z.number().int().positive("Article type is required"),

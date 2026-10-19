@@ -1,0 +1,334 @@
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+
+const { router, addToast } = vi.hoisted(() => ({
+  router: {
+    back: vi.fn(),
+    push: vi.fn(),
+  },
+  addToast: vi.fn(),
+}));
+
+vi.mock("react", async (importOriginal) => {
+  const actual = await importOriginal();
+
+  return {
+    ...actual,
+    use: (value) => value,
+  };
+});
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => router,
+}));
+
+vi.mock("@/components/create-article-form", () => ({
+  CreateArticleForm: (props) => (
+    <div>
+      <output data-testid="form-props">
+        {JSON.stringify({
+          articleTypes: props.articleTypes,
+          articleId: props.articleId,
+          article: props.article?.id ?? null,
+          groupId: props.groupId,
+          itemId: props.itemId,
+          typeId: props.typeId,
+          userId: props.userId,
+          isStudent: props.isStudent,
+        })}
+      </output>
+
+      <button onClick={() => props.onSuccess({ id: 99 })}>
+        Simulate success
+      </button>
+
+      <button onClick={() => props.onFail()}>
+        Simulate failure
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock("@/components/ui/toast", () => ({
+  toast: {
+    add: addToast,
+  },
+}));
+
+import { ArticleContext } from "@/context/article-context";
+import { UserContext } from "@/context/user-context";
+import Page from "./page";
+
+const article = {
+  id: 12,
+  title: "Oscilloscope guide",
+  content: "How to use the oscilloscope.",
+  user_id: 7,
+  type_id: 4,
+  group_id: 3,
+  item_id: null,
+};
+
+const articleTypes = [
+  { id: 3, name: "Guide" },
+  { id: 4, name: "Equipment" },
+];
+
+const renderPage = ({
+  user = { id: 7, role_id: 2 },
+  articles = [article],
+  articleTypes: types = articleTypes,
+  loading = false,
+  params = {
+    scope: "for-type",
+    equipmentId: "3",
+  },
+} = {}) =>
+  render(
+    <UserContext.Provider value={{ user }}>
+      <ArticleContext.Provider
+        value={{
+          articles,
+          articleTypes: types,
+          refreshArticles: vi.fn(),
+          loading,
+        }}
+      >
+        <Page params={params} />
+      </ArticleContext.Provider>
+    </UserContext.Provider>,
+  );
+
+const getFormProps = () =>
+  JSON.parse(screen.getByTestId("form-props").textContent);
+
+describe("Article editor page", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("passes the correct props when creating a group article as a student", () => {
+    renderPage({
+      articles: [],
+    });
+
+    expect(getFormProps()).toEqual({
+      articleTypes,
+      articleId: 0,
+      article: null,
+      groupId: 3,
+      itemId: null,
+      typeId: 3,
+      userId: 7,
+      isStudent: true,
+    });
+  });
+
+  it("passes the existing article and its type when editing as a maintainer", () => {
+    renderPage({
+      user: { id: 8, role_id: 1 },
+      params: {
+        scope: "for-type",
+        equipmentId: "3",
+        articleIds: ["12"],
+      },
+    });
+
+    expect(getFormProps()).toEqual({
+      articleTypes,
+      articleId: 12,
+      article: 12,
+      groupId: 3,
+      itemId: null,
+      typeId: 4,
+      userId: 8,
+      isStudent: false,
+    });
+  });
+
+  it("allows maintainers to edit articles for individual units", () => {
+    renderPage({
+      user: { id: 8, role_id: 1 },
+      articles: [
+        {
+          ...article,
+          item_id: 42,
+          group_id: null,
+        },
+      ],
+      params: {
+        scope: "for-unit",
+        equipmentId: "42",
+        articleIds: ["12"],
+      },
+    });
+
+    expect(router.back).not.toHaveBeenCalled();
+    expect(getFormProps()).toMatchObject({
+      articleId: 12,
+      groupId: null,
+      itemId: 42,
+      typeId: 4,
+      isStudent: false,
+    });
+  });
+
+  it("sends students back when accessing a unit editor", () => {
+    renderPage({
+      articles: [],
+      params: {
+        scope: "for-unit",
+        equipmentId: "42",
+      },
+    });
+
+    expect(router.back).toHaveBeenCalled();
+  });
+
+  it("sends students back when editing another user's article", () => {
+    renderPage({
+      user: { id: 8, role_id: 2 },
+      params: {
+        scope: "for-type",
+        equipmentId: "3",
+        articleIds: ["12"],
+      },
+    });
+
+    expect(router.back).toHaveBeenCalled();
+  });
+
+  it("sends users back for an invalid scope", () => {
+    renderPage({
+      articles: [],
+      params: {
+        scope: "invalid",
+        equipmentId: "3",
+      },
+    });
+
+    expect(router.back).toHaveBeenCalled();
+  });
+
+  it("sends users back when multiple article IDs are provided", () => {
+    const { container } = renderPage({
+      params: {
+        scope: "for-type",
+        equipmentId: "3",
+        articleIds: ["12", "13"],
+      },
+    });
+
+    expect(router.back).toHaveBeenCalled();
+    expect(container.firstChild).toBeEmptyDOMElement();
+  });
+
+  it("goes back if the requested article is missing and loading has finished", () => {
+    renderPage({
+      articles: [],
+      params: {
+        scope: "for-type",
+        equipmentId: "3",
+        articleIds: ["12"],
+      },
+    });
+
+    expect(router.back).toHaveBeenCalled();
+  });
+
+  it("does not go back for a missing article while articles are loading", () => {
+    renderPage({
+      articles: [],
+      loading: true,
+      params: {
+        scope: "for-type",
+        equipmentId: "3",
+        articleIds: ["12"],
+      },
+    });
+
+    expect(router.back).not.toHaveBeenCalled();
+  });
+
+  it("shows a success toast and refreshes articles after saving", () => {
+    const refreshArticles = vi.fn();
+
+    render(
+      <UserContext.Provider value={{ user: { id: 7, role_id: 2 } }}>
+        <ArticleContext.Provider
+          value={{
+            articles: [],
+            articleTypes,
+            refreshArticles,
+            loading: false,
+          }}
+        >
+          <Page
+            params={{
+              scope: "for-type",
+              equipmentId: "3",
+            }}
+          />
+        </ArticleContext.Provider>
+      </UserContext.Provider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Simulate success" }));
+
+    expect(addToast).toHaveBeenCalledWith({
+      title: "Article successfully saved.",
+    });
+    expect(refreshArticles).toHaveBeenCalledOnce();
+    expect(router.push).toHaveBeenCalledWith(
+      "/editor/for-type/3/99",
+    );
+  });
+
+  it("shows an update toast and does not navigate after updating", () => {
+    const refreshArticles = vi.fn();
+
+    render(
+      <UserContext.Provider value={{ user: { id: 7, role_id: 2 } }}>
+        <ArticleContext.Provider
+          value={{
+            articles: [article],
+            articleTypes,
+            refreshArticles,
+            loading: false,
+          }}
+        >
+          <Page
+            params={{
+              scope: "for-type",
+              equipmentId: "3",
+              articleIds: ["12"],
+            }}
+          />
+        </ArticleContext.Provider>
+      </UserContext.Provider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Simulate success" }));
+
+    expect(addToast).toHaveBeenCalledWith({
+      title: "Article successfully updated.",
+    });
+    expect(refreshArticles).toHaveBeenCalledOnce();
+    expect(router.push).not.toHaveBeenCalled();
+  });
+
+  it("shows a failure toast when saving fails", () => {
+    renderPage({
+      articles: [],
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Simulate failure" }));
+
+    expect(addToast).toHaveBeenCalledWith({
+      title: "Failed to save article.",
+    });
+    expect(router.push).not.toHaveBeenCalled();
+  });
+});
+
