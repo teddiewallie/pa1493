@@ -1,0 +1,96 @@
+import { describe, expect, it } from "vitest";
+
+import { createGroupSchema } from "./group-schema";
+
+describe("createGroupSchema", () => {
+  const schema = createGroupSchema();
+
+  const validGroup = {
+    name: "Oscilloscopes",
+    description: "Oscilloscopes available in the lab.",
+    knownIssues: "One unit has a faulty probe.",
+  };
+
+  it("accepts a valid group", () => {
+    expect(schema.safeParse(validGroup).success).toBe(true);
+  });
+
+  it("accepts a group with an optional integer id", () => {
+    expect(
+      schema.safeParse({ ...validGroup, id: 42 }).success
+    ).toBe(true);
+  });
+
+  it("accepts empty description and knownIssues", () => {
+    expect(
+      schema.safeParse({
+        ...validGroup,
+        description: "",
+        knownIssues: "",
+      }).success
+    ).toBe(true);
+  });
+
+  it("rejects an empty name with the expected message", () => {
+    const result = schema.safeParse({
+      ...validGroup,
+      name: "",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error.issues).toContainEqual(
+      expect.objectContaining({
+        path: ["name"],
+        message: "Name is required",
+      })
+    );
+  });
+
+  it.each(["name", "description", "knownIssues"])(
+    "rejects a missing %s",
+    (field) => {
+      const group = { ...validGroup };
+      delete group[field];
+
+      expect(schema.safeParse(group).success).toBe(false);
+    }
+  );
+
+  it("rejects a non-string name", () => {
+    expect(
+      schema.safeParse({ ...validGroup, name: 123 }).success
+    ).toBe(false);
+  });
+
+  it("rejects non-string description and knownIssues", () => {
+    expect(
+      schema.safeParse({ ...validGroup, description: null }).success
+    ).toBe(false);
+
+    expect(
+      schema.safeParse({ ...validGroup, knownIssues: null }).success
+    ).toBe(false);
+  });
+
+  it("rejects a non-numeric id", () => {
+    expect(
+      schema.safeParse({ ...validGroup, id: "42" }).success
+    ).toBe(false);
+  });
+
+  it("rejects a decimal id", () => {
+    expect(
+      schema.safeParse({ ...validGroup, id: 1.5 }).success
+    ).toBe(false);
+  });
+
+  it("accepts the editing argument without changing validation", () => {
+    const editingSchema = createGroupSchema(true);
+
+    expect(editingSchema.safeParse(validGroup).success).toBe(true);
+    expect(
+      editingSchema.safeParse({ ...validGroup, name: "" }).success
+    ).toBe(false);
+  });
+});
+
