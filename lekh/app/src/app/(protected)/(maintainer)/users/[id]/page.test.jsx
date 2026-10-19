@@ -1,0 +1,130 @@
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import Page from "./page";
+import { UsersContext } from "@/context/users-context";
+import { ReservationsContext } from "@/context/reservations-context";
+
+const mocks = vi.hoisted(() => ({
+  push: vi.fn(),
+  addToast: vi.fn(),
+  deleteUser: vi.fn(),
+  refreshUsers: vi.fn(),
+  refreshReservations: vi.fn(),
+}));
+
+vi.mock("react", async (importOriginal) => {
+  const actual = await importOriginal();
+  return { ...actual, use: (value) => value };
+});
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: mocks.push }),
+}));
+
+vi.mock("@/service/delete-user", () => ({
+  deleteUser: mocks.deleteUser,
+}));
+
+vi.mock("@/components/ui/toast", () => ({
+  toast: { add: mocks.addToast },
+}));
+
+vi.mock("@/components/profile", () => ({
+  Profile: ({ user, canDelete, onDelete }) => (
+    <section>
+      <h1>{user.name}</h1>
+      <p data-testid="user-id">{user.id}</p>
+      <p data-testid="can-delete">{String(canDelete)}</p>
+      <button onClick={onDelete}>Delete user</button>
+    </section>
+  ),
+}));
+
+const users = [
+  { id: 1, name: "Alice" },
+  { id: 2, name: "Bob" },
+];
+
+const renderPage = (id = "2") =>
+  render(
+    <UsersContext.Provider
+      value={{
+        users,
+        refreshUsers: mocks.refreshUsers,
+      }}
+    >
+      <ReservationsContext.Provider
+        value={{
+          refreshReservations: mocks.refreshReservations,
+        }}
+      >
+        <Page params={{ id }} />
+      </ReservationsContext.Provider>
+    </UsersContext.Provider>,
+  );
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+describe("User profile page", () => {
+  it("renders the user matching the route ID", () => {
+    renderPage();
+
+    expect(screen.getByRole("heading", { name: "Bob" })).toBeInTheDocument();
+    expect(screen.getByTestId("user-id")).toHaveTextContent("2");
+  });
+
+  it("allows the user to be deleted", () => {
+    renderPage();
+
+    expect(screen.getByTestId("can-delete")).toHaveTextContent("true");
+    expect(
+      screen.getByRole("button", { name: "Delete user" }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders nothing when the user does not exist", () => {
+    const { container } = renderPage("999");
+
+    expect(container.querySelector("h1")).not.toBeInTheDocument();
+  });
+
+  it("deletes the user and refreshes related data on success", async () => {
+    mocks.deleteUser.mockResolvedValue(true);
+
+    renderPage();
+
+    fireEvent.click(screen.getByRole("button", { name: "Delete user" }));
+
+    await waitFor(() => {
+      expect(mocks.deleteUser).toHaveBeenCalledWith("2");
+      expect(mocks.push).toHaveBeenCalledWith("/users");
+      expect(mocks.refreshReservations).toHaveBeenCalledOnce();
+      expect(mocks.refreshUsers).toHaveBeenCalledOnce();
+      expect(mocks.addToast).toHaveBeenCalledWith({
+        title: "User deleted.",
+      });
+    });
+  });
+
+  it("shows an error toast when deletion fails", async () => {
+    mocks.deleteUser.mockResolvedValue(false);
+
+    renderPage();
+
+    fireEvent.click(screen.getByRole("button", { name: "Delete user" }));
+
+    await waitFor(() => {
+      expect(mocks.addToast).toHaveBeenCalledWith({
+        title: "Failed to delete user.",
+      });
+    });
+
+    expect(mocks.push).not.toHaveBeenCalled();
+    expect(mocks.refreshReservations).not.toHaveBeenCalled();
+    expect(mocks.refreshUsers).not.toHaveBeenCalled();
+  });
+});
+
