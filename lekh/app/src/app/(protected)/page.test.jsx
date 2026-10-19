@@ -1,0 +1,59 @@
+
+import { describe, expect, it, beforeEach, vi } from "vitest";
+import { render } from "@testing-library/react";
+import Page from "./page";
+import { auth } from "@/auth";
+import { redirect } from "next/navigation";
+import { getLanding } from "@/routes";
+
+vi.mock("@/auth", () => ({
+  auth: vi.fn(),
+}));
+
+vi.mock("next/navigation", () => ({
+  redirect: vi.fn(),
+}));
+
+vi.mock("@/routes", () => ({
+  getLanding: vi.fn(),
+}));
+
+describe("Protected landing page", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    redirect.mockImplementation(() => {
+      throw new Error("NEXT_REDIRECT");
+    });
+  });
+
+  it("redirects authenticated users to their landing route", async () => {
+    auth.mockResolvedValue({ user: { id: 1 } });
+    getLanding.mockReturnValue({ route: "/units" });
+
+    await expect(Page()).rejects.toThrow("NEXT_REDIRECT");
+
+    expect(auth).toHaveBeenCalledOnce();
+    expect(getLanding).toHaveBeenCalledOnce();
+    expect(redirect).toHaveBeenCalledWith("/units");
+  });
+
+  it("redirects unauthenticated users to /login", async () => {
+    auth.mockResolvedValue(null);
+
+    await expect(Page()).rejects.toThrow("NEXT_REDIRECT");
+
+    expect(auth).toHaveBeenCalledOnce();
+    expect(getLanding).not.toHaveBeenCalled();
+    expect(redirect).toHaveBeenCalledWith("/login");
+  });
+
+  it("redirects to the landing route returned by getLanding", async () => {
+    auth.mockResolvedValue({ user: { id: 42 } });
+    getLanding.mockReturnValue({ route: "/profile" });
+
+    await expect(Page()).rejects.toThrow("NEXT_REDIRECT");
+
+    expect(redirect).toHaveBeenCalledWith("/profile");
+  });
+});
+
