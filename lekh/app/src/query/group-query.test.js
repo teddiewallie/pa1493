@@ -1,0 +1,135 @@
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { query } = vi.hoisted(() => ({
+  query: vi.fn(),
+}));
+
+vi.mock("@/lib/db", () => ({
+  default: { query },
+}));
+
+import {
+  addGroupQuery,
+  updateGroupQuery,
+  getGroupsQuery,
+  deleteGroupQuery,
+} from "./group-query";
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+describe("addGroupQuery", () => {
+  it("inserts a group and returns its ID", async () => {
+    query.mockResolvedValue({ insertId: 42 });
+
+    const data = {
+      name: "Sensors",
+      description: "Sensor equipment",
+      knownIssues: "Some sensors need calibration",
+    };
+
+    await expect(addGroupQuery(data)).resolves.toEqual({ id: 42 });
+
+    expect(query).toHaveBeenCalledWith(
+      "INSERT INTO item_group (name, description, known_issues) VALUES (?, ?, ?)",
+      ["Sensors", "Sensor equipment", "Some sensors need calibration"],
+    );
+  });
+
+  it("propagates database errors", async () => {
+    query.mockRejectedValue(new Error("Database error"));
+
+    await expect(
+      addGroupQuery({
+        name: "Sensors",
+        description: "Sensor equipment",
+        knownIssues: "",
+      }),
+    ).rejects.toThrow("Database error");
+  });
+});
+
+describe("updateGroupQuery", () => {
+  it("updates a group and returns its ID", async () => {
+    query.mockResolvedValue({ affectedRows: 1 });
+
+    const data = {
+      id: 42,
+      name: "Updated sensors",
+      description: "Updated description",
+      knownIssues: "Updated issues",
+    };
+
+    await expect(updateGroupQuery(data)).resolves.toEqual({ id: 42 });
+
+    expect(query).toHaveBeenCalledWith(
+      "UPDATE item_group SET name=?, description=?, known_issues=? WHERE id=?",
+      ["Updated sensors", "Updated description", "Updated issues", 42],
+    );
+  });
+
+  it("propagates database errors", async () => {
+    query.mockRejectedValue(new Error("Database error"));
+
+    await expect(
+      updateGroupQuery({
+        id: 42,
+        name: "Sensors",
+        description: "Description",
+        knownIssues: "",
+      }),
+    ).rejects.toThrow("Database error");
+  });
+});
+
+describe("getGroupsQuery", () => {
+  it("returns groups that are not deleted", async () => {
+    const groups = [
+      { id: 1, name: "Sensors", deleted: 0 },
+      { id: 2, name: "Cameras", deleted: 0 },
+    ];
+
+    query.mockResolvedValue(groups);
+
+    await expect(getGroupsQuery()).resolves.toEqual(groups);
+
+    expect(query).toHaveBeenCalledWith(
+      "SELECT * FROM item_group WHERE deleted=FALSE",
+    );
+  });
+
+  it("returns an empty array when no groups exist", async () => {
+    query.mockResolvedValue([]);
+
+    await expect(getGroupsQuery()).resolves.toEqual([]);
+  });
+
+  it("propagates database errors", async () => {
+    query.mockRejectedValue(new Error("Database error"));
+
+    await expect(getGroupsQuery()).rejects.toThrow("Database error");
+  });
+});
+
+describe("deleteGroupQuery", () => {
+  it("soft-deletes a group by setting deleted to 1", async () => {
+    const result = { affectedRows: 1 };
+    query.mockResolvedValue(result);
+
+    await expect(deleteGroupQuery(42)).resolves.toEqual(result);
+
+    expect(query).toHaveBeenCalledWith(
+      "UPDATE item_group SET deleted=1 WHERE id=?",
+      [42],
+    );
+  });
+
+  it("propagates database errors", async () => {
+    query.mockRejectedValue(new Error("Database error"));
+
+    await expect(deleteGroupQuery(42)).rejects.toThrow("Database error");
+  });
+});
+
