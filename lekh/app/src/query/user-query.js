@@ -43,8 +43,12 @@ const updateUserQuery = async (data, isAdmin) => {
     data.id
   ];
 
-  if (data.maintainer && isAdmin) {
+  const admins = await pool.query("SELECT id FROM user WHERE role_id=1 AND deleted=0");
+
+  if (data.maintainer && isAdmin && admins.length > 1) {
     dataColumns[2] = 1;
+  } else {
+    return false;
   }
 
   if (data.password?.length > 0) {
@@ -62,7 +66,7 @@ const updateUserQuery = async (data, isAdmin) => {
 };
 
 const deleteUserQuery  = async (id) => {
-  const admins = await pool.query("SELECT id FROM user WHERE role_id=1");
+  const admins = await pool.query("SELECT id FROM user WHERE role_id=1 AND deleted=0");
 
   if (admins.length === 1) {
     throw new Error("Can't delete last elevated user.");

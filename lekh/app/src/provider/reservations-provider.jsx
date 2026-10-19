@@ -5,29 +5,41 @@ import { getReservations } from "@/service/get-reservations";
 import { ReservationsContext } from "@/context/reservations-context";
 
 const ReservationsProvider = ({ children }) => {
-  const [ reservations, setReservations] = useState([]);
-
-  const [ loading, setLoading ] = useState(true);
+  const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const refreshReservations = async () => {
     setLoading(true);
 
-    const newReservations = await getReservations();
-
-    setReservations(newReservations);
-    setLoading(false);
+    try {
+      const newReservations = await getReservations();
+      setReservations(newReservations);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    refreshReservations()
+    const fetchReservations = async () => {
+      try {
+        const newReservations = await getReservations();
+        setReservations(newReservations);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReservations();
   }, []);
 
   return (
-    <ReservationsContext.Provider value={{reservations, refreshReservations, loading}}>
-      { children }
+    <ReservationsContext.Provider
+      value={{ reservations, refreshReservations, loading }}
+    >
+      {children}
     </ReservationsContext.Provider>
   );
 };
 
-export { ReservationsProvider, loading };
+export { ReservationsProvider };
 

@@ -1,3 +1,4 @@
+/* eslint @next/next/no-img-element: "off" */
 "use client";
 
 import { useRef, useState } from "react";

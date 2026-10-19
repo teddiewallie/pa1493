@@ -12,6 +12,11 @@ const deleteUser = async (id) => {
   }
 
   try {
+    /*
+     * Yeaaa should really make this atomic.
+     * Not the priority right now though.
+     * Gonna leave it as an undone TODO.
+     */
     await denyReservationsByUserIdQuery(id);
     await deleteUserQuery(id);
   } catch (e) {

@@ -18,8 +18,18 @@ const columns = [
 ];
 
 const addReportQuery = async (data) => {
-  const { knownIssues, reportIssue } = data;
+  const { id, reportIssue } = data;
 
+  const rows = await pool.query(
+    "SELECT known_issues FROM item WHERE id=?",
+    [id]
+  );
+
+  if (rows.length === 0) {
+    throw new Error("Item not found.");
+  }
+
+  const knownIssues = rows[0];
   const newKnownIssues = `${reportIssue}\n\n${knownIssues}`;
 
   await pool.query(

@@ -8,11 +8,15 @@ import { setGroupItemsAsUnsortedQuery } from "@/query/item-query";
 const deleteGroup = async (id) => {
   const session = await auth();
 
-  if (!session && session.user.role_id > 1) {
+  if (!session || session.user.role_id > 1 || id == 1) {
     return false;
   }
 
   try {
+    /*
+     * Should make this atomic, but it's not a priority.
+     * This will be an eternal TODO.
+     */
     await setGroupArticlesAsUnsortedQuery(id);
     await setGroupItemsAsUnsortedQuery(id);
     await deleteGroupQuery(id);

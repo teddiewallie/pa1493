@@ -5,29 +5,39 @@ import { getUsers } from "@/service/get-users";
 import { UsersContext } from "@/context/users-context";
 
 const UsersProvider = ({ children }) => {
-  const [ users, setUsers ] = useState([]);
-
-  const [ loading, setLoading ] = useState(true);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const refreshUsers = async () => {
     setLoading(true);
 
-    const users = await getUsers();
-
-    setUsers(users);
-    setLoading(false);
+    try {
+      const users = await getUsers();
+      setUsers(users);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    refreshUsers()
+    const fetchUsers = async () => {
+      try {
+        const users = await getUsers();
+        setUsers(users);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
   }, []);
 
   return (
-    <UsersContext.Provider value={{users, refreshUsers}}>
-      { children }
+    <UsersContext.Provider value={{ users, refreshUsers, loading }}>
+      {children}
     </UsersContext.Provider>
   );
 };
 
-export { UsersProvider, loading };
+export { UsersProvider };
 

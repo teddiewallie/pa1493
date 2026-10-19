@@ -60,7 +60,7 @@ const Html5QrcodePlugin = ({
                     .catch(() => {});
             }
         };
-    }, [scan]);
+    }, [scan, disableFlip, fps, qrCodeSuccessCallback, qrbox]);
 
     return (<div id="qr-reader" />);
 }
