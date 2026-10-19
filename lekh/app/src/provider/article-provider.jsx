@@ -10,12 +10,16 @@ const ArticleProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   const refreshArticles = async () => {
-    setLoading(true);
-    const { articles, articleTypes } = await getArticles();
-    setArticles(articles);
-    setArticleTypes(articleTypes);
-    setLoading(false);
-  }
+  setLoading(true);
+
+    try {
+      const { articles, articleTypes } = await getArticles();
+      setArticles(articles);
+      setArticleTypes(articleTypes);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const load = async () => await refreshArticles();
