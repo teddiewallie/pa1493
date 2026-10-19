@@ -1,0 +1,65 @@
+import { describe, expect, it } from "vitest";
+import { reportSchema } from "./report-schema";
+
+const validReport = {
+  id: 1,
+  reportIssue: "The device fails to start.",
+  knownIssues: "Occasional startup failures.",
+};
+
+describe("reportSchema", () => {
+  it("accepts a valid report", () => {
+    expect(reportSchema.safeParse(validReport).success).toBe(true);
+  });
+
+  it("accepts empty strings for reportIssue and knownIssues", () => {
+    expect(
+      reportSchema.safeParse({
+        ...validReport,
+        reportIssue: "",
+        knownIssues: "",
+      }).success
+    ).toBe(true);
+  });
+
+  it("rejects a missing required field", () => {
+    for (const field of ["id", "reportIssue", "knownIssues"]) {
+      const report = { ...validReport };
+      delete report[field];
+
+      expect(
+        reportSchema.safeParse(report).success,
+        `field: ${field}`
+      ).toBe(false);
+    }
+  });
+
+  it("rejects a non-numeric ID", () => {
+    expect(
+      reportSchema.safeParse({ ...validReport, id: "1" }).success
+    ).toBe(false);
+  });
+
+  it("rejects a null ID", () => {
+    expect(
+      reportSchema.safeParse({ ...validReport, id: null }).success
+    ).toBe(false);
+  });
+
+  it("rejects non-string reportIssue and knownIssues values", () => {
+    expect(
+      reportSchema.safeParse({ ...validReport, reportIssue: 123 }).success
+    ).toBe(false);
+
+    expect(
+      reportSchema.safeParse({ ...validReport, knownIssues: null }).success
+    ).toBe(false);
+  });
+
+  it("currently accepts decimal IDs", () => {
+    expect(
+      reportSchema.safeParse({ ...validReport, id: 1.5 }).success
+    ).toBe(true);
+  });
+});
+
