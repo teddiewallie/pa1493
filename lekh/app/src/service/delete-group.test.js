@@ -1,0 +1,90 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const {
+  auth,
+  deleteGroupQuery,
+  setGroupArticlesAsUnsortedQuery,
+  setGroupItemsAsUnsortedQuery,
+} = vi.hoisted(() => ({
+  auth: vi.fn(),
+  deleteGroupQuery: vi.fn(),
+  setGroupArticlesAsUnsortedQuery: vi.fn(),
+  setGroupItemsAsUnsortedQuery: vi.fn(),
+}));
+
+vi.mock("@/auth", () => ({ auth }));
+vi.mock("@/query/group-query", () => ({ deleteGroupQuery }));
+vi.mock("@/query/article-query", () => ({ setGroupArticlesAsUnsortedQuery }));
+vi.mock("@/query/item-query", () => ({ setGroupItemsAsUnsortedQuery }));
+
+import { deleteGroup } from "./delete-group";
+
+describe("deleteGroup", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    auth.mockResolvedValue({
+      user: { role_id: 1 },
+    });
+    setGroupArticlesAsUnsortedQuery.mockResolvedValue(undefined);
+    setGroupItemsAsUnsortedQuery.mockResolvedValue(undefined);
+    deleteGroupQuery.mockResolvedValue(undefined);
+  });
+
+  it("unsorts articles and items before deleting the group", async () => {
+    const result = await deleteGroup(42);
+
+    expect(result).toBe(true);
+    expect(setGroupArticlesAsUnsortedQuery).toHaveBeenCalledWith(42);
+    expect(setGroupItemsAsUnsortedQuery).toHaveBeenCalledWith(42);
+    expect(deleteGroupQuery).toHaveBeenCalledWith(42);
+
+    expect(setGroupArticlesAsUnsortedQuery.mock.invocationCallOrder[0])
+      .toBeLessThan(setGroupItemsAsUnsortedQuery.mock.invocationCallOrder[0]);
+    expect(setGroupItemsAsUnsortedQuery.mock.invocationCallOrder[0])
+      .toBeLessThan(deleteGroupQuery.mock.invocationCallOrder[0]);
+  });
+
+  it("allows a maintainer to delete a group", async () => {
+    auth.mockResolvedValue({ user: { role_id: 1 } });
+
+    await expect(deleteGroup(42)).resolves.toBe(true);
+    expect(deleteGroupQuery).toHaveBeenCalledWith(42);
+  });
+
+  it("returns false when unsorting articles fails", async () => {
+    setGroupArticlesAsUnsortedQuery.mockRejectedValue(new Error("Database error"));
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await expect(deleteGroup(42)).resolves.toBe(false);
+
+    expect(setGroupItemsAsUnsortedQuery).not.toHaveBeenCalled();
+    expect(deleteGroupQuery).not.toHaveBeenCalled();
+
+    log.mockRestore();
+  });
+
+  it("returns false when unsorting items fails", async () => {
+    setGroupItemsAsUnsortedQuery.mockRejectedValue(new Error("Database error"));
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await expect(deleteGroup(42)).resolves.toBe(false);
+
+    expect(deleteGroupQuery).not.toHaveBeenCalled();
+
+    log.mockRestore();
+  });
+
+  it("returns false when deleting the group fails", async () => {
+    deleteGroupQuery.mockRejectedValue(new Error("Database error"));
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await expect(deleteGroup(42)).resolves.toBe(false);
+
+    expect(setGroupArticlesAsUnsortedQuery).toHaveBeenCalledWith(42);
+    expect(setGroupItemsAsUnsortedQuery).toHaveBeenCalledWith(42);
+
+    log.mockRestore();
+  });
+});
+
