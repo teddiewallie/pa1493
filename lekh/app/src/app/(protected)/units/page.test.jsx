@@ -1,0 +1,18 @@
+import { describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+
+vi.mock("@/components/item-list", () => ({
+  ItemList: () => <div data-testid="item-list">Mock item list</div>,
+}));
+
+import Page from "./page";
+
+describe("All Units page", () => {
+  it("renders the heading and item list", () => {
+    render(<Page />);
+
+    expect(screen.getByText("All Units")).toBeTruthy();
+    expect(screen.getByTestId("item-list")).toBeTruthy();
+  });
+});
+
