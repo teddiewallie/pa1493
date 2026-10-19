@@ -1,0 +1,177 @@
+
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { query } = vi.hoisted(() => ({
+  query: vi.fn(),
+}));
+
+vi.mock("@/lib/db", () => ({
+  default: { query },
+}));
+
+import {
+  addArticleQuery,
+  updateArticleQuery,
+  getArticleTypesQuery,
+  getArticlesQuery,
+  setGroupArticlesAsUnsortedQuery,
+} from "./article-query";
+
+describe("addArticleQuery", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("inserts an article and returns its ID", async () => {
+    query.mockResolvedValue({ insertId: 42 });
+
+    const data = {
+      title: "Test article",
+      content: "Test content",
+      userId: 3,
+      itemId: 4,
+      groupId: 5,
+      typeId: 6,
+    };
+
+    await expect(addArticleQuery(data)).resolves.toEqual({ id: 42 });
+
+    expect(query).toHaveBeenCalledWith(
+      "INSERT INTO article (title, content, user_id, item_id, group_id, type_id) VALUES (?, ?, ?, ?, ?, ?)",
+      ["Test article", "Test content", 3, 4, 5, 6],
+    );
+  });
+
+  it("propagates database errors", async () => {
+    query.mockRejectedValue(new Error("Database error"));
+
+    await expect(
+      addArticleQuery({
+        title: "Test",
+        content: "Content",
+        userId: 1,
+        itemId: 2,
+        groupId: 3,
+        typeId: 4,
+      }),
+    ).rejects.toThrow("Database error");
+  });
+});
+
+describe("updateArticleQuery", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("updates an article using its ID", async () => {
+    query.mockResolvedValue({ affectedRows: 1 });
+
+    const data = {
+      id: 42,
+      title: "Updated title",
+      content: "Updated content",
+      userId: 3,
+      itemId: 4,
+      groupId: 5,
+      typeId: 6,
+    };
+
+    await expect(updateArticleQuery(data)).resolves.toBeUndefined();
+
+    expect(query).toHaveBeenCalledWith(
+      "UPDATE article SET title=?, content=?, user_id=?, item_id=?, group_id=?, type_id=? WHERE id=?",
+      ["Updated title", "Updated content", 3, 4, 5, 6, 42],
+    );
+  });
+
+  it("propagates database errors", async () => {
+    query.mockRejectedValue(new Error("Database error"));
+
+    await expect(
+      updateArticleQuery({
+        id: 42,
+        title: "Test",
+        content: "Content",
+        userId: 1,
+        itemId: 2,
+        groupId: 3,
+        typeId: 4,
+      }),
+    ).rejects.toThrow("Database error");
+  });
+});
+
+describe("getArticleTypesQuery", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns all article types", async () => {
+    const types = [
+      { id: 1, name: "Guide" },
+      { id: 2, name: "Documentation" },
+    ];
+
+    query.mockResolvedValue(types);
+
+    await expect(getArticleTypesQuery()).resolves.toEqual(types);
+    expect(query).toHaveBeenCalledWith("SELECT * FROM article_type");
+  });
+
+  it("propagates database errors", async () => {
+    query.mockRejectedValue(new Error("Database error"));
+
+    await expect(getArticleTypesQuery()).rejects.toThrow("Database error");
+  });
+});
+
+describe("getArticlesQuery", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns all articles", async () => {
+    const articles = [
+      { id: 1, title: "First article" },
+      { id: 2, title: "Second article" },
+    ];
+
+    query.mockResolvedValue(articles);
+
+    await expect(getArticlesQuery()).resolves.toEqual(articles);
+    expect(query).toHaveBeenCalledWith("SELECT * FROM article");
+  });
+
+  it("propagates database errors", async () => {
+    query.mockRejectedValue(new Error("Database error"));
+
+    await expect(getArticlesQuery()).rejects.toThrow("Database error");
+  });
+});
+
+describe("setGroupArticlesAsUnsortedQuery", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("moves the group's articles to the unsorted group", async () => {
+    const result = { affectedRows: 3 };
+    query.mockResolvedValue(result);
+
+    await expect(setGroupArticlesAsUnsortedQuery(7)).resolves.toEqual(result);
+
+    expect(query).toHaveBeenCalledWith(
+      "UPDATE article SET group_id=1 WHERE group_id=?",
+      [7],
+    );
+  });
+
+  it("propagates database errors", async () => {
+    query.mockRejectedValue(new Error("Database error"));
+
+    await expect(setGroupArticlesAsUnsortedQuery(7)).rejects.toThrow(
+      "Database error",
+    );
+  });
+});
+
