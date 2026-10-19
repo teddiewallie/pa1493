@@ -1,4 +1,3 @@
-
 "use server";
 
 import { auth } from "@/auth";
@@ -6,45 +5,39 @@ import { reservationSchema } from "@/schema/reservation-schema";
 import {
   addReservationQuery,
   approveReservationQuery,
-  denyReservationQuery
+  denyReservationQuery,
 } from "@/query/reservation-query";
 
 const addReservation = async (reservation) => {
   const session = await auth();
-  const { user } = session;
+
+  if (!session || reservation.id) return false;
+
   const result = await reservationSchema.safeParse(reservation);
 
-  if (!result.success || !session || reservation.id) {
-    return false;
-  }
+  if (!result.success) return false;
 
   try {
-    addReservationQuery(reservation, user.id);
+    await addReservationQuery(reservation, session.user.id);
+    return true;
   } catch (e) {
     console.log(e);
     return false;
   }
-
-  return true; 
 };
 
 const approveReservation = async (reservationId) => {
-  const result = await reservationResponse(reservationId, true);
-  return result;
+  return await reservationResponse(reservationId, true);
 };
 
 const denyReservation = async (reservationId) => {
-  const result = await reservationResponse(reservationId, false);
-  return result;
+  return await reservationResponse(reservationId, false);
 };
 
 const reservationResponse = async (reservationId, isApproved) => {
   const session = await auth();
-  const { user } = session;
 
-  if (!session || user.role_id !== 1) {
-    return false;
-  }
+  if (!session || session.user.role_id !== 1) return false;
 
   try {
     if (isApproved) {
@@ -52,15 +45,12 @@ const reservationResponse = async (reservationId, isApproved) => {
     } else {
       await denyReservationQuery(reservationId);
     }
+
     return true;
   } catch (e) {
     return false;
   }
 };
 
-export {
-  addReservation,
-  approveReservation,
-  denyReservation
-};
+export { addReservation, approveReservation, denyReservation };
 

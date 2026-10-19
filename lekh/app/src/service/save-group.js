@@ -16,7 +16,7 @@ const saveGroup = async (data) => {
 
   const session = await auth();
 
-  if (!result.success || !session || session.user.role_id !== 1) {
+  if (!result.success || session?.user?.role_id !== 1) {
     return false;
   }
 

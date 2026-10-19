@@ -7,7 +7,7 @@ import { denyReservationsByUserIdQuery } from "@/query/reservation-query";
 const deleteUser = async (id) => {
   const session = await auth();
   
-  if (!session && session.user.role_id > 1) {
+  if (!session || session.user.role_id > 1) {
     return false;
   }
 
