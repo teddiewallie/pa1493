@@ -1,0 +1,54 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { auth, getGroupsQuery } = vi.hoisted(() => ({
+  auth: vi.fn(),
+  getGroupsQuery: vi.fn(),
+}));
+
+vi.mock("@/auth", () => ({ auth }));
+vi.mock("@/query/group-query", () => ({ getGroupsQuery }));
+
+import { getGroups } from "./get-groups";
+
+describe("getGroups", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    auth.mockResolvedValue({ user: { role_id: 1 } });
+    getGroupsQuery.mockResolvedValue([
+      { id: 1, name: "Oscilloscopes" },
+      { id: 2, name: "Microcontrollers" },
+    ]);
+  });
+
+  it("returns groups wrapped in an object for an authenticated user", async () => {
+    await expect(getGroups()).resolves.toEqual({
+      groups: [
+        { id: 1, name: "Oscilloscopes" },
+        { id: 2, name: "Microcontrollers" },
+      ],
+    });
+
+    expect(getGroupsQuery).toHaveBeenCalledOnce();
+  });
+
+  it("returns an empty array when no session exists", async () => {
+    auth.mockResolvedValue(null);
+
+    await expect(getGroups()).resolves.toEqual([]);
+    expect(getGroupsQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns an empty array when the query fails", async () => {
+    getGroupsQuery.mockRejectedValue(new Error("Database error"));
+
+    await expect(getGroups()).resolves.toEqual([]);
+  });
+
+  it("returns an empty groups list when the query returns no groups", async () => {
+    getGroupsQuery.mockResolvedValue([]);
+
+    await expect(getGroups()).resolves.toEqual({ groups: [] });
+  });
+});
+
