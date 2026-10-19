@@ -1,0 +1,119 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const {
+  auth,
+  addGroupQuery,
+  updateGroupQuery,
+} = vi.hoisted(() => ({
+  auth: vi.fn(),
+  addGroupQuery: vi.fn(),
+  updateGroupQuery: vi.fn(),
+}));
+
+vi.mock("@/auth", () => ({ auth }));
+vi.mock("@/query/group-query", () => ({
+  addGroupQuery,
+  updateGroupQuery,
+}));
+
+import { saveGroup } from "./save-group";
+
+const validGroup = {
+  name: "Oscilloscopes",
+  description: "Oscilloscope equipment",
+  knownIssues: "",
+};
+
+describe("saveGroup", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    auth.mockResolvedValue({
+      user: { id: 7, role_id: 1 },
+    });
+    addGroupQuery.mockResolvedValue({ id: 42, ...validGroup });
+    updateGroupQuery.mockResolvedValue({ id: 42, ...validGroup });
+  });
+
+  it("creates a group for a maintainer", async () => {
+    const result = await saveGroup(validGroup);
+
+    expect(result).toEqual({ id: 42, ...validGroup });
+    expect(addGroupQuery).toHaveBeenCalledWith({
+      ...validGroup,
+      userId: 7,
+    });
+    expect(updateGroupQuery).not.toHaveBeenCalled();
+  });
+
+  it("updates an existing group when an ID is provided", async () => {
+    const group = { ...validGroup, id: 42 };
+
+    await expect(saveGroup(group)).resolves.toEqual({
+      id: 42,
+      ...validGroup,
+    });
+
+    expect(updateGroupQuery).toHaveBeenCalledWith({
+      ...group,
+      userId: 7,
+    });
+    expect(addGroupQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns false when there is no session", async () => {
+    auth.mockResolvedValue(null);
+
+    await expect(saveGroup(validGroup)).resolves.toBe(false);
+    expect(addGroupQuery).not.toHaveBeenCalled();
+    expect(updateGroupQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns false for a non-maintainer", async () => {
+    auth.mockResolvedValue({
+      user: { id: 8, role_id: 2 },
+    });
+
+    await expect(saveGroup(validGroup)).resolves.toBe(false);
+    expect(addGroupQuery).not.toHaveBeenCalled();
+    expect(updateGroupQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns false when the session has no user", async () => {
+    auth.mockResolvedValue({});
+
+    await expect(saveGroup(validGroup)).resolves.toBe(false);
+    expect(addGroupQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns false for invalid group data", async () => {
+    await expect(
+      saveGroup({ ...validGroup, name: "" })
+    ).resolves.toBe(false);
+
+    expect(addGroupQuery).not.toHaveBeenCalled();
+    expect(updateGroupQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns false when required fields are missing", async () => {
+    const { name, ...group } = validGroup;
+
+    await expect(saveGroup(group)).resolves.toBe(false);
+    expect(addGroupQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns false when creating a group fails", async () => {
+    addGroupQuery.mockRejectedValue(new Error("Database error"));
+
+    await expect(saveGroup(validGroup)).resolves.toBe(false);
+  });
+
+  it("returns false when updating a group fails", async () => {
+    updateGroupQuery.mockRejectedValue(new Error("Database error"));
+
+    await expect(
+      saveGroup({ ...validGroup, id: 42 })
+    ).resolves.toBe(false);
+  });
+});
+
