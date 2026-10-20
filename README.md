@@ -167,6 +167,7 @@ If we want dummy data, then do this.
 
 ### Updating
 
+* Navigate to the `lekh` directory.
 * Run `docker compose down`
 * Run `git pull`
 * Run `docker compose up --build`
@@ -183,8 +184,10 @@ If we want dummy data, then do this.
 ### Running Tests
 
 * Need to have latest node and pnpm install.
-* Run `pnpm test` from the `lekh/app` directory.
+* Navigate to the `lekh/app` directory.
+* Run `pnpm test`.
 
 #### Coverage
 
 * Run `pnpm test:coverage` to check coverage.
+
