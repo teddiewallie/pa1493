@@ -45,8 +45,10 @@ const updateUserQuery = async (data, isAdmin) => {
 
   const admins = await pool.query("SELECT id FROM user WHERE role_id=1 AND deleted=0");
 
-  if (data.maintainer && isAdmin && admins.length > 1) {
+  if (data.maintainer && isAdmin) {
     dataColumns[2] = 1;
+  } else if (!data.maintainer && admins.length > 1) {
+    dataColumns[2] = 2;
   }
 
   if (data.password?.length > 0) {
