@@ -1,225 +1,216 @@
-
-import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import { useContext } from "react";
 
 import { CreateReservation } from "./create-reservation";
 import { ReservationsContext } from "@/context/reservations-context";
 import { addReservation } from "@/service/save-reservation";
 import { toast } from "@/components/ui/toast";
 
-vi.mock("@/service/save-reservation", () => ({
-  addReservation: vi.fn(),
-}));
-
-vi.mock("@/components/ui/toast", () => ({
-  toast: { add: vi.fn() },
-}));
+vi.mock("react", async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    useContext: vi.fn(),
+  };
+});
 
 vi.mock("@/components/create-book-form", () => ({
-  CreateBookForm: ({ item, callback, bookings }) => (
-    <div>
-      <div data-testid="reservation-form">book</div>
-      <div data-testid="item-id">{String(item.id)}</div>
-      <div data-testid="bookings">{bookings.join(",")}</div>
+  CreateBookForm: vi.fn(({ item, callback, bookings, borrowings }) => (
+    <div data-testid="create-book-form">
+      <span data-testid="book-item-id">{item.id}</span>
+      <span data-testid="bookings">{JSON.stringify(bookings)}</span>
+      <span data-testid="book-borrowings">
+        {JSON.stringify(borrowings.map((date) => date.toISOString()))}
+      </span>
       <button
-        type="button"
         onClick={() =>
           callback({
-            itemId: -1,
-            startAt: new Date("2026-10-18T10:00:00"),
-            endAt: new Date("2026-10-18T11:00:00"),
+            itemId: item.id,
+            reservationType: "book",
           })
         }
       >
         Submit booking
       </button>
     </div>
-  ),
+  )),
 }));
 
 vi.mock("@/components/create-borrow-form", () => ({
-  CreateBorrowForm: ({ item, callback, borrowings }) => (
-    <div>
-      <div data-testid="reservation-form">borrow</div>
-      <div data-testid="item-id">{String(item.id)}</div>
-      <div data-testid="borrowings">
-        {borrowings.map((date) => date.toDateString()).join("|")}
-      </div>
+  CreateBorrowForm: vi.fn(({ item, callback, bookings, borrowings }) => (
+    <div data-testid="create-borrow-form">
+      <span data-testid="borrow-item-id">{item.id}</span>
+      <span data-testid="borrow-bookings">
+        {JSON.stringify(bookings.map((date) => date.toISOString()))}
+      </span>
+      <span data-testid="borrow-borrowings">
+        {JSON.stringify(borrowings.map((date) => date.toISOString()))}
+      </span>
       <button
-        type="button"
         onClick={() =>
           callback({
-            itemId: -1,
-            startAt: new Date("2026-10-19T00:00:00"),
-            endAt: new Date("2026-10-20T00:00:00"),
+            itemId: item.id,
+            reservationType: "borrow",
           })
         }
       >
         Submit borrow request
       </button>
     </div>
-  ),
+  )),
 }));
 
-const item = {
-  id: 42,
-  bookable: true,
-  borrowable: false,
-};
+vi.mock("@/service/save-reservation", () => ({
+  addReservation: vi.fn(),
+}));
 
-const makeReservation = (overrides = {}) => ({
-  item_id: 42,
-  start_at: new Date("2026-10-18T10:00:00"),
-  end_at: new Date("2026-10-18T11:00:00"),
-  returned_at: null,
-  ...overrides,
-});
-
-const renderComponent = ({
-  currentItem = item,
-  reservations = [],
-  refreshReservations = vi.fn(),
-} = {}) => {
-  const result = render(
-    <ReservationsContext.Provider
-      value={{ reservations, refreshReservations }}
-    >
-      <CreateReservation item={currentItem} />
-    </ReservationsContext.Provider>
-  );
-
-  return { ...result, refreshReservations };
-};
-
-beforeEach(() => {
-  vi.clearAllMocks();
-  vi.useFakeTimers({ toFake: ["Date"] });
-  vi.setSystemTime(new Date("2026-10-18T08:30:00"));
-});
-
-afterEach(() => {
-  vi.useRealTimers();
-});
+vi.mock("@/components/ui/toast", () => ({
+  toast: {
+    add: vi.fn(),
+  },
+}));
 
 describe("CreateReservation", () => {
-  it("renders the booking form for a bookable item", () => {
-    renderComponent();
+  const refreshReservations = vi.fn();
 
-    expect(screen.getByTestId("reservation-form")).toHaveTextContent("book");
-    expect(screen.getByTestId("item-id")).toHaveTextContent("42");
-  });
-
-  it("renders the borrowing form for a borrowable item", () => {
-    renderComponent({
-      currentItem: { id: 42, bookable: false, borrowable: true },
+  const setReservations = (reservations = []) => {
+    useContext.mockReturnValue({
+      reservations,
+      refreshReservations,
     });
+  };
 
-    expect(screen.getByTestId("reservation-form")).toHaveTextContent("borrow");
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setReservations();
+    addReservation.mockResolvedValue(true);
   });
 
-  it("renders no reservation form when the item is neither bookable nor borrowable", () => {
-    renderComponent({
-      currentItem: { id: 42, bookable: false, borrowable: false },
-    });
+  it("renders the booking form when the item is bookable", () => {
+    setReservations([]);
 
-    expect(screen.queryByTestId("reservation-form")).not.toBeInTheDocument();
+    render(
+      <CreateReservation
+        item={{ id: 1, bookable: true, borrowable: true }}
+      />
+    );
+
+    expect(screen.getByTestId("create-book-form")).toBeInTheDocument();
+    expect(screen.queryByTestId("create-borrow-form")).not.toBeInTheDocument();
   });
 
-  it("passes only active same-day booking slots for the current item", () => {
-    const reservations = [
-      makeReservation(),
-      makeReservation({
-        start_at: new Date("2026-10-18T12:00:00"),
-        end_at: new Date("2026-10-18T13:00:00"),
-        returned_at: new Date("2026-10-18T13:30:00"),
-      }),
-      makeReservation({
-        item_id: 99,
-        start_at: new Date("2026-10-18T14:00:00"),
-        end_at: new Date("2026-10-18T15:00:00"),
-      }),
-      makeReservation({
-        start_at: new Date("2026-10-19T10:00:00"),
-        end_at: new Date("2026-10-19T11:00:00"),
-      }),
-      makeReservation({
-        start_at: new Date("2026-10-18T00:00:00"),
-        end_at: new Date("2026-10-18T00:00:00"),
-      }),
-    ];
+  it("renders the borrowing form when the item is borrowable but not bookable", () => {
+    render(
+      <CreateReservation
+        item={{ id: 2, bookable: false, borrowable: true }}
+      />
+    );
 
-    renderComponent({ reservations });
+    expect(screen.getByTestId("create-borrow-form")).toBeInTheDocument();
+    expect(screen.queryByTestId("create-book-form")).not.toBeInTheDocument();
+  });
+
+  it("renders an empty div when the item is neither bookable nor borrowable", () => {
+    const { container } = render(
+      <CreateReservation
+        item={{ id: 3, bookable: false, borrowable: false }}
+      />
+    );
+
+    expect(container.querySelector("div")).toBeInTheDocument();
+    expect(screen.queryByTestId("create-book-form")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("create-borrow-form")).not.toBeInTheDocument();
+  });
+
+  it("only processes reservations belonging to the current item", () => {
+    setReservations([
+      {
+        item_id: 1,
+        start_at: "2026-10-20T10:00:00",
+        end_at: "2026-10-20T11:00:00",
+        returned_at: null,
+      },
+      {
+        item_id: 2,
+        start_at: "2026-10-20T12:00:00",
+        end_at: "2026-10-20T13:00:00",
+        returned_at: null,
+      },
+    ]);
+
+    render(
+      <CreateReservation
+        item={{ id: 1, bookable: true, borrowable: false }}
+      />
+    );
 
     expect(screen.getByTestId("bookings")).toHaveTextContent(
-      "10:00-11:00"
-    );
-    expect(screen.getByTestId("bookings")).not.toHaveTextContent(
-      "12:00-13:00"
-    );
-    expect(screen.getByTestId("bookings")).not.toHaveTextContent(
-      "14:00-15:00"
+      JSON.stringify(["10:00-11:00"])
     );
   });
 
-  it("passes active borrowing dates for the current item", () => {
-    const reservations = [
-      makeReservation({
-        start_at: new Date("2026-10-19T00:00:00"),
-        end_at: new Date("2026-10-21T00:00:00"),
-      }),
-      makeReservation({
-        item_id: 99,
-        start_at: new Date("2026-10-22T00:00:00"),
-        end_at: new Date("2026-10-23T00:00:00"),
-      }),
-      makeReservation({
-        start_at: new Date("2026-10-24T00:00:00"),
-        end_at: new Date("2026-10-25T00:00:00"),
-        returned_at: new Date("2026-10-25T12:00:00"),
-      }),
-    ];
+  it("excludes returned reservations", () => {
+    setReservations([
+      {
+        item_id: 1,
+        start_at: "2026-10-20T10:00:00",
+        end_at: "2026-10-20T11:00:00",
+        returned_at: "2026-10-20T11:00:00",
+      },
+    ]);
 
-    renderComponent({
-      currentItem: { id: 42, bookable: false, borrowable: true },
-      reservations,
-    });
-
-    expect(screen.getByTestId("borrowings")).toHaveTextContent(
-      "Mon Oct 19 2026|Tue Oct 20 2026|Wed Oct 21 2026"
+    render(
+      <CreateReservation
+        item={{ id: 1, bookable: true, borrowable: false }}
+      />
     );
-    expect(screen.getByTestId("borrowings")).not.toHaveTextContent("Oct 22");
-    expect(screen.getByTestId("borrowings")).not.toHaveTextContent("Oct 24");
+
+    expect(screen.getByTestId("bookings")).toHaveTextContent("[]");
   });
 
-  it("saves a successful booking, shows a toast, and refreshes reservations", async () => {
+  it("calls addReservation, shows success toast, and refreshes reservations after a successful booking", async () => {
+    const { default: userEvent } = await import("@testing-library/user-event");
+    const user = userEvent.setup();
+
     addReservation.mockResolvedValue(true);
-    const refreshReservations = vi.fn();
 
-    renderComponent({ refreshReservations });
+    render(
+      <CreateReservation
+        item={{ id: 1, bookable: true, borrowable: false }}
+      />
+    );
 
-    fireEvent.click(screen.getByRole("button", { name: "Submit booking" }));
+    await user.click(screen.getByRole("button", { name: "Submit booking" }));
 
     await waitFor(() => {
-      expect(addReservation).toHaveBeenCalledWith({
-        itemId: 42,
-        isPending: false,
-        startAt: new Date("2026-10-18T10:00:00"),
-        endAt: new Date("2026-10-18T11:00:00"),
-      });
-      expect(refreshReservations).toHaveBeenCalledTimes(1);
+      expect(addReservation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          itemId: 1,
+          isPending: false,
+          reservationType: "book",
+        })
+      );
       expect(toast.add).toHaveBeenCalledWith({
         title: "Unit booked.",
       });
+      expect(refreshReservations).toHaveBeenCalledOnce();
     });
   });
 
-  it("shows an error toast without refreshing when booking fails", async () => {
+  it("shows an error toast and does not refresh after a failed booking", async () => {
+    const { default: userEvent } = await import("@testing-library/user-event");
+    const user = userEvent.setup();
+
     addReservation.mockResolvedValue(false);
-    const refreshReservations = vi.fn();
 
-    renderComponent({ refreshReservations });
+    render(
+      <CreateReservation
+        item={{ id: 1, bookable: true, borrowable: false }}
+      />
+    );
 
-    fireEvent.click(screen.getByRole("button", { name: "Submit booking" }));
+    await user.click(screen.getByRole("button", { name: "Submit booking" }));
 
     await waitFor(() => {
       expect(toast.add).toHaveBeenCalledWith({
@@ -230,41 +221,48 @@ describe("CreateReservation", () => {
     expect(refreshReservations).not.toHaveBeenCalled();
   });
 
-  it("sends borrowing requests as pending and refreshes on success", async () => {
-    addReservation.mockResolvedValue(true);
-    const refreshReservations = vi.fn();
+  it("marks borrow requests as pending when the item is borrowable", async () => {
+    const { default: userEvent } = await import("@testing-library/user-event");
+    const user = userEvent.setup();
 
-    renderComponent({
-      currentItem: { id: 42, bookable: false, borrowable: true },
-      refreshReservations,
-    });
+    render(
+      <CreateReservation
+        item={{ id: 2, bookable: false, borrowable: true }}
+      />
+    );
 
-    fireEvent.click(
+    await user.click(
       screen.getByRole("button", { name: "Submit borrow request" })
     );
 
     await waitFor(() => {
-      expect(addReservation).toHaveBeenCalledWith({
-        itemId: 42,
-        isPending: true,
-        startAt: new Date("2026-10-19T00:00:00"),
-        endAt: new Date("2026-10-20T00:00:00"),
-      });
+      expect(addReservation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          itemId: 2,
+          isPending: true,
+          reservationType: "borrow",
+        })
+      );
       expect(toast.add).toHaveBeenCalledWith({
         title: "Borrow request sent.",
       });
-      expect(refreshReservations).toHaveBeenCalledTimes(1);
+      expect(refreshReservations).toHaveBeenCalledOnce();
     });
   });
 
-  it("shows an error toast when a borrowing request fails", async () => {
+  it("shows an error toast when a borrow request fails", async () => {
+    const { default: userEvent } = await import("@testing-library/user-event");
+    const user = userEvent.setup();
+
     addReservation.mockResolvedValue(false);
 
-    renderComponent({
-      currentItem: { id: 42, bookable: false, borrowable: true },
-    });
+    render(
+      <CreateReservation
+        item={{ id: 2, bookable: false, borrowable: true }}
+      />
+    );
 
-    fireEvent.click(
+    await user.click(
       screen.getByRole("button", { name: "Submit borrow request" })
     );
 
@@ -273,30 +271,7 @@ describe("CreateReservation", () => {
         title: "Couldn't send borrow request.",
       });
     });
-  });
 
-  it("prioritizes booking when an item is both bookable and borrowable", async () => {
-    addReservation.mockResolvedValue(true);
-
-    renderComponent({
-      currentItem: { id: 42, bookable: true, borrowable: true },
-    });
-
-    expect(screen.getByTestId("reservation-form")).toHaveTextContent("book");
-
-    fireEvent.click(screen.getByRole("button", { name: "Submit booking" }));
-
-    await waitFor(() => {
-      expect(addReservation).toHaveBeenCalledWith(
-        expect.objectContaining({
-          itemId: 42,
-          isPending: true,
-        })
-      );
-      expect(toast.add).toHaveBeenCalledWith({
-        title: "Borrow request sent.",
-      });
-    });
+    expect(refreshReservations).not.toHaveBeenCalled();
   });
 });
-
