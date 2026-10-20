@@ -153,6 +153,13 @@ I do continous delivery. As soon as a new branch merges with main, a new version
 * Navigate into the `lekh` directory.
 * Copy .env.example to .env and update any fields as needed.
 
+#### Dummy Data
+
+If we want dummy data, then do this.
+
+* Copy `lekh/db/init/999-dummy-data.sql.noop to lekh/db/init/999-dummy-data.sql`.
+* Copy all images from `lekh/app/assets/noop` to `lekh/app/assets`.
+
 ### Running
 
 * Run `docker compose up`.
