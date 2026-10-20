@@ -1,111 +1,231 @@
-import { describe, expect, it } from "vitest";
+// src/schema/reservation-schema.test.js
+
+import { describe, it, expect } from "vitest";
 import { reservationSchema } from "./reservation-schema";
 
-const validReservation = {
-  itemId: 1,
-  startAt: new Date("2026-10-20T10:00:00"),
-  endAt: new Date("2026-10-20T12:00:00"),
-  isPending: false,
-};
-
 describe("reservationSchema", () => {
-  it("accepts a valid reservation", () => {
-    expect(reservationSchema.safeParse(validReservation).success).toBe(true);
-  });
+  const validReservation = {
+    itemId: 1,
+    startAt: new Date("2026-10-20T10:00:00Z"),
+    endAt: new Date("2026-10-20T11:00:00Z"),
+    reservationType: "book",
+  };
 
-  it("accepts a pending reservation", () => {
-    expect(
-      reservationSchema.safeParse({
-        ...validReservation,
-        isPending: true,
-      }).success
-    ).toBe(true);
-  });
-
-  it("rejects an end date before the start date", () => {
-    const result = reservationSchema.safeParse({
-      ...validReservation,
-      endAt: new Date("2026-10-20T09:00:00"),
-    });
-
-    expect(result.success).toBe(false);
-    expect(result.error.issues).toContainEqual(
-      expect.objectContaining({
-        message: "End date must be after start date",
-        path: ["endAt"],
-      })
-    );
-  });
-
-  it("rejects equal start and end dates", () => {
-    const result = reservationSchema.safeParse({
-      ...validReservation,
-      endAt: validReservation.startAt,
-    });
-
-    expect(result.success).toBe(false);
-    expect(result.error.issues).toContainEqual(
-      expect.objectContaining({
-        message: "End date must be after start date",
-        path: ["endAt"],
-      })
-    );
-  });
-
-  it("rejects zero and negative item IDs", () => {
-    for (const itemId of [0, -1]) {
+  describe("itemId", () => {
+    it("accepts a positive integer", () => {
       expect(
-        reservationSchema.safeParse({ ...validReservation, itemId }).success
-      ).toBe(false);
-    }
-  });
+        reservationSchema.safeParse(validReservation).success
+      ).toBe(true);
+    });
 
-  it("rejects decimal item IDs", () => {
-    expect(
-      reservationSchema.safeParse({
+    it.each([0, -1, 1.5, NaN])("rejects itemId %s", (itemId) => {
+      const result = reservationSchema.safeParse({
         ...validReservation,
-        itemId: 1.5,
-      }).success
-    ).toBe(false);
-  });
+        itemId,
+      });
 
-  it("rejects a non-numeric item ID", () => {
-    expect(
-      reservationSchema.safeParse({
+      expect(result.success).toBe(false);
+    });
+
+    it("rejects a string itemId", () => {
+      const result = reservationSchema.safeParse({
         ...validReservation,
         itemId: "1",
-      }).success
-    ).toBe(false);
+      });
+
+      expect(result.success).toBe(false);
+    });
   });
 
-  it.each(["startAt", "endAt"])("rejects a non-Date %s", (field) => {
-    expect(
-      reservationSchema.safeParse({
+  describe("dates", () => {
+    it("coerces valid date strings into Date objects", () => {
+      const result = reservationSchema.safeParse({
         ...validReservation,
-        [field]: "2026-10-20T10:00:00",
-      }).success
-    ).toBe(false);
-  });
+        startAt: "2026-10-20T10:00:00Z",
+        endAt: "2026-10-20T11:00:00Z",
+      });
 
-  it("rejects missing required fields", () => {
-    for (const field of ["itemId", "startAt", "endAt", "isPending"]) {
-      const reservation = { ...validReservation };
-      delete reservation[field];
+      expect(result.success).toBe(true);
 
-      expect(
-        reservationSchema.safeParse(reservation).success,
-        `field: ${field}`
-      ).toBe(false);
-    }
-  });
+      if (result.success) {
+        expect(result.data.startAt).toBeInstanceOf(Date);
+        expect(result.data.endAt).toBeInstanceOf(Date);
+      }
+    });
 
-  it("rejects non-boolean isPending values", () => {
-    expect(
-      reservationSchema.safeParse({
+    it("rejects invalid start dates", () => {
+      const result = reservationSchema.safeParse({
         ...validReservation,
-        isPending: 1,
-      }).success
-    ).toBe(false);
+        startAt: "not-a-date",
+      });
+
+      expect(result.success).toBe(false);
+    });
+
+    it("rejects invalid end dates", () => {
+      const result = reservationSchema.safeParse({
+        ...validReservation,
+        endAt: "not-a-date",
+      });
+
+      expect(result.success).toBe(false);
+    });
+
+    it("rejects an end date before the start date", () => {
+      const result = reservationSchema.safeParse({
+        ...validReservation,
+        startAt: new Date("2026-10-20T12:00:00Z"),
+        endAt: new Date("2026-10-20T11:00:00Z"),
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error.issues).toContainEqual(
+        expect.objectContaining({
+          message: "End date must be after start date",
+          path: ["endAt"],
+        })
+      );
+    });
+
+    it("rejects identical start and end dates", () => {
+      const date = new Date("2026-10-20T10:00:00Z");
+
+      const result = reservationSchema.safeParse({
+        ...validReservation,
+        startAt: date,
+        endAt: date,
+      });
+
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe("reservationType", () => {
+    it("accepts reservation type book", () => {
+      const result = reservationSchema.safeParse({
+        ...validReservation,
+        reservationType: "book",
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it("accepts reservation type borrow", () => {
+      const result = reservationSchema.safeParse({
+        ...validReservation,
+        endAt: new Date("2026-10-21T10:00:00Z"),
+        reservationType: "borrow",
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it("rejects an unsupported reservation type", () => {
+      const result = reservationSchema.safeParse({
+        ...validReservation,
+        reservationType: "other",
+      });
+
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe("booking duration", () => {
+    it("accepts a booking shorter than 24 hours", () => {
+      const result = reservationSchema.safeParse({
+        ...validReservation,
+        startAt: new Date("2026-10-20T10:00:00Z"),
+        endAt: new Date("2026-10-21T09:59:59Z"),
+        reservationType: "book",
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it("accepts a booking of exactly 24 hours", () => {
+      const result = reservationSchema.safeParse({
+        ...validReservation,
+        startAt: new Date("2026-10-20T10:00:00Z"),
+        endAt: new Date("2026-10-21T10:00:00Z"),
+        reservationType: "book",
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it("rejects a booking longer than 24 hours", () => {
+      const result = reservationSchema.safeParse({
+        ...validReservation,
+        startAt: new Date("2026-10-20T10:00:00Z"),
+        endAt: new Date("2026-10-21T10:00:01Z"),
+        reservationType: "book",
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error.issues).toContainEqual(
+        expect.objectContaining({
+          message: "Invalid reservation duration",
+          path: ["endAt"],
+        })
+      );
+    });
+  });
+
+  describe("borrowing duration", () => {
+    it("accepts a borrowing period of exactly one day", () => {
+      const result = reservationSchema.safeParse({
+        ...validReservation,
+        startAt: new Date("2026-10-20T10:00:00Z"),
+        endAt: new Date("2026-10-21T10:00:00Z"),
+        reservationType: "borrow",
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it("accepts a borrowing period of six days", () => {
+      const result = reservationSchema.safeParse({
+        ...validReservation,
+        startAt: new Date("2026-10-20T10:00:00Z"),
+        endAt: new Date("2026-10-26T10:00:00Z"),
+        reservationType: "borrow",
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it("rejects a borrowing period shorter than one day", () => {
+      const result = reservationSchema.safeParse({
+        ...validReservation,
+        startAt: new Date("2026-10-20T10:00:00Z"),
+        endAt: new Date("2026-10-21T09:59:59Z"),
+        reservationType: "borrow",
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error.issues).toContainEqual(
+        expect.objectContaining({
+          message: "Invalid reservation duration",
+          path: ["endAt"],
+        })
+      );
+    });
+
+    it("rejects a borrowing period longer than six days", () => {
+      const result = reservationSchema.safeParse({
+        ...validReservation,
+        startAt: new Date("2026-10-20T10:00:00Z"),
+        endAt: new Date("2026-10-26T10:00:01Z"),
+        reservationType: "borrow",
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error.issues).toContainEqual(
+        expect.objectContaining({
+          message: "Invalid reservation duration",
+          path: ["endAt"],
+        })
+      );
+    });
   });
 });
-
