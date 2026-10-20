@@ -1,75 +1,101 @@
-// https://github.com/mariadb-developers/nodejs-quickstart
+// src/query/user-query.js
 
 import pool from "@/lib/db";
 import bcrypt from "bcrypt";
 
-const columns = [
-  "name",
-  "email",
-  "role_id"
-];
+const getUsersByEmailQuery = async (email) =>
+  await pool.query(
+    "SELECT id, name, email, password, role_id FROM user WHERE email=? AND deleted=FALSE",
+    [email]
+  );
 
-const getUsersByEmailQuery = async (email) => await pool.query(
-  "SELECT id, name, email, password, role_id FROM user WHERE email=? AND deleted=FALSE",
-  [email]
-);
+const getUsersByIdQuery = async (id) =>
+  await pool.query(
+    "SELECT id, name, email, role_id FROM user WHERE id=? AND deleted=FALSE",
+    [id]
+  );
 
-const getUsersByIdQuery = async (id) => await pool.query(
-  "SELECT id, name, email, role_id FROM user WHERE id=? AND deleted=FALSE",
-  [id]
-);
-
-const getAllUsersQuery = async () => await pool.query(
-  "SELECT id, name, email, deleted, role_id FROM user WHERE deleted=FALSE"
-);
+const getAllUsersQuery = async () =>
+  await pool.query(
+    "SELECT id, name, email, deleted, role_id FROM user WHERE deleted=FALSE"
+  );
 
 const addUserQuery = async (data) => {
-  const addColumns = [...columns];
-  addColumns.splice(addColumns.length - 1, 0, "password");
+  const hashedPassword = await bcrypt.hash(data.password, 12);
+  const roleId = data.maintainer ? 1 : 2;
 
   await pool.query(
-    `INSERT INTO user (${addColumns.join(", ")}) VALUES (${addColumns.map(() => "?").join(", ")})`,
-    [data.name, data.email, await bcrypt.hash(data.password, 12), data.maintainer ? 1 : 2]
+    "INSERT INTO user (name, email, password, role_id) VALUES (?, ?, ?, ?)",
+    [data.name, data.email, hashedPassword, roleId]
   );
-}
+};
 
 const updateUserQuery = async (data, isAdmin) => {
-  const updateColumns = [...columns];
+  // Verify that the target user exists and get their current role.
+  const users = await pool.query(
+    "SELECT id, role_id FROM user WHERE id=? AND deleted=FALSE",
+    [data.id]
+  );
 
-  const dataColumns = [
-    data.name,
-    data.email,
-    2,
-    data.id
-  ];
-
-  const admins = await pool.query("SELECT id FROM user WHERE role_id=1 AND deleted=0");
-
-  if (data.maintainer && isAdmin) {
-    dataColumns[2] = 1;
-  } else if (!data.maintainer && admins.length > 1) {
-    dataColumns[2] = 2;
+  if (users.length === 0) {
+    throw new Error("User not found.");
   }
+
+  const currentRoleId = users[0].role_id;
+  let roleId = currentRoleId;
+
+  // Only an admin can promote a user to maintainer.
+  if (data.maintainer && isAdmin) {
+    roleId = 1;
+  }
+
+  // A maintainer can be demoted only if another maintainer remains.
+  if (!data.maintainer && currentRoleId === 1) {
+    const admins = await pool.query(
+      "SELECT id FROM user WHERE role_id=1 AND deleted=0"
+    );
+
+    if (admins.length <= 1) {
+      throw new Error("Can't demote last elevated user.");
+    }
+
+    roleId = 2;
+  }
+
+  const values = [data.name, data.email];
+
+  let sql = "UPDATE user SET name=?, email=?";
 
   if (data.password?.length > 0) {
     const hashedPassword = await bcrypt.hash(data.password, 12);
-
-    updateColumns.splice(updateColumns.length - 1, 0, "password");
-    dataColumns.splice(dataColumns.length - 2, 0, hashedPassword);
+    sql += ", password=?";
+    values.push(hashedPassword);
   }
 
-  const mapUpdateColumns = updateColumns.map((column) => `${column}=?`).join(", ");
+  sql += ", role_id=? WHERE id=?";
+  values.push(roleId, data.id);
 
-  await pool.query(`UPDATE user SET ${mapUpdateColumns} WHERE id=?`, dataColumns);
+  await pool.query(sql, values);
 
   return true;
 };
 
-const deleteUserQuery  = async (id) => {
-  const admins = await pool.query("SELECT id FROM user WHERE role_id=1 AND deleted=0");
+const deleteUserQuery = async (id) => {
+  const admins = await pool.query(
+    "SELECT id FROM user WHERE role_id=1 AND deleted=0"
+  );
 
-  if (admins.length === 1) {
+  if (admins.length === 1 && admins[0].id === id) {
     throw new Error("Can't delete last elevated user.");
+  }
+
+  const users = await pool.query(
+    "SELECT id FROM user WHERE id=? AND deleted=FALSE",
+    [id]
+  );
+
+  if (users.length === 0) {
+    throw new Error("User not found.");
   }
 
   await pool.query(
@@ -84,6 +110,6 @@ export {
   getUsersByIdQuery,
   addUserQuery,
   updateUserQuery,
-  deleteUserQuery
+  deleteUserQuery,
 };
 
