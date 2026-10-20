@@ -1,18 +1,10 @@
-
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { CreateGroupForm } from "./create-group-form";
+
 import { saveGroup } from "@/service/save-group";
 import { deleteGroup } from "@/service/delete-group";
-
-vi.mock("@hookform/resolvers/zod", () => ({
-  zodResolver: () => async (values) => ({ values, errors: {} }),
-}));
-
-vi.mock("@/schema/group-schema", () => ({
-  createGroupSchema: () => ({}),
-}));
 
 vi.mock("@/service/save-group", () => ({
   saveGroup: vi.fn(),
@@ -22,175 +14,224 @@ vi.mock("@/service/delete-group", () => ({
   deleteGroup: vi.fn(),
 }));
 
-vi.mock("@/components/ui/field", () => ({
-  Field: ({ children, ...props }) => <div {...props}>{children}</div>,
-  FieldGroup: ({ children, ...props }) => <div {...props}>{children}</div>,
-  FieldLabel: ({ children, ...props }) => <label {...props}>{children}</label>,
-  FieldSet: ({ children, ...props }) => <fieldset {...props}>{children}</fieldset>,
-  FieldError: () => null,
-}));
+describe("CreateGroupForm", () => {
+  const onSuccess = vi.fn();
+  const onFail = vi.fn();
+  const onDeleteSuccess = vi.fn();
+  const onDeleteFail = vi.fn();
 
-vi.mock("@/components/ui/button", () => ({
-  Button: ({ children, ...props }) => <button {...props}>{children}</button>,
-}));
-
-vi.mock("@/components/ui/input", () => ({
-  Input: (props) => <input {...props} />,
-}));
-
-vi.mock("@/components/ui/textarea", () => ({
-  Textarea: (props) => <textarea {...props} />,
-}));
-
-const renderForm = (props = {}) => {
   const defaultProps = {
-    onSuccess: vi.fn(),
-    onFail: vi.fn(),
-    onDeleteSuccess: vi.fn(),
-    onDeleteFail: vi.fn(),
+    onSuccess,
+    onFail,
+    onDeleteSuccess,
+    onDeleteFail,
   };
 
-  return render(<CreateGroupForm {...defaultProps} {...props} />);
-};
+  beforeEach(() => {
+    vi.clearAllMocks();
+    saveGroup.mockResolvedValue(true);
+    deleteGroup.mockResolvedValue(true);
+  });
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  vi.spyOn(console, "log").mockImplementation(() => {});
-});
-
-describe("CreateGroupForm", () => {
-  it("renders the fields and action buttons", () => {
-    renderForm();
+  it("renders the form fields and save button", () => {
+    render(<CreateGroupForm {...defaultProps} />);
 
     expect(screen.getByLabelText("Name")).toBeInTheDocument();
     expect(screen.getByLabelText("Description")).toBeInTheDocument();
     expect(screen.getByLabelText("Known Issues")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Delete Type" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Save Type" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Save Type" })
+    ).toBeInTheDocument();
+
+    expect(
+      screen.queryByRole("button", { name: "Delete Type" })
+    ).not.toBeInTheDocument();
   });
 
   it("populates fields when editing an existing group", () => {
-    renderForm({
-      group: {
-        id: 12,
-        name: "Raspberry Pi",
-        description: "Development boards",
-        known_issues: "Some USB ports are unreliable",
-      },
-    });
-
-    expect(screen.getByLabelText("Name")).toHaveValue("Raspberry Pi");
-    expect(screen.getByLabelText("Description")).toHaveValue("Development boards");
-    expect(screen.getByLabelText("Known Issues")).toHaveValue(
-      "Some USB ports are unreliable"
+    render(
+      <CreateGroupForm
+        {...defaultProps}
+        group={{
+          id: 2,
+          name: "Raspberry Pi 4 Model B",
+          description: "Development boards",
+          known_issues: "Some USB issues",
+        }}
+      />
     );
+
+    expect(screen.getByLabelText("Name")).toHaveValue(
+      "Raspberry Pi 4 Model B"
+    );
+    expect(screen.getByLabelText("Description")).toHaveValue(
+      "Development boards"
+    );
+    expect(screen.getByLabelText("Known Issues")).toHaveValue(
+      "Some USB issues"
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Delete Type" })
+    ).toBeInTheDocument();
   });
 
-  it("uses groupId when creating a group", async () => {
-    saveGroup.mockResolvedValue(true);
-    const onSuccess = vi.fn();
+  it("uses groupId as the form ID when no group is supplied", async () => {
+    const user = userEvent.setup();
 
-    renderForm({ groupId: 23, onSuccess });
+    render(
+      <CreateGroupForm {...defaultProps} groupId={7} />
+    );
 
-    fireEvent.change(screen.getByLabelText("Name"), {
-      target: { value: "Sensors" },
-    });
+    await user.type(screen.getByLabelText("Name"), "ESP32");
+    await user.type(
+      screen.getByLabelText("Description"),
+      "Development boards"
+    );
 
-    fireEvent.click(screen.getByRole("button", { name: "Save Type" }));
+    await user.click(
+      screen.getByRole("button", { name: "Save Type" })
+    );
 
     await waitFor(() => {
       expect(saveGroup).toHaveBeenCalledWith(
         expect.objectContaining({
-          id: 23,
-          name: "Sensors",
+          id: 7,
+          name: "ESP32",
+          description: "Development boards",
+          knownIssues: "",
         })
       );
-      expect(onSuccess).toHaveBeenCalledTimes(1);
     });
   });
 
   it("calls onSuccess when saving succeeds", async () => {
-    saveGroup.mockResolvedValue({ id: 12 });
-    const onSuccess = vi.fn();
-    const onFail = vi.fn();
+    const user = userEvent.setup();
 
-    renderForm({
-      group: {
-        id: 12,
-        name: "Raspberry Pi",
-        description: "Development boards",
-        known_issues: "None",
-      },
-      onSuccess,
-      onFail,
-    });
+    render(
+      <CreateGroupForm {...defaultProps} groupId={3} />
+    );
 
-    fireEvent.click(screen.getByRole("button", { name: "Save Type" }));
+    await user.type(screen.getByLabelText("Name"), "Arduino");
+    await user.type(
+      screen.getByLabelText("Description"),
+      "Arduino boards"
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Save Type" })
+    );
 
     await waitFor(() => {
       expect(saveGroup).toHaveBeenCalledWith(
         expect.objectContaining({
-          id: 12,
-          name: "Raspberry Pi",
-          description: "Development boards",
-          knownIssues: "None",
+          id: 3,
+          name: "Arduino",
+          description: "Arduino boards",
         })
       );
-      expect(onSuccess).toHaveBeenCalledTimes(1);
-      expect(onFail).not.toHaveBeenCalled();
+      expect(onSuccess).toHaveBeenCalledOnce();
     });
+
+    expect(onFail).not.toHaveBeenCalled();
   });
 
-  it("calls onFail when saving returns a falsy result", async () => {
-    saveGroup.mockResolvedValue(null);
-    const onSuccess = vi.fn();
-    const onFail = vi.fn();
+  it("calls onFail when saving fails", async () => {
+    saveGroup.mockResolvedValue(false);
 
-    renderForm({ onSuccess, onFail });
+    const user = userEvent.setup();
 
-    fireEvent.click(screen.getByRole("button", { name: "Save Type" }));
+    render(<CreateGroupForm {...defaultProps} />);
+
+    await user.type(screen.getByLabelText("Name"), "Arduino");
+    await user.type(
+      screen.getByLabelText("Description"),
+      "Arduino boards"
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Save Type" })
+    );
 
     await waitFor(() => {
-      expect(onFail).toHaveBeenCalledTimes(1);
-      expect(onSuccess).not.toHaveBeenCalled();
+      expect(onFail).toHaveBeenCalledOnce();
     });
+
+    expect(onSuccess).not.toHaveBeenCalled();
   });
 
-  it("calls onDeleteSuccess when deletion succeeds without submitting the form", async () => {
-    deleteGroup.mockResolvedValue(true);
-    const onDeleteSuccess = vi.fn();
+  it("calls onDeleteSuccess when deleting a group succeeds", async () => {
+    const user = userEvent.setup();
 
-    renderForm({
-      group: { id: 12, name: "Raspberry Pi" },
-      onDeleteSuccess,
-    });
+    render(
+      <CreateGroupForm
+        {...defaultProps}
+        group={{
+          id: 2,
+          name: "Raspberry Pi",
+          description: "Boards",
+          known_issues: "",
+        }}
+      />
+    );
 
-    fireEvent.click(screen.getByRole("button", { name: "Delete Type" }));
+    await user.click(
+      screen.getByRole("button", { name: "Delete Type" })
+    );
 
     await waitFor(() => {
-      expect(deleteGroup).toHaveBeenCalledWith(12);
-      expect(onDeleteSuccess).toHaveBeenCalledTimes(1);
+      expect(deleteGroup).toHaveBeenCalledWith(2);
+      expect(onDeleteSuccess).toHaveBeenCalledOnce();
     });
 
-    // Deleting should not also trigger the save handler.
-    expect(saveGroup).not.toHaveBeenCalled();
+    expect(onDeleteFail).not.toHaveBeenCalled();
   });
 
-  it("calls onDeleteFail when deletion returns a falsy result", async () => {
+  it("calls onDeleteFail when deleting a group fails", async () => {
     deleteGroup.mockResolvedValue(false);
-    const onDeleteFail = vi.fn();
 
-    renderForm({
-      group: { id: 12, name: "Raspberry Pi" },
-      onDeleteFail,
-    });
+    const user = userEvent.setup();
 
-    fireEvent.click(screen.getByRole("button", { name: "Delete Type" }));
+    render(
+      <CreateGroupForm
+        {...defaultProps}
+        group={{
+          id: 2,
+          name: "Raspberry Pi",
+          description: "Boards",
+          known_issues: "",
+        }}
+      />
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Delete Type" })
+    );
 
     await waitFor(() => {
-      expect(deleteGroup).toHaveBeenCalledWith(12);
-      expect(onDeleteFail).toHaveBeenCalledTimes(1);
+      expect(deleteGroup).toHaveBeenCalledWith(2);
+      expect(onDeleteFail).toHaveBeenCalledOnce();
     });
+
+    expect(onDeleteSuccess).not.toHaveBeenCalled();
+  });
+
+  it("does not show the delete button for group ID 1", () => {
+    render(
+      <CreateGroupForm
+        {...defaultProps}
+        group={{
+          id: 1,
+          name: "Ungrouped",
+          description: "",
+          known_issues: "",
+        }}
+      />
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "Delete Type" })
+    ).not.toBeInTheDocument();
   });
 });
 
