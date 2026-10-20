@@ -123,43 +123,6 @@ Specifically the aim is to:
 | ✅13 | **Search** | A user searches for a term that appears in equipment, guides and projects. | Matching results are returned across those areas and can be opened. |
 
 
-## Your Backlog
-
-Your backlog lives in two places, working together:
-
-### 1. GitHub Issues (the content)
-
-For every user story, feature, and task, create a GitHub Issue with a clear title and description. Use the issue template provided in this repository (see `.github/ISSUE_TEMPLATE/`).
-
-Write them in this order:
-1. All **user stories** first (format: *"As [a user], I want [action] so that [goal]"*)
-2. Then all **features**
-3. Then all **tasks**
-
-### 2. Project Board (the backlog itself)
-
-Add every Issue to a Project board. The board is your backlog, not the issue text.
-
-Your repository does not come with a board already set up — see **[PROJECT_BOARD.md](PROJECT_BOARD.md)** for step-by-step instructions on creating your board and setting up the required fields (Priority, Estimated Effort, Sprint). 
-
-You'll need a working board by the end of Sprint 1, as Status Report 3 requires it.
-
-
----
-
-## Development
-
-From Week 38 onward:
-- Set up your development environment and start development.
-- You're free to organise your code however works best for you — for example, using `src/` and `docs/` folders, or any other structure. There's no required folder layout; 
-- At the end of each sprint, your work will be demonstrated to the customer at that sprint's Demo
-- Keep this README as the one place that always explains how to install and run your project.
-
-
-Your repository must remain **Private** for the entire course. This protects your customer's requirements and your own work.
-
----
-
 ## Documenting Your Project
 
 ### Default Credentials
@@ -210,3 +173,11 @@ I do continous delivery. As soon as a new branch merges with main, a new version
 * run `./dev-load-env.sh`
     - If if fails, run `sudo chmod +x dev-load-env.sh` and try again.
 
+### Running Tests
+
+* Need to have latest node and pnpm install.
+* Run `pnpm test` from the `lekh/app` directory.
+
+#### Coverage
+
+* Run `pnpm test:coverage` to check coverage.
