@@ -33,6 +33,10 @@ Specifically the aim is to:
 
 **Functional Requirements** (~~strikethrough~~ means implemented)
 
+> [!IMPORTANT]
+> We now have a feature stop in place.
+> No more features will be implemented.
+
 **Must**
 
 * ~~The system must allow users to log in.~~
@@ -55,7 +59,7 @@ Specifically the aim is to:
 * ~~The system must allow users to report a known fault on a specific unit.~~
 * ~~The system must allow caretakers to report a known fault on a whole type.~~
 * ~~The system must allow users to record a finished project and link the article to the used equipment.~~
-* The system must allow maintainers to delete units, types, and users.
+* ~~The system must allow maintainers to delete units, types, and users.~~
 
 **Should**
 
@@ -63,12 +67,15 @@ Specifically the aim is to:
 * ~~The system should allow adding QR codes for each item.~~
 * ~~The system should allow label printing~~.
 
+> [!NOTE]
+> Because of the feature stop, nothing more will be implemented.
+
 **Could**
 
 * The system could have pagination.
 * The system could have a "what can I build with this" link from any item page.
 * The system could allow the following information to be added for each item:
-    - Kit definitions with contents checklists.
+    ~~- Kit definitions with contents checklists.~~ (Add a new article)
     - Datasheets
     - OS Images
 * The system could have lazy loading.
