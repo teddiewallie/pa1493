@@ -1,6 +1,6 @@
 import pool from "@/lib/db";
 
-const isValidId = (id) => Number.isInteger(id) && id > 0;
+const isValidId = (id) => id > 0;
 
 const addReservationQuery = async (reservation, userId) => {
   if (!isValidId(userId) || !isValidId(reservation.itemId)) {
@@ -74,8 +74,9 @@ const denyReservationQuery = async (reservationId) => {
 };
 
 const denyReservationsByUserIdQuery = async (userId) => {
+  console.log(userId);
   if (!isValidId(userId)) {
-    return true;
+    throw new Error("Invalid ID.");
   }
 
   return await pool.query(
@@ -86,7 +87,7 @@ const denyReservationsByUserIdQuery = async (userId) => {
 
 const setReturnedQuery = async (id) => {
   if (!isValidId(id)) {
-    return true;
+    throw new Error("Invalid ID.");
   }
 
   const returnedAt = new Date();
