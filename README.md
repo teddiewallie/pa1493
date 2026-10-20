@@ -134,8 +134,8 @@ If dummy data is added, then there are a few more accounts you can try out. Adam
 | Name | E-mail | Password | Role |
 | ---- | ------ | -------- | ---- |
 | Bob Bobson | bob@home.arpa | arpa | Admin |
+| Adam Adamsson | adam@home.arpa | arpa | Admin |
 | Lisa Lisadotter | lisa@home.arpa | arpa | Student |
-| Adam Adamsson | adam@home.arpa | arpa | Student |
 | Eva Eriksson | eva@home.arpa | arpa | Student |
 | Fredrik Frisk | fredrik@home.arpa | arpa | Student |
 | Gustav Gustavsson | gustav@home.arpa | arpa | Student |

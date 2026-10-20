@@ -3,8 +3,8 @@
 -- Users (all passwords are arpa)
 INSERT INTO user (name, email, password, role_id) VALUES
 ('Bob Bobson', 'bob@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 1),
+('Adam Adamsson', 'adam@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 1),
 ('Lisa Lisadotter', 'lisa@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
-('Adam Adamsson', 'adam@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
 ('Eva Eriksson', 'eva@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
 ('Fredrik Frisk', 'fredrik@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
 ('Gustav Gustavsson', 'gustav@home.arpa', '$2b$12$OoGIVZ9/KzEyh376kS23vuYFprf4MU9yrbpDvFgmx7JwKv.Ry3HSG', 2),
