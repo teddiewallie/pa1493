@@ -60,13 +60,6 @@ const Page = ({ params }) => {
       new Date(reservation.start_at) <= new Date()
   );
 
-  console.log({
-    role_id: user.role_id,
-    itemId: item?.id,
-    itemReservationIds: itemReservations.map((r) => r.id),
-    activeReservation,
-  });
-
   const isNotPending = !Boolean(activeReservation?.is_pending);
 
   return (

@@ -29,8 +29,12 @@ const addReportQuery = async (data) => {
     throw new Error("Item not found.");
   }
 
-  const knownIssues = rows[0];
-  const newKnownIssues = `${reportIssue}\n\n${knownIssues}`;
+  const knownIssues = rows[0].known_issues;
+  console.log(knownIssues);
+
+  const newKnownIssues = knownIssues === ""
+  ? `${reportIssue}`
+  : `${reportIssue}\n\n${knownIssues}`;
 
   await pool.query(
     "UPDATE item SET known_issues=? WHERE id=?",
