@@ -1,140 +1,168 @@
+// src/actions/save-user.test.js
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-const {
-  auth,
-  createUserSchema,
-  addUserQuery,
-  updateUserQuery,
-  safeParse,
-} = vi.hoisted(() => ({
-  auth: vi.fn(),
-  createUserSchema: vi.fn(),
-  addUserQuery: vi.fn(),
-  updateUserQuery: vi.fn(),
-  safeParse: vi.fn(),
-}));
-
-vi.mock("@/auth", () => ({ auth }));
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/schema/user-schema.js", () => ({
-  createUserSchema,
+  createUserSchema: vi.fn(),
+}));
+
+vi.mock("@/auth", () => ({
+  auth: vi.fn(),
 }));
 
 vi.mock("@/query/user-query.js", () => ({
-  addUserQuery,
-  updateUserQuery,
+  addUserQuery: vi.fn(),
+  updateUserQuery: vi.fn(),
 }));
 
+import { createUserSchema } from "@/schema/user-schema.js";
+import { auth } from "@/auth";
+import {
+  addUserQuery,
+  updateUserQuery,
+} from "@/query/user-query.js";
 import { saveUser } from "./save-user";
 
 describe("saveUser", () => {
-  const userData = {
-    id: 2,
+  const studentSession = {
+    user: {
+      id: "7",
+      role_id: 2,
+    },
+  };
+
+  const maintainerSession = {
+    user: {
+      id: "1",
+      role_id: 1,
+    },
+  };
+
+  const newUser = {
     name: "Test User",
     email: "test@example.com",
-    role_id: 2,
+    password: "password123",
+    maintainer: false,
+  };
+
+  const existingUser = {
+    id: "7",
+    name: "Updated User",
+    email: "updated@example.com",
+    password: "",
+    maintainer: false,
+  };
+
+  const mockValidSchema = () => {
+    createUserSchema.mockReturnValue({
+      safeParse: vi.fn().mockReturnValue({
+        success: true,
+        data: newUser,
+      }),
+    });
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    createUserSchema.mockReturnValue({ safeParse });
-    safeParse.mockReturnValue({ success: true });
+    auth.mockResolvedValue(studentSession);
+    mockValidSchema();
 
-    auth.mockResolvedValue({
-      user: { id: 1, role_id: 1 },
-    });
-
-    addUserQuery.mockResolvedValue(true);
+    addUserQuery.mockResolvedValue(undefined);
     updateUserQuery.mockResolvedValue(true);
   });
 
-  it("creates a new user", async () => {
-    const newUser = { ...userData };
-    delete newUser.id;
+  it("returns false when schema validation fails", async () => {
+    createUserSchema.mockReturnValue({
+      safeParse: vi.fn().mockReturnValue({
+        success: false,
+        error: { issues: [] },
+      }),
+    });
+
+    await expect(saveUser(newUser)).resolves.toBe(false);
+
+    expect(addUserQuery).not.toHaveBeenCalled();
+    expect(updateUserQuery).not.toHaveBeenCalled();
+  });
+
+  it("uses the create schema when creating a user", async () => {
+    await saveUser(newUser);
+
+    expect(createUserSchema).toHaveBeenCalledWith(false);
+  });
+
+  it("uses the edit schema when updating a user", async () => {
+    await saveUser(existingUser);
+
+    expect(createUserSchema).toHaveBeenCalledWith(true);
+  });
+
+  it("returns false when no session exists", async () => {
+    auth.mockResolvedValue(null);
+
+    await expect(saveUser(newUser)).resolves.toBe(false);
+
+    expect(addUserQuery).not.toHaveBeenCalled();
+    expect(updateUserQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns false when a non-maintainer tries to create a user", async () => {
+    await expect(saveUser(newUser)).resolves.toBe(false);
+
+    expect(addUserQuery).not.toHaveBeenCalled();
+  });
+
+  it("allows a maintainer to create a user", async () => {
+    auth.mockResolvedValue(maintainerSession);
 
     await expect(saveUser(newUser)).resolves.toBe(true);
 
-    expect(createUserSchema).toHaveBeenCalledWith(false);
     expect(addUserQuery).toHaveBeenCalledWith(newUser);
     expect(updateUserQuery).not.toHaveBeenCalled();
   });
 
-  it("updates an existing user as a maintainer", async () => {
-    await expect(saveUser(userData)).resolves.toBe(true);
-
-    expect(createUserSchema).toHaveBeenCalledWith(true);
-    expect(updateUserQuery).toHaveBeenCalledWith(userData, true);
-    expect(addUserQuery).not.toHaveBeenCalled();
-  });
-
   it("allows a user to update their own account", async () => {
-    auth.mockResolvedValue({
-      user: { id: 2, role_id: 2 },
-    });
+    await expect(saveUser(existingUser)).resolves.toBe(true);
 
-    await expect(saveUser(userData)).resolves.toBe(true);
-
-    expect(updateUserQuery).toHaveBeenCalledWith(userData, false);
-  });
-
-  it("returns false when validation fails", async () => {
-    safeParse.mockReturnValue({ success: false });
-
-    await expect(saveUser(userData)).resolves.toBe(false);
-
+    expect(updateUserQuery).toHaveBeenCalledWith(existingUser, false);
     expect(addUserQuery).not.toHaveBeenCalled();
+  });
+
+  it("allows a maintainer to update another user's account", async () => {
+    auth.mockResolvedValue(maintainerSession);
+
+    const otherUser = {
+      ...existingUser,
+      id: "7",
+    };
+
+    await expect(saveUser(otherUser)).resolves.toBe(true);
+
+    expect(updateUserQuery).toHaveBeenCalledWith(otherUser, true);
+  });
+
+  it("rejects a regular user updating another user's account", async () => {
+    const otherUser = {
+      ...existingUser,
+      id: "99",
+    };
+
+    await expect(saveUser(otherUser)).resolves.toBe(false);
+
     expect(updateUserQuery).not.toHaveBeenCalled();
   });
 
-  it("returns false when there is no session", async () => {
-    auth.mockResolvedValue(null);
-
-    await expect(saveUser(userData)).resolves.toBe(false);
-
-    expect(addUserQuery).not.toHaveBeenCalled();
-    expect(updateUserQuery).not.toHaveBeenCalled();
-  });
-
-  it("prevents a regular user from updating another user", async () => {
-    auth.mockResolvedValue({
-      user: { id: 3, role_id: 2 },
-    });
-
-    await expect(saveUser(userData)).resolves.toBe(false);
-
-    expect(updateUserQuery).not.toHaveBeenCalled();
-  });
-
-  it("returns false when adding a user fails", async () => {
-    const newUser = { ...userData };
-    delete newUser.id;
-
-    addUserQuery.mockRejectedValue(new Error("Database error"));
+  it("returns false when adding a user throws", async () => {
+    auth.mockResolvedValue(maintainerSession);
+    addUserQuery.mockRejectedValueOnce(new Error("Database error"));
 
     await expect(saveUser(newUser)).resolves.toBe(false);
   });
 
-  it("returns false when updating a user fails", async () => {
-    updateUserQuery.mockRejectedValue(new Error("Database error"));
+  it("returns false when updating a user throws", async () => {
+    updateUserQuery.mockRejectedValueOnce(new Error("Database error"));
 
-    await expect(saveUser(userData)).resolves.toBe(false);
-  });
-
-  it("returns the query result when adding a user", async () => {
-    addUserQuery.mockResolvedValue(false);
-
-    const newUser = { ...userData };
-    delete newUser.id;
-
-    await expect(saveUser(newUser)).resolves.toBe(false);
-  });
-
-  it("returns the query result when updating a user", async () => {
-    updateUserQuery.mockResolvedValue(false);
-
-    await expect(saveUser(userData)).resolves.toBe(false);
+    await expect(saveUser(existingUser)).resolves.toBe(false);
   });
 });
-

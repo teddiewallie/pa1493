@@ -1,190 +1,191 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+// src/components/modal-with-toast.test.jsx
 
-import { ModalWithToast } from "./modal-with-toast";
-import { toast } from "@/components/ui/toast";
-
-vi.mock("@/components/ui/toast", () => ({
-  toast: {
-    add: vi.fn(),
-  },
-}));
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
+import { ModalWithToast } from "@/components/modal-with-toast";
 
 vi.mock("@/components/ui/button", () => ({
-  Button: ({ children, ...props }) => <button {...props}>{children}</button>,
-}));
-
-vi.mock("@/components/create-user-form", () => ({
-  CreateUserForm: () => <div />,
+  Button: ({ children, ...props }) => (
+    <button {...props}>{children}</button>
+  ),
 }));
 
 vi.mock("@/components/ui/dialog", async () => {
   const React = await import("react");
-  const DialogContext = React.createContext(null);
 
   return {
     Dialog: ({ open, onOpenChange, children }) => (
-      <DialogContext.Provider value={{ open, onOpenChange }}>
-        {children}
-      </DialogContext.Provider>
+      <div data-testid="dialog" data-open={String(open)}>
+        {React.Children.map(children, (child) =>
+          React.isValidElement(child)
+            ? React.cloneElement(child, { onOpenChange })
+            : child
+        )}
+      </div>
     ),
 
-    DialogTrigger: ({ render }) => {
-      const { onOpenChange } = React.useContext(DialogContext);
+    DialogTrigger: ({ render, onOpenChange }) =>
+      React.cloneElement(render, {
+        onClick: () => onOpenChange?.(true),
+      }),
 
-      return React.cloneElement(render, {
-        onClick: (event) => {
-          render.props.onClick?.(event);
-          onOpenChange(true);
-        },
-      });
-    },
+    DialogContent: ({ children, className }) => (
+      <div data-testid="dialog-content" data-class-name={className}>
+        {children}
+      </div>
+    ),
 
-    DialogContent: ({ children, className, ...props }) => {
-      const { open } = React.useContext(DialogContext);
+    DialogHeader: ({ children }) => <div>{children}</div>,
 
-      return open ? (
-        <div role="dialog" className={className} {...props}>
-          {children}
-        </div>
-      ) : null;
-    },
-
-    DialogClose: ({ children }) => children,
-    DialogDescription: ({ children }) => <p>{children}</p>,
-    DialogFooter: ({ children }) => <footer>{children}</footer>,
-    DialogHeader: ({ children }) => <header>{children}</header>,
     DialogTitle: ({ children }) => <h2>{children}</h2>,
   };
 });
 
-beforeEach(() => {
-  vi.clearAllMocks();
-});
-
 describe("ModalWithToast", () => {
-  it("renders the trigger and opens the dialog when clicked", () => {
+  it("renders the trigger with the provided title", () => {
     render(
-      <ModalWithToast title="Create user" message="" onMessageHandled={vi.fn()}>
-        <p>Modal contents</p>
+      <ModalWithToast title="Test modal">
+        <div>Modal content</div>
       </ModalWithToast>
     );
 
     expect(
-      screen.queryByRole("dialog")
-    ).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "Create user" }));
-
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Create user" }))
-      .toBeInTheDocument();
-    expect(screen.getByText("Modal contents")).toBeInTheDocument();
+      screen.getByRole("button", { name: "Test modal" })
+    ).toBeInTheDocument();
   });
 
-  it("displays a toast and handles a non-empty message", async () => {
-    const onMessageHandled = vi.fn();
-
+  it("starts with the modal closed", () => {
     render(
-      <ModalWithToast
-        title="Create user"
-        message="User created"
-        onMessageHandled={onMessageHandled}
-      />
-    );
-
-    await waitFor(() => {
-      expect(toast.add).toHaveBeenCalledWith({ title: "User created" });
-      expect(onMessageHandled).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it("does not display a toast for an empty message", () => {
-    const onMessageHandled = vi.fn();
-
-    render(
-      <ModalWithToast
-        title="Create user"
-        message=""
-        onMessageHandled={onMessageHandled}
-      />
-    );
-
-    expect(toast.add).not.toHaveBeenCalled();
-    expect(onMessageHandled).not.toHaveBeenCalled();
-  });
-
-  it("handles a new message when the message prop changes", async () => {
-    const onMessageHandled = vi.fn();
-
-    const { rerender } = render(
-      <ModalWithToast
-        title="Create user"
-        message=""
-        onMessageHandled={onMessageHandled}
-      />
-    );
-
-    rerender(
-      <ModalWithToast
-        title="Create user"
-        message="User created"
-        onMessageHandled={onMessageHandled}
-      />
-    );
-
-    await waitFor(() => {
-      expect(toast.add).toHaveBeenCalledWith({ title: "User created" });
-      expect(onMessageHandled).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  it("applies the wider dialog classes when doubleWidth is true", () => {
-    render(
-      <ModalWithToast
-        title="Create user"
-        message=""
-        onMessageHandled={vi.fn()}
-        doubleWidth
-      >
-        <p>Contents</p>
+      <ModalWithToast title="Test modal">
+        <div>Modal content</div>
       </ModalWithToast>
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Create user" }));
-
-    expect(screen.getByRole("dialog")).toHaveClass(
-      "sm:max-w-[95vw]",
-      "lg:max-w-[960px]",
-      "max-h-[calc(100vh-2rem)]",
-      "flex-col",
-      "overflow-y-scroll"
+    expect(screen.getByTestId("dialog")).toHaveAttribute(
+      "data-open",
+      "false"
     );
   });
 
-  it("does not apply the wider dialog classes when doubleWidth is false", () => {
+  it("opens the modal when the trigger is clicked", () => {
     render(
-      <ModalWithToast
-        title="Create user"
-        message=""
-        onMessageHandled={vi.fn()}
-        doubleWidth={false}
-      >
-        <p>Contents</p>
+      <ModalWithToast title="Test modal">
+        <div>Modal content</div>
       </ModalWithToast>
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Create user" }));
+    fireEvent.click(screen.getByRole("button", { name: "Test modal" }));
 
-    const dialog = screen.getByRole("dialog");
-
-    expect(dialog).not.toHaveClass("sm:max-w-[95vw]");
-    expect(dialog).not.toHaveClass("lg:max-w-[960px]");
-    expect(dialog).toHaveClass(
-      "max-h-[calc(100vh-2rem)]",
-      "flex-col",
-      "overflow-y-scroll"
+    expect(screen.getByTestId("dialog")).toHaveAttribute(
+      "data-open",
+      "true"
     );
+    expect(screen.getByText("Modal content")).toBeInTheDocument();
+  });
+
+  it("renders the provided title inside the dialog", () => {
+    render(
+      <ModalWithToast title="Add Unit">
+        <div>Modal content</div>
+      </ModalWithToast>
+    );
+
+    expect(screen.getByRole("heading", { name: "Add Unit" })).toBeInTheDocument();
+  });
+
+  it("applies the standard content classes when doubleWidth is false", () => {
+    render(
+      <ModalWithToast title="Test modal">
+        <div>Modal content</div>
+      </ModalWithToast>
+    );
+
+    expect(screen.getByTestId("dialog-content")).toHaveAttribute(
+      "data-class-name",
+      "max-h-[calc(100vh-2rem)] flex-col overflow-y-scroll"
+    );
+  });
+
+  it("applies the wider content classes when doubleWidth is true", () => {
+    render(
+      <ModalWithToast title="Test modal" doubleWidth>
+        <div>Modal content</div>
+      </ModalWithToast>
+    );
+
+    expect(screen.getByTestId("dialog-content")).toHaveAttribute(
+      "data-class-name",
+      "sm:max-w-[95vw] lg:max-w-[960px] max-h-[calc(100vh-2rem)] flex-col overflow-y-scroll"
+    );
+  });
+
+  it.each([
+    "onSuccess",
+    "onFail",
+    "onDelete",
+    "onDeleteSuccess",
+    "onDeleteFail",
+  ])("calls the child %s callback and closes the modal", (callbackName) => {
+    const callback = vi.fn();
+
+    // This component calls the callback it receives through its props.
+    // ModalWithToast replaces that callback with a wrapper that closes the modal.
+    const TestChild = (props) => (
+      <button
+        type="button"
+        onClick={() => props[callbackName]("test argument")}
+      >
+        Trigger callback
+      </button>
+    );
+
+    render(
+      <ModalWithToast title="Test modal">
+        <TestChild {...{ [callbackName]: callback }} />
+      </ModalWithToast>
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Test modal" }));
+
+    expect(screen.getByTestId("dialog")).toHaveAttribute(
+      "data-open",
+      "true"
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Trigger callback" }));
+
+    expect(callback).toHaveBeenCalledOnce();
+    expect(callback).toHaveBeenCalledWith("test argument");
+    expect(screen.getByTestId("dialog")).toHaveAttribute(
+      "data-open",
+      "false"
+    );
+  });
+
+  it("does not close the modal when no callback is invoked", () => {
+    render(
+      <ModalWithToast title="Test modal">
+        <button type="button">Do nothing</button>
+      </ModalWithToast>
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Test modal" }));
+    fireEvent.click(screen.getByRole("button", { name: "Do nothing" }));
+
+    expect(screen.getByTestId("dialog")).toHaveAttribute(
+      "data-open",
+      "true"
+    );
+  });
+
+  it("renders children without callback props", () => {
+    render(
+      <ModalWithToast title="Test modal">
+        <p>Content without callbacks</p>
+      </ModalWithToast>
+    );
+
+    expect(screen.getByText("Content without callbacks")).toBeInTheDocument();
   });
 });
-

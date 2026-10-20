@@ -1,202 +1,266 @@
 
-import { render, screen, fireEvent } from "@testing-library/react";
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
-import { addDays, startOfDay } from "date-fns";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen, fireEvent } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { CreateBorrowForm } from "@/components/create-borrow-form";
 
-import { CreateBorrowForm } from "./create-borrow-form";
-
-vi.mock("@/components/ui/button", () => ({
-  Button: ({ children, ...props }) => (
-    <button {...props}>{children}</button>
+vi.mock("@/components/ui/calendar", () => ({
+  Calendar: ({
+    selected,
+    onSelect,
+    disabled,
+    modifiers,
+  }) => (
+    <div data-testid="calendar">
+      <div data-testid="selected-from">
+        {selected?.from?.toISOString() ?? "none"}
+      </div>
+      <div data-testid="selected-to">
+        {selected?.to?.toISOString() ?? "none"}
+      </div>
+      <div data-testid="modifiers">
+        {JSON.stringify(modifiers)}
+      </div>
+      <button
+        type="button"
+        onClick={() =>
+          onSelect({
+            from: new Date(2026, 9, 21),
+            to: new Date(2026, 9, 22),
+          })
+        }
+      >
+        Select available range
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          onSelect({
+            from: new Date(2026, 9, 21),
+            to: new Date(2026, 9, 23),
+          })
+        }
+      >
+        Select range containing unavailable date
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          onSelect({
+            from: new Date(2026, 9, 21),
+          })
+        }
+      >
+        Select start only
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          onSelect({
+            from: new Date(2026, 9, 21),
+            to: new Date(2026, 9, 22),
+          })
+        }
+        disabled={disabled(new Date(2026, 9, 21))}
+      >
+        Select date if available
+      </button>
+    </div>
   ),
 }));
 
-vi.mock("@/components/ui/calendar", () => ({
-  Calendar: ({ selected, disabled, onSelect }) => {
-    const today = startOfDay(new Date());
-    const tomorrow = addDays(today, 1);
-    const dayAfterTomorrow = addDays(today, 2);
-    const threeDaysFromNow = addDays(today, 3);
-
-    return (
-      <div>
-        <div data-testid="selected-from">
-          {selected?.from?.toDateString() ?? "none"}
-        </div>
-        <div data-testid="selected-to">
-          {selected?.to?.toDateString() ?? "none"}
-        </div>
-
-        <div data-testid="today-disabled">
-          {String(disabled(today))}
-        </div>
-        <div data-testid="tomorrow-disabled">
-          {String(disabled(tomorrow))}
-        </div>
-        <div data-testid="day-after-tomorrow-disabled">
-          {String(disabled(dayAfterTomorrow))}
-        </div>
-
-        <button
-          type="button"
-          onClick={() => onSelect({ from: today, to: tomorrow })}
-        >
-          Select today through tomorrow
-        </button>
-
-        <button
-          type="button"
-          onClick={() =>
-            onSelect({ from: today, to: threeDaysFromNow })
-          }
-        >
-          Select range containing booked date
-        </button>
-
-        <button
-          type="button"
-          onClick={() => onSelect({ from: tomorrow })}
-        >
-          Select incomplete range
-        </button>
-      </div>
-    );
-  },
-}));
-
-const item = { id: 42, name: "Arduino" };
-
-beforeEach(() => {
-  vi.useFakeTimers();
-  vi.setSystemTime(new Date("2026-10-18T10:30:00"));
-});
-
-afterEach(() => {
-  vi.useRealTimers();
+const createProps = (overrides = {}) => ({
+  item: { id: 42 },
+  callback: vi.fn().mockResolvedValue(undefined),
+  bookings: [],
+  borrowings: [],
+  ...overrides,
 });
 
 describe("CreateBorrowForm", () => {
-  it("initializes the range with today and tomorrow when neither is booked", () => {
-    render(
-      <CreateBorrowForm item={item} callback={vi.fn()} borrowings={[]} />
-    );
-
-    expect(screen.getByTestId("selected-from")).toHaveTextContent(
-      new Date("2026-10-18").toDateString()
-    );
-    expect(screen.getByTestId("selected-to")).toHaveTextContent(
-      new Date("2026-10-19").toDateString()
-    );
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 20, 10, 30));
   });
 
-  it("starts on the first available day when today is booked", () => {
-    render(
-      <CreateBorrowForm
-        item={item}
-        callback={vi.fn()}
-        borrowings={[new Date("2026-10-18T15:00:00")]}
-      />
-    );
-
-    expect(screen.getByTestId("selected-from")).toHaveTextContent(
-      new Date("2026-10-19").toDateString()
-    );
-    expect(screen.getByTestId("selected-to")).toHaveTextContent(
-      new Date("2026-10-20").toDateString()
-    );
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
   });
 
-  it("disables past dates and booked dates", () => {
-    render(
-      <CreateBorrowForm
-        item={item}
-        callback={vi.fn()}
-        borrowings={[new Date("2026-10-20T12:00:00")]}
-      />
-    );
+  it("renders the calendar and submit button", () => {
+    render(<CreateBorrowForm {...createProps()} />);
 
-    expect(screen.getByTestId("today-disabled")).toHaveTextContent("false");
-    expect(screen.getByTestId("tomorrow-disabled")).toHaveTextContent("false");
+    expect(screen.getByTestId("calendar")).toBeInTheDocument();
     expect(
-      screen.getByTestId("day-after-tomorrow-disabled")
-    ).toHaveTextContent("true");
+      screen.getByRole("button", { name: /request to borrow/i })
+    ).toBeInTheDocument();
   });
 
-  it("submits the selected date range with the item ID and start-of-day dates", () => {
-    const callback = vi.fn();
+  it("initializes a range using the first two available dates", () => {
+    render(<CreateBorrowForm {...createProps()} />);
 
+    expect(screen.getByTestId("selected-from").textContent).toBe(
+      new Date(2026, 9, 20).toISOString()
+    );
+    expect(screen.getByTestId("selected-to").textContent).toBe(
+      new Date(2026, 9, 21).toISOString()
+    );
+  });
+
+  it("skips dates occupied by bookings and borrowings", () => {
     render(
-      <CreateBorrowForm item={item} callback={callback} borrowings={[]} />
+      <CreateBorrowForm
+        {...createProps({
+          bookings: [new Date(2026, 9, 20)],
+          borrowings: [new Date(2026, 9, 21)],
+        })}
+      />
     );
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Select today through tomorrow" })
+    expect(screen.getByTestId("selected-from").textContent).toBe(
+      new Date(2026, 9, 22).toISOString()
     );
-    fireEvent.click(
+    expect(screen.getByTestId("selected-to").textContent).toBe(
+      new Date(2026, 9, 23).toISOString()
+    );
+  });
+
+  it("submits a valid borrow request", async () => {
+    const callback = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup({
+      advanceTimers: vi.advanceTimersByTime,
+    });
+
+    render(<CreateBorrowForm {...createProps({ callback })} />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Select available range" })
+    );
+    await user.click(
       screen.getByRole("button", { name: /request to borrow/i })
     );
 
     expect(callback).toHaveBeenCalledTimes(1);
-    expect(callback).toHaveBeenCalledWith({
-      itemId: 42,
-      startAt: new Date("2026-10-18T00:00:00"),
-      endAt: new Date("2026-10-19T00:00:00"),
-    });
+
+    const reservation = callback.mock.calls[0][0];
+
+    expect(reservation.itemId).toBe(42);
+    expect(reservation.reservationType).toBe("borrow");
+    expect(reservation.startAt).toEqual(new Date(2026, 9, 21));
+    expect(reservation.endAt).toEqual(new Date(2026, 9, 22));
   });
 
-  it("rejects a range containing a booked date and selects the clicked date instead", () => {
+  it("does not submit if the selected range contains an unavailable date", async () => {
     const callback = vi.fn();
-    const bookedDate = new Date("2026-10-20T12:00:00");
+    const user = userEvent.setup({
+      advanceTimers: vi.advanceTimersByTime,
+    });
 
-    render(
-      <CreateBorrowForm
-        item={item}
-        callback={callback}
-        borrowings={[bookedDate]}
-      />
+    const props = createProps({ callback, borrowings: [] });
+
+    const { rerender } = render(
+      <CreateBorrowForm {...props} />
     );
 
-    fireEvent.click(
+    // Select October 21–22 while both dates are available.
+    await user.click(
       screen.getByRole("button", {
-        name: "Select range containing booked date",
+        name: "Select available range",
       })
     );
 
-    // The initial range starts today, so the mock selection's end date
-    // represents the date clicked according to the component's logic.
-    expect(screen.getByTestId("selected-from")).toHaveTextContent(
-      new Date("2026-10-21").toDateString()
-    );
-    expect(screen.getByTestId("selected-to")).toHaveTextContent(
-      new Date("2026-10-21").toDateString()
-    );
-
-    fireEvent.click(
-      screen.getByRole("button", { name: /request to borrow/i })
+    // October 22 becomes unavailable after the range was selected.
+    rerender(
+      <CreateBorrowForm
+        {...props}
+        borrowings={[new Date(2026, 9, 22)]}
+      />
     );
 
-    expect(callback).toHaveBeenCalledWith({
-      itemId: 42,
-      startAt: new Date("2026-10-21T00:00:00"),
-      endAt: new Date("2026-10-21T00:00:00"),
-    });
+    await user.click(
+      screen.getByRole("button", {
+        name: /request to borrow/i,
+      })
+    );
+
+    expect(callback).not.toHaveBeenCalled();
   });
 
-  it("does not submit when the selected range is incomplete", () => {
+  it("does not submit when the range is incomplete", async () => {
     const callback = vi.fn();
+    const user = userEvent.setup({
+      advanceTimers: vi.advanceTimersByTime,
+    });
 
-    render(
-      <CreateBorrowForm item={item} callback={callback} borrowings={[]} />
-    );
+    render(<CreateBorrowForm {...createProps({ callback })} />);
 
-    fireEvent.click(
-      screen.getByRole("button", { name: "Select incomplete range" })
+    await user.click(
+      screen.getByRole("button", { name: "Select start only" })
     );
-    fireEvent.click(
+    await user.click(
       screen.getByRole("button", { name: /request to borrow/i })
     );
 
     expect(callback).not.toHaveBeenCalled();
+  });
+
+  it("allows selecting a new start date when the chosen range is invalid", async () => {
+    const user = userEvent.setup({
+      advanceTimers: vi.advanceTimersByTime,
+    });
+
+    render(
+      <CreateBorrowForm
+        {...createProps({
+          borrowings: [new Date(2026, 9, 22)],
+        })}
+      />
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "Select range containing unavailable date",
+      })
+    );
+
+    expect(screen.getByTestId("selected-from").textContent).toBe(
+      new Date(2026, 9, 21).toISOString()
+    );
+    expect(screen.getByTestId("selected-to").textContent).toBe(
+      new Date(2026, 9, 21).toISOString()
+    );
+  });
+
+  it("marks booked and borrowed dates in the calendar modifiers", () => {
+    render(
+      <CreateBorrowForm
+        {...createProps({
+          bookings: [new Date(2026, 9, 21)],
+          borrowings: [new Date(2026, 9, 22)],
+        })}
+      />
+    );
+
+    const modifiers = JSON.parse(
+      screen.getByTestId("modifiers").textContent
+    );
+
+    expect(modifiers.booked).toHaveLength(2);
+  });
+
+  it("does not select a date in the past as the initial start date", () => {
+    render(
+      <CreateBorrowForm
+        {...createProps({
+          bookings: [new Date(2026, 9, 20)],
+          borrowings: [new Date(2026, 9, 21)],
+        })}
+      />
+    );
+
+    expect(new Date(screen.getByTestId("selected-from").textContent))
+      .toEqual(new Date(2026, 9, 22));
   });
 });
 

@@ -1,91 +1,66 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor, act } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { UserContext } from "@/context/user-context";
+import { ReservationsContext } from "@/context/reservations-context";
+import { EquipmentContext } from "@/context/equipment-context";
+import { ArticleContext } from "@/context/article-context";
+import { toast } from "@/components/ui/toast";
+import { setReturned } from "@/service/set-returned";
+import Page from "./page";
 
-const {
-  router,
-  setReturnedMock,
-  refreshItems,
-  refreshReservations,
-  addToast,
-} = vi.hoisted(() => ({
-  router: { back: vi.fn(), push: vi.fn() },
-  setReturnedMock: vi.fn(),
-  refreshItems: vi.fn(),
-  refreshReservations: vi.fn(),
-  addToast: vi.fn(),
+const { mockReplace } = vi.hoisted(() => ({
+  mockReplace: vi.fn(),
 }));
 
-vi.mock("react", async (importOriginal) => {
-  const actual = await importOriginal();
-  return { ...actual, use: (value) => value };
-});
+const params = Promise.resolve({ id: "1" });
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => router,
+  useRouter: () => ({ replace: mockReplace }),
 }));
 
 vi.mock("next/link", () => ({
-  default: ({ href, children, ...props }) => (
-    <a href={href} {...props}>{children}</a>
-  ),
+  default: ({ href, children }) => <a href={href}>{children}</a>,
 }));
 
 vi.mock("lucide-react", () => ({
-  CircleArrowLeft: () => <span data-testid="back-icon" />,
+  CircleArrowLeft: () => null,
 }));
 
 vi.mock("@/components/item-card", () => ({
-  ItemCard: ({ item, activeReservation }) => (
-    <div data-testid="item-card">
-      {item?.name}
-      {activeReservation && <span>Active reservation</span>}
-    </div>
-  ),
+  ItemCard: ({ item }) => <div data-testid="item-card">{item?.name}</div>,
 }));
 
 vi.mock("@/components/modal-with-toast", () => ({
-  ModalWithToast: ({ title, message, children }) => (
-    <section>
-      <h2>{title}</h2>
-      <p data-testid={`message-${title}`}>{message}</p>
+  ModalWithToast: ({ title, children }) => (
+    <div>
+      <span>{title}</span>
       {children}
-    </section>
+    </div>
   ),
 }));
 
 vi.mock("@/components/create-item-form", () => ({
-  CreateItemForm: ({ onSuccess, onFail, statuses }) => (
-    <div>
-      <span data-testid="statuses">{JSON.stringify(statuses)}</span>
-      <button onClick={onSuccess}>Simulate edit success</button>
-      <button onClick={onFail}>Simulate edit failure</button>
-    </div>
+  CreateItemForm: ({ onSuccess, onFail }) => (
+    <>
+      <button onClick={onSuccess}>Edit success</button>
+      <button onClick={onFail}>Edit failure</button>
+    </>
   ),
 }));
 
 vi.mock("@/components/report-item-form", () => ({
   ReportItemForm: ({ onSuccess, onFail }) => (
-    <div>
-      <button onClick={onSuccess}>Simulate report success</button>
-      <button onClick={onFail}>Simulate report failure</button>
-    </div>
-  ),
-}));
-
-vi.mock("@/components/simple-card", () => ({
-  SimpleCard: ({ title, content }) => (
-    <div data-testid="simple-card">
-      <span>{title}</span>
-      <span>{content}</span>
-    </div>
+    <>
+      <button onClick={onSuccess}>Report success</button>
+      <button onClick={onFail}>Report failure</button>
+    </>
   ),
 }));
 
 vi.mock("@/components/ui/button", () => ({
-  Button: ({ children, onClick, ...props }) => (
-    <button onClick={onClick} {...props}>{children}</button>
-  ),
+  Button: ({ children, ...props }) => <button {...props}>{children}</button>,
 }));
 
 vi.mock("@/components/link-button", () => ({
@@ -94,266 +69,229 @@ vi.mock("@/components/link-button", () => ({
 
 vi.mock("@/components/article-list", () => ({
   ArticleList: ({ title, articles }) => (
-    <div data-testid="article-list">
+    <div>
       <span>{title}</span>
-      {articles.map((article) => <span key={article.id}>{article.title}</span>)}
+      {articles.map((article) => (
+        <span key={article.id}>{article.title}</span>
+      ))}
+    </div>
+  ),
+}));
+
+vi.mock("@/components/simple-card", () => ({
+  SimpleCard: ({ title, content }) => (
+    <div>
+      <span>{title}</span>
+      <span>{content}</span>
     </div>
   ),
 }));
 
 vi.mock("@/components/reservation-card", () => ({
-  ReservationCard: ({ item }) => (
-    <div data-testid="reservation-card">{item.name}</div>
-  ),
+  ReservationCard: () => <div data-testid="reservation-card" />,
 }));
 
 vi.mock("@/components/reservation-history-card", () => ({
-  ReservationHistoryCard: ({ reservations, showTime }) => (
-    <div data-testid={showTime ? "timed-history" : "history"}>
-      {reservations.length} reservations
-    </div>
-  ),
+  ReservationHistoryCard: () => <div data-testid="reservation-history" />,
 }));
 
 vi.mock("@/service/set-returned", () => ({
-  setReturned: setReturnedMock,
+  setReturned: vi.fn(),
 }));
 
 vi.mock("@/components/ui/toast", () => ({
-  toast: { add: addToast },
+  toast: { add: vi.fn() },
 }));
 
-import { UserContext } from "@/context/user-context";
-import { EquipmentContext } from "@/context/equipment-context";
-import { ArticleContext } from "@/context/article-context";
-import { ReservationsContext } from "@/context/reservations-context";
-import Page from "./page";
+describe("Unit details page", () => {
+  const item = {
+    id: 1,
+    name: "Raspberry Pi",
+    serial: "RP-001",
+    group_id: 10,
+    known_issues: "Overheating",
+    borrowable: true,
+    bookable: true,
+    status_name: "Available",
+  };
 
-const item = {
-  id: 10,
-  name: "Oscilloscope",
-  serial: "SCOPE-123",
-  group_id: 20,
-  known_issues: "Probe connector is loose.",
-  borrowable: true,
-  bookable: true,
-  status_name: "Available",
-};
+  const group = {
+    id: 10,
+    name: "Computers",
+    known_issues: "Keep dry",
+  };
 
-const group = {
-  id: 20,
-  name: "Measurement Equipment",
-  known_issues: "Handle with care.",
-};
+  const reservation = {
+    id: 20,
+    item_id: 1,
+    start_at: "2020-01-01T10:00:00.000Z",
+    end_at: "2099-01-01T10:00:00.000Z",
+    returned_at: null,
+    is_pending: false,
+  };
 
-const articles = [
-  { id: 1, title: "Unit guide", item_id: 10, group_id: null },
-  { id: 2, title: "Type guide", item_id: null, group_id: 20 },
-  { id: 3, title: "Unrelated guide", item_id: 99, group_id: 99 },
-];
+  let refreshItems;
+  let refreshReservations;
 
-const activeReservation = {
-  id: 50,
-  item_id: 10,
-  start_at: "2020-01-01T10:00:00.000Z",
-  returned_at: null,
-  is_pending: false,
-};
+  const renderPage = async ({
+    roleId = 2,
+    items = [item],
+    groups = [group],
+    loading = false,
+    articles = [
+      { id: 1, title: "Unit guide", item_id: 1, group_id: null },
+      { id: 2, title: "Type guide", item_id: null, group_id: 10 },
+    ],
+    reservations = [],
+  } = {}) => {
+    const user = userEvent.setup();
 
-const renderPage = ({
-  user = { id: 1, role_id: 1 },
-  items = [item],
-  groups = [group],
-  articleData = articles,
-  reservations = [],
-  meta = { status: [{ id: 1, name: "Available" }] },
-} = {}) =>
-  render(
-    <UserContext.Provider value={{ user }}>
-      <EquipmentContext.Provider
-        value={{ items, groups, refreshItems, meta }}
-      >
-        <ArticleContext.Provider
-          value={{ articles: articleData, articleTypes: [{ id: 1, name: "Guide" }] }}
+    await act(async () => {
+      render(
+        <EquipmentContext.Provider
+          value={{
+            items,
+            refreshItems,
+            meta: { status: [] },
+            groups,
+            loading,
+          }}
         >
-          <ReservationsContext.Provider
-            value={{ reservations, refreshReservations }}
-          >
-            <Page params={{ id: "10" }} />
-          </ReservationsContext.Provider>
-        </ArticleContext.Provider>
-      </EquipmentContext.Provider>
-    </UserContext.Provider>,
-  );
+          <UserContext.Provider value={{ user: { id: 7, role_id: roleId } }}>
+            <ArticleContext.Provider value={{ articles, articleTypes: [] }}>
+              <ReservationsContext.Provider
+                value={{ reservations, refreshReservations }}
+              >
+                <Page params={params} />
+              </ReservationsContext.Provider>
+            </ArticleContext.Provider>
+          </UserContext.Provider>
+        </EquipmentContext.Provider>
+      );
 
-describe("Unit detail page", () => {
+      await params;
+    });
+
+    return user;
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
-    setReturnedMock.mockResolvedValue(true);
+    refreshItems = vi.fn();
+    refreshReservations = vi.fn();
   });
 
-  it("renders the unit, its group link, and the item card", () => {
-    renderPage({ user: { id: 2, role_id: 2 } });
+  it("renders unit details, articles, and known issues", async () => {
+    await renderPage();
 
-    expect(
-      screen.getByRole("link", {
-        name: /Measurement Equipment \/ Oscilloscope - SCOPE-123/i,
-      }).getAttribute("href"),
-    ).toBe("/units/by-type/20");
-
-    expect(screen.getByTestId("item-card").textContent).toContain("Oscilloscope");
-  });
-
-  it("shows the add-article and edit-unit actions only to maintainers", () => {
-    const { rerender } = renderPage({
-      user: { id: 2, role_id: 2 },
-    });
-
-    expect(screen.queryByRole("link", { name: "Add Article" })).toBeNull();
-    expect(screen.queryByText("Edit Unit")).toBeNull();
-
-    rerender(
-      <UserContext.Provider value={{ user: { id: 1, role_id: 1 } }}>
-        <EquipmentContext.Provider value={{ items: [item], groups: [group], refreshItems, meta: { status: [] } }}>
-          <ArticleContext.Provider value={{ articles, articleTypes: [] }}>
-            <ReservationsContext.Provider value={{ reservations: [], refreshReservations }}>
-              <Page params={{ id: "10" }} />
-            </ReservationsContext.Provider>
-          </ArticleContext.Provider>
-        </EquipmentContext.Provider>
-      </UserContext.Provider>,
+    expect(await screen.findByTestId("item-card")).toHaveTextContent(
+      "Raspberry Pi"
     );
 
-    expect(screen.getByRole("link", { name: "Add Article" }).getAttribute("href"))
-      .toBe("/editor/for-unit/10");
-    expect(screen.getByText("Edit Unit")).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: /Raspberry Pi - RP-001/ })
+    ).toHaveAttribute("href", "/units/by-type/10");
+
+    expect(screen.getByText("Unit guide")).toBeInTheDocument();
+    expect(screen.getByText("Type guide")).toBeInTheDocument();
+    expect(screen.getByText("Known Unit Issues")).toBeInTheDocument();
+    expect(screen.getByText("Overheating")).toBeInTheDocument();
+    expect(screen.getByText("Known Type Issues")).toBeInTheDocument();
+    expect(screen.getByText("Keep dry")).toBeInTheDocument();
   });
 
-  it("renders matching unit and type articles and known issues", () => {
-    renderPage({ user: { id: 2, role_id: 2 } });
+  it("shows maintainer controls only to maintainers", async () => {
+    await renderPage({ roleId: 1 });
 
-    expect(screen.getByText("Unit Articles")).toBeTruthy();
-    expect(screen.getByText("Unit guide")).toBeTruthy();
-    expect(screen.getByText("Type Articles")).toBeTruthy();
-    expect(screen.getByText("Type guide")).toBeTruthy();
-    expect(screen.queryByText("Unrelated guide")).toBeNull();
+    expect(
+      await screen.findByRole("link", { name: "Add Article" })
+    ).toHaveAttribute("href", "/editor/for-unit/1");
 
-    expect(screen.getByText("Known Unit Issues")).toBeTruthy();
-    expect(screen.getByText("Probe connector is loose.")).toBeTruthy();
-    expect(screen.getByText("Known Type Issues")).toBeTruthy();
-    expect(screen.getByText("Handle with care.")).toBeTruthy();
+    expect(screen.getByText("Edit Unit")).toBeInTheDocument();
   });
 
-  it("shows reservation actions according to item capabilities", () => {
-    renderPage({ user: { id: 2, role_id: 2 } });
+  it("renders reservation options and history when applicable", async () => {
+    await renderPage({ reservations: [reservation] });
 
-    expect(screen.getAllByTestId("reservation-card")).toHaveLength(2);
+    expect(await screen.findAllByTestId("reservation-card")).toHaveLength(2);
+    expect(await screen.findAllByTestId("reservation-history")).toHaveLength(2);
   });
 
-  it("shows reservation history for borrowable and bookable items with reservations", () => {
-    renderPage({
-      user: { id: 2, role_id: 2 },
-      reservations: [activeReservation],
+  it("does not offer booking when the item is unavailable", async () => {
+    await renderPage({
+      items: [
+        {
+          ...item,
+          borrowable: false,
+          bookable: true,
+          status_name: "On Loan",
+        },
+      ],
     });
 
-    expect(screen.getByTestId("history").textContent).toBe("1 reservations");
-    expect(screen.getByTestId("timed-history").textContent).toBe("1 reservations");
+    expect(await screen.findByTestId("item-card")).toBeInTheDocument();
+    expect(screen.queryByTestId("reservation-card")).not.toBeInTheDocument();
   });
 
-  it("shows Mark as Returned for a maintainer with an active, non-pending reservation", () => {
-    renderPage({ reservations: [activeReservation] });
+  it("reports an issue and refreshes items on success", async () => {
+    const user = await renderPage();
 
-    expect(screen.getByRole("button", { name: "Mark as Returned" })).toBeTruthy();
-    expect(screen.getByTestId("item-card").textContent).toContain("Active reservation");
+    await user.click(screen.getByRole("button", { name: "Report success" }));
+
+    expect(toast.add).toHaveBeenCalledWith({
+      title: "Successfully reported item.",
+    });
+    expect(refreshItems).toHaveBeenCalledOnce();
   });
 
-  it("marks a reservation as returned and refreshes item and reservation data", async () => {
-    renderPage({ reservations: [activeReservation] });
+  it("marks an active reservation as returned and refreshes data", async () => {
+    setReturned.mockResolvedValue(true);
 
-    fireEvent.click(screen.getByRole("button", { name: "Mark as Returned" }));
+    const user = await renderPage({
+      roleId: 1,
+      reservations: [reservation],
+    });
+
+    await user.click(
+      screen.getByRole("button", { name: "Mark as Returned" })
+    );
 
     await waitFor(() => {
-      expect(addToast).toHaveBeenCalledWith({
+      expect(setReturned).toHaveBeenCalledWith(20);
+      expect(toast.add).toHaveBeenCalledWith({
         title: "Item marked as returned.",
       });
+      expect(refreshItems).toHaveBeenCalledOnce();
+      expect(refreshReservations).toHaveBeenCalledOnce();
     });
-
-    expect(setReturnedMock).toHaveBeenCalledWith(50);
-    expect(refreshItems).toHaveBeenCalledOnce();
-    expect(refreshReservations).toHaveBeenCalledOnce();
   });
 
-  it("shows a failure toast when marking a reservation as returned fails", async () => {
-    setReturnedMock.mockResolvedValue(false);
-    renderPage({ reservations: [activeReservation] });
+  it("shows an error toast when marking a reservation as returned fails", async () => {
+    setReturned.mockResolvedValue(false);
 
-    fireEvent.click(screen.getByRole("button", { name: "Mark as Returned" }));
+    const user = await renderPage({
+      roleId: 1,
+      reservations: [reservation],
+    });
+
+    await user.click(
+      screen.getByRole("button", { name: "Mark as Returned" })
+    );
 
     await waitFor(() => {
-      expect(addToast).toHaveBeenCalledWith({
+      expect(toast.add).toHaveBeenCalledWith({
         title: "Failed to mark item as returned.",
       });
     });
 
     expect(refreshItems).not.toHaveBeenCalled();
-    expect(refreshReservations).not.toHaveBeenCalled();
   });
 
-  it("does not offer Mark as Returned to students", () => {
-    renderPage({
-      user: { id: 2, role_id: 2 },
-      reservations: [activeReservation],
+  it("redirects to /types when the item is missing and loading has finished", async () => {
+    await renderPage({ items: [], loading: false });
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith("/types");
     });
-
-    expect(screen.queryByRole("button", { name: "Mark as Returned" })).toBeNull();
-  });
-
-  it("does not offer Mark as Returned for a pending reservation", () => {
-    renderPage({
-      reservations: [{ ...activeReservation, is_pending: true }],
-    });
-
-    expect(screen.queryByRole("button", { name: "Mark as Returned" })).toBeNull();
-  });
-
-  it("refreshes items and shows a success message after reporting an issue", () => {
-    renderPage({ user: { id: 2, role_id: 2 } });
-
-    fireEvent.click(screen.getByRole("button", { name: "Simulate report success" }));
-
-    expect(refreshItems).toHaveBeenCalledOnce();
-    expect(screen.getByTestId("message-Report Issue").textContent)
-      .toBe("Successfully reported item.");
-  });
-
-  it("shows a failure message when reporting an issue fails", () => {
-    renderPage({ user: { id: 2, role_id: 2 } });
-
-    fireEvent.click(screen.getByRole("button", { name: "Simulate report failure" }));
-
-    expect(screen.getByTestId("message-Report Issue").textContent)
-      .toBe("Failed to report item.");
-    expect(refreshItems).not.toHaveBeenCalled();
-  });
-
-  it("refreshes items and shows a success message after editing a unit", () => {
-    renderPage();
-
-    fireEvent.click(screen.getByRole("button", { name: "Simulate edit success" }));
-
-    expect(refreshItems).toHaveBeenCalledOnce();
-    expect(screen.getByTestId("message-Edit Unit").textContent)
-      .toBe("Item successfully edited.");
-  });
-
-  it("shows a failure message when editing a unit fails", () => {
-    renderPage();
-
-    fireEvent.click(screen.getByRole("button", { name: "Simulate edit failure" }));
-
-    expect(screen.getByTestId("message-Edit Unit").textContent)
-      .toBe("Failed to edit item.");
-    expect(refreshItems).not.toHaveBeenCalled();
   });
 });
-

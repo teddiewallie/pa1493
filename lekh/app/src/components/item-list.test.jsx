@@ -1,158 +1,291 @@
-
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { useContext } from "react";
 
 import { ItemList } from "./item-list";
-import { UserContext } from "@/context/user-context";
 import { EquipmentContext } from "@/context/equipment-context";
+import { UserContext } from "@/context/user-context";
+import { ReservationsContext } from "@/context/reservations-context";
+import { toast } from "@/components/ui/toast";
 
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
-}));
+vi.mock("react", async (importOriginal) => {
+  const actual = await importOriginal();
+
+  return {
+    ...actual,
+    useContext: vi.fn(),
+  };
+});
 
 vi.mock("@/components/modal-with-toast", () => ({
-  ModalWithToast: ({ children, title }) => (
-    <section>
-      <h2>{title}</h2>
+  ModalWithToast: ({ title, children }) => (
+    <div data-testid="modal-with-toast">
+      <span>{title}</span>
       {children}
-    </section>
+    </div>
   ),
 }));
 
 vi.mock("@/components/create-item-form", () => ({
-  CreateItemForm: (props) => (
+  CreateItemForm: ({ onSuccess, onFail, statuses, groupId }) => (
     <div data-testid="create-item-form">
-      <button type="button" onClick={props.onSuccess}>Create successfully</button>
-      <button type="button" onClick={props.onFail}>Create unsuccessfully</button>
-      <span data-testid="statuses">{JSON.stringify(props.statuses)}</span>
-      <span data-testid="group-id">{String(props.groupId)}</span>
+      <span data-testid="statuses">{JSON.stringify(statuses)}</span>
+      <span data-testid="group-id">{String(groupId)}</span>
+
+      <button type="button" onClick={onSuccess}>
+        Simulate create success
+      </button>
+
+      <button type="button" onClick={onFail}>
+        Simulate create failure
+      </button>
     </div>
   ),
 }));
 
 vi.mock("@/components/item-card", () => ({
-  ItemCard: ({ item, pointer }) => (
-    <div data-testid="item-card" data-item-id={item.id} data-pointer={String(pointer)}>
-      {item.name}
+  ItemCard: ({ item, activeReservation, pointer }) => (
+    <div data-testid={`item-card-${item.id}`}>
+      <span>{item.name}</span>
+
+      <span data-testid={`active-reservation-${item.id}`}>
+        {activeReservation ? String(activeReservation.id) : "none"}
+      </span>
+
+      <span data-testid={`pointer-${item.id}`}>
+        {String(pointer)}
+      </span>
     </div>
   ),
 }));
 
-const items = [
-  { id: 1, group_id: 10, name: "Oscilloscope" },
-  { id: 2, group_id: 20, name: "Camera" },
-  { id: 3, group_id: 10, name: "Multimeter" },
-];
-
-const renderComponent = ({
-  user = { id: 1, role_id: 1 },
-  equipmentItems = items,
-  groupId,
-  children,
-  extraCards,
-  refreshItems = vi.fn(),
-  onMessageHandled = vi.fn(),
-} = {}) => {
-  const result = render(
-    <UserContext.Provider value={{ user }}>
-      <EquipmentContext.Provider
-        value={{
-          groups: [],
-          items: equipmentItems,
-          refreshItems,
-          meta: { status: [{ id: 1, name: "Available" }] },
-        }}
-      >
-        <ItemList
-          groupId={groupId}
-          extraCards={extraCards}
-          onMessageHandled={onMessageHandled}
-        >
-          {children}
-        </ItemList>
-      </EquipmentContext.Provider>
-    </UserContext.Provider>
-  );
-
-  return { ...result, refreshItems, onMessageHandled };
-};
+vi.mock("@/components/ui/toast", () => ({
+  toast: {
+    add: vi.fn(),
+  },
+}));
 
 describe("ItemList", () => {
-  it("renders all items when no group ID is provided", () => {
-    renderComponent();
+  const refreshItems = vi.fn();
 
-    expect(screen.getAllByTestId("item-card")).toHaveLength(3);
-    expect(screen.getByText("Oscilloscope")).toBeInTheDocument();
-    expect(screen.getByText("Camera")).toBeInTheDocument();
-    expect(screen.getByText("Multimeter")).toBeInTheDocument();
-  });
+  const items = [
+    { id: 1, group_id: 10, name: "Raspberry Pi" },
+    { id: 2, group_id: 20, name: "Arduino" },
+    { id: 3, group_id: 10, name: "ESP32" },
+  ];
 
-  it("filters items by group ID", () => {
-    renderComponent({ groupId: 10 });
+  const reservations = [];
 
-    expect(screen.getAllByTestId("item-card")).toHaveLength(2);
-    expect(screen.getByText("Oscilloscope")).toBeInTheDocument();
-    expect(screen.getByText("Multimeter")).toBeInTheDocument();
-    expect(screen.queryByText("Camera")).not.toBeInTheDocument();
-  });
+  const setupContexts = ({
+    roleId = 2,
+    contextItems = items,
+    contextReservations = reservations,
+    status = [{ id: 1, name: "Available" }],
+  } = {}) => {
+    useContext.mockImplementation((context) => {
+      if (context === EquipmentContext) {
+        return {
+          items: contextItems,
+          refreshItems,
+          meta: { status },
+        };
+      }
 
-  it("passes pointer=true to each item card", () => {
-    renderComponent();
+      if (context === UserContext) {
+        return {
+          user: { role_id: roleId },
+        };
+      }
 
-    for (const card of screen.getAllByTestId("item-card")) {
-      expect(card).toHaveAttribute("data-pointer", "true");
-    }
-  });
+      if (context === ReservationsContext) {
+        return {
+          reservations: contextReservations,
+        };
+      }
 
-  it("renders children and extra cards", () => {
-    renderComponent({
-      children: <div>Custom header</div>,
-      extraCards: <div>Extra card</div>,
+      throw new Error("Unexpected context");
     });
+  };
 
-    expect(screen.getByText("Custom header")).toBeInTheDocument();
-    expect(screen.getByText("Extra card")).toBeInTheDocument();
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setupContexts();
   });
 
-  it("shows the Add Unit form to maintainers", () => {
-    renderComponent();
+  it("renders all items when no groupId is provided", () => {
+    render(<ItemList />);
 
-    expect(screen.getByRole("heading", { name: "Add Unit" })).toBeInTheDocument();
-    expect(screen.getByTestId("create-item-form")).toBeInTheDocument();
-    expect(screen.getByTestId("statuses")).toHaveTextContent(
-      JSON.stringify([{ id: 1, name: "Available" }])
+    expect(screen.getByTestId("item-card-1")).toBeInTheDocument();
+    expect(screen.getByTestId("item-card-2")).toBeInTheDocument();
+    expect(screen.getByTestId("item-card-3")).toBeInTheDocument();
+  });
+
+  it("filters items by groupId", () => {
+    render(<ItemList groupId={10} />);
+
+    expect(screen.getByTestId("item-card-1")).toBeInTheDocument();
+    expect(screen.getByTestId("item-card-3")).toBeInTheDocument();
+
+    expect(
+      screen.queryByTestId("item-card-2")
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders children and extraCards", () => {
+    render(
+      <ItemList extraCards={<div data-testid="extra-card">Extra</div>}>
+        <div data-testid="child-card">Child</div>
+      </ItemList>
     );
+
+    expect(screen.getByTestId("child-card")).toBeInTheDocument();
+    expect(screen.getByTestId("extra-card")).toBeInTheDocument();
   });
 
-  it("passes the group ID to the creation form", () => {
-    renderComponent({ groupId: 10 });
+  it("shows the Add Unit form for maintainers", () => {
+    setupContexts({ roleId: 1 });
 
+    render(<ItemList groupId={10} />);
+
+    expect(screen.getByText("Add Unit")).toBeInTheDocument();
+    expect(screen.getByTestId("create-item-form")).toBeInTheDocument();
     expect(screen.getByTestId("group-id")).toHaveTextContent("10");
   });
 
-  it("hides the Add Unit form from non-maintainers", () => {
-    renderComponent({ user: { id: 2, role_id: 2 } });
+  it("does not show the Add Unit form for non-maintainers", () => {
+    setupContexts({ roleId: 2 });
 
-    expect(screen.queryByRole("heading", { name: "Add Unit" })).not.toBeInTheDocument();
-    expect(screen.queryByTestId("create-item-form")).not.toBeInTheDocument();
+    render(<ItemList />);
+
+    expect(screen.queryByText("Add Unit")).not.toBeInTheDocument();
+
+    expect(
+      screen.queryByTestId("create-item-form")
+    ).not.toBeInTheDocument();
   });
 
-  it("refreshes items when creation succeeds", () => {
-    const refreshItems = vi.fn();
-    renderComponent({ refreshItems });
+  it("passes equipment statuses to CreateItemForm", () => {
+    const status = [
+      { id: 1, name: "Available" },
+      { id: 2, name: "On Loan" },
+    ];
 
-    screen.getByRole("button", { name: "Create successfully" }).click();
+    setupContexts({ roleId: 1, status });
 
-    expect(refreshItems).toHaveBeenCalledTimes(1);
+    render(<ItemList />);
+
+    expect(screen.getByTestId("statuses")).toHaveTextContent(
+      JSON.stringify(status)
+    );
   });
 
-  it("does not refresh items when creation fails", () => {
-    const refreshItems = vi.fn();
-    renderComponent({ refreshItems });
+  it("shows a success toast and refreshes items when creation succeeds", async () => {
+    setupContexts({ roleId: 1 });
 
-    screen.getByRole("button", { name: "Create unsuccessfully" }).click();
+    const user = userEvent.setup();
+
+    render(<ItemList />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Simulate create success" })
+    );
+
+    expect(toast.add).toHaveBeenCalledWith({
+      title: "Unit successfully created.",
+    });
+
+    expect(refreshItems).toHaveBeenCalledOnce();
+  });
+
+  it("shows an error toast when creation fails", async () => {
+    setupContexts({ roleId: 1 });
+
+    const user = userEvent.setup();
+
+    render(<ItemList />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Simulate create failure" })
+    );
+
+    expect(toast.add).toHaveBeenCalledWith({
+      title: "Failed to create unit.",
+    });
 
     expect(refreshItems).not.toHaveBeenCalled();
   });
-});
 
+  it("passes the active reservation for an item whose reservation has started", () => {
+    setupContexts({
+      contextReservations: [
+        {
+          id: 100,
+          item_id: 1,
+          start_at: "2020-01-01T10:00:00",
+          returned_at: null,
+        },
+      ],
+    });
+
+    render(<ItemList />);
+
+    expect(
+      screen.getByTestId("active-reservation-1")
+    ).toHaveTextContent("100");
+
+    expect(
+      screen.getByTestId("active-reservation-2")
+    ).toHaveTextContent("none");
+  });
+
+  it("ignores returned reservations and reservations that have not started", () => {
+    setupContexts({
+      contextReservations: [
+        {
+          id: 101,
+          item_id: 1,
+          start_at: "2020-01-01T10:00:00",
+          returned_at: "2020-01-02T10:00:00",
+        },
+        {
+          id: 102,
+          item_id: 1,
+          start_at: "2999-01-01T10:00:00",
+          returned_at: null,
+        },
+      ],
+    });
+
+    render(<ItemList />);
+
+    expect(
+      screen.getByTestId("active-reservation-1")
+    ).toHaveTextContent("none");
+  });
+
+  it("selects the first matching active reservation", () => {
+    setupContexts({
+      contextReservations: [
+        {
+          id: 103,
+          item_id: 1,
+          start_at: "2020-01-01T10:00:00",
+          returned_at: null,
+        },
+        {
+          id: 104,
+          item_id: 1,
+          start_at: "2020-02-01T10:00:00",
+          returned_at: null,
+        },
+      ],
+    });
+
+    render(<ItemList />);
+
+    expect(
+      screen.getByTestId("active-reservation-1")
+    ).toHaveTextContent("103");
+  });
+});

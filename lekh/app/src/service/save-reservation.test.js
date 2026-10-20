@@ -1,151 +1,459 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+// src/actions/reservation-actions.test.js
 
-const {
-  auth,
-  reservationSchema,
-  addReservationQuery,
-  approveReservationQuery,
-  denyReservationQuery,
-} = vi.hoisted(() => ({
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+vi.mock("@/auth", () => ({
   auth: vi.fn(),
-  reservationSchema: { safeParse: vi.fn() },
+}));
+
+vi.mock("@/schema/reservation-schema", () => ({
+  reservationSchema: {
+    safeParse: vi.fn(),
+  },
+}));
+
+vi.mock("@/query/reservation-query", () => ({
   addReservationQuery: vi.fn(),
+  getReservationsQuery: vi.fn(),
   approveReservationQuery: vi.fn(),
   denyReservationQuery: vi.fn(),
 }));
 
-vi.mock("@/auth", () => ({ auth }));
-vi.mock("@/schema/reservation-schema", () => ({ reservationSchema }));
-vi.mock("@/query/reservation-query", () => ({
+import { auth } from "@/auth";
+import { reservationSchema } from "@/schema/reservation-schema";
+import {
   addReservationQuery,
+  getReservationsQuery,
   approveReservationQuery,
   denyReservationQuery,
-}));
-
+} from "@/query/reservation-query";
 import {
   addReservation,
   approveReservation,
   denyReservation,
 } from "./save-reservation";
 
-const validReservation = {
-  itemId: 42,
-  startAt: new Date("2026-10-20T10:00:00"),
-  endAt: new Date("2026-10-20T12:00:00"),
-  isPending: true,
-};
+describe("reservation actions", () => {
+  const userSession = {
+    user: {
+      id: "7",
+      role_id: 2,
+    },
+  };
 
-describe("addReservation", () => {
+  const maintainerSession = {
+    user: {
+      id: "1",
+      role_id: 1,
+    },
+  };
+
+  const validBooking = {
+    itemId: 10,
+    startAt: new Date("2099-06-15T10:00:00Z"),
+    endAt: new Date("2099-06-15T11:00:00Z"),
+    reservationType: "book",
+  };
+
+  const validBorrow = {
+    itemId: 10,
+    startAt: new Date("2099-06-15T10:00:00Z"),
+    endAt: new Date("2099-06-16T10:00:00Z"),
+    reservationType: "borrow",
+  };
+
+  const setValidReservation = (reservation) => {
+    reservationSchema.safeParse.mockReturnValue({
+      success: true,
+      data: reservation,
+    });
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
 
-    auth.mockResolvedValue({ user: { id: 7, role_id: 2 } });
-    reservationSchema.safeParse.mockReturnValue({ success: true });
+    auth.mockResolvedValue(userSession);
+    setValidReservation(validBooking);
+
+    getReservationsQuery.mockResolvedValue([]);
     addReservationQuery.mockResolvedValue(undefined);
-  });
-
-  it("adds a valid reservation for the authenticated user", async () => {
-    await expect(addReservation(validReservation)).resolves.toBe(true);
-
-    expect(reservationSchema.safeParse).toHaveBeenCalledWith(validReservation);
-    expect(addReservationQuery).toHaveBeenCalledWith(validReservation, 7);
-  });
-
-  it("returns false when validation fails", async () => {
-    reservationSchema.safeParse.mockReturnValue({ success: false });
-
-    await expect(addReservation(validReservation)).resolves.toBe(false);
-    expect(addReservationQuery).not.toHaveBeenCalled();
-  });
-
-  it("returns false when the reservation already has an ID", async () => {
-    await expect(
-      addReservation({ ...validReservation, id: 99 })
-    ).resolves.toBe(false);
-
-    expect(addReservationQuery).not.toHaveBeenCalled();
-  });
-
-  it("returns false when there is no session", async () => {
-    auth.mockResolvedValue(null);
-
-    await expect(addReservation(validReservation)).resolves.toBe(false);
-    expect(addReservationQuery).not.toHaveBeenCalled();
-  });
-
-  it("returns false when adding the reservation fails", async () => {
-    addReservationQuery.mockRejectedValue(new Error("Database error"));
-    vi.spyOn(console, "log").mockImplementation(() => {});
-
-    await expect(addReservation(validReservation)).resolves.toBe(false);
-  });
-});
-
-describe("approveReservation", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    auth.mockResolvedValue({ user: { id: 1, role_id: 1 } });
     approveReservationQuery.mockResolvedValue(undefined);
-  });
-
-  it("approves a reservation for a maintainer", async () => {
-    await expect(approveReservation(42)).resolves.toBe(true);
-    expect(approveReservationQuery).toHaveBeenCalledWith(42);
-    expect(denyReservationQuery).not.toHaveBeenCalled();
-  });
-
-  it("returns false when there is no session", async () => {
-    auth.mockResolvedValue(null);
-
-    await expect(approveReservation(42)).resolves.toBe(false);
-    expect(approveReservationQuery).not.toHaveBeenCalled();
-  });
-
-  it("returns false for a non-maintainer", async () => {
-    auth.mockResolvedValue({ user: { id: 2, role_id: 2 } });
-
-    await expect(approveReservation(42)).resolves.toBe(false);
-    expect(approveReservationQuery).not.toHaveBeenCalled();
-  });
-
-  it("returns false when the approval query fails", async () => {
-    approveReservationQuery.mockRejectedValue(new Error("Database error"));
-
-    await expect(approveReservation(42)).resolves.toBe(false);
-  });
-});
-
-describe("denyReservation", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    auth.mockResolvedValue({ user: { id: 1, role_id: 1 } });
     denyReservationQuery.mockResolvedValue(undefined);
   });
 
-  it("denies a reservation for a maintainer", async () => {
-    await expect(denyReservation(42)).resolves.toBe(true);
-    expect(denyReservationQuery).toHaveBeenCalledWith(42);
-    expect(approveReservationQuery).not.toHaveBeenCalled();
+  describe("addReservation", () => {
+    it("returns false when the user is not authenticated", async () => {
+      auth.mockResolvedValue(null);
+
+      await expect(addReservation(validBooking)).resolves.toBe(false);
+
+      expect(reservationSchema.safeParse).not.toHaveBeenCalled();
+      expect(getReservationsQuery).not.toHaveBeenCalled();
+      expect(addReservationQuery).not.toHaveBeenCalled();
+    });
+
+    it("returns false when the session has no user", async () => {
+      auth.mockResolvedValue({});
+
+      await expect(addReservation(validBooking)).resolves.toBe(false);
+    });
+
+    it("rejects a reservation that already has an ID", async () => {
+      await expect(
+        addReservation({ ...validBooking, id: 42 })
+      ).resolves.toBe(false);
+
+      expect(reservationSchema.safeParse).not.toHaveBeenCalled();
+      expect(addReservationQuery).not.toHaveBeenCalled();
+    });
+
+    it("returns false when schema validation fails", async () => {
+      reservationSchema.safeParse.mockReturnValue({
+        success: false,
+        error: { issues: [] },
+      });
+
+      await expect(addReservation(validBooking)).resolves.toBe(false);
+
+      expect(getReservationsQuery).not.toHaveBeenCalled();
+      expect(addReservationQuery).not.toHaveBeenCalled();
+    });
+
+    it("rejects an invalid session user ID", async () => {
+      auth.mockResolvedValue({
+        user: {
+          id: "invalid",
+          role_id: 2,
+        },
+      });
+      setValidReservation(validBooking);
+
+      await expect(addReservation(validBooking)).resolves.toBe(false);
+
+      expect(getReservationsQuery).not.toHaveBeenCalled();
+      expect(addReservationQuery).not.toHaveBeenCalled();
+    });
+
+    it("creates a booking with the authenticated user ID", async () => {
+      setValidReservation(validBooking);
+
+      await expect(addReservation(validBooking)).resolves.toBe(true);
+
+      expect(getReservationsQuery).toHaveBeenCalledOnce();
+      expect(addReservationQuery).toHaveBeenCalledWith(
+        {
+          ...validBooking,
+          isPending: false,
+        },
+        7
+      );
+    });
+
+    it("creates a borrow request as pending", async () => {
+      setValidReservation(validBorrow);
+
+      await expect(addReservation(validBorrow)).resolves.toBe(true);
+
+      expect(addReservationQuery).toHaveBeenCalledWith(
+        {
+          ...validBorrow,
+          isPending: true,
+        },
+        7
+      );
+    });
+
+    it("does not trust a client-supplied isPending value", async () => {
+      const reservation = {
+        ...validBooking,
+        isPending: true,
+      };
+      setValidReservation(reservation);
+
+      await expect(addReservation(reservation)).resolves.toBe(true);
+
+      expect(addReservationQuery).toHaveBeenCalledWith(
+        {
+          ...reservation,
+          isPending: false,
+        },
+        7
+      );
+    });
+
+    it("rejects a booking that starts in the past", async () => {
+      const reservation = {
+        ...validBooking,
+        startAt: new Date("2000-01-01T10:00:00Z"),
+        endAt: new Date("2000-01-01T11:00:00Z"),
+      };
+      setValidReservation(reservation);
+
+      await expect(addReservation(reservation)).resolves.toBe(false);
+
+      expect(getReservationsQuery).not.toHaveBeenCalled();
+      expect(addReservationQuery).not.toHaveBeenCalled();
+    });
+
+    it("rejects a borrow request whose Stockholm start date is in the past", async () => {
+      const reservation = {
+        ...validBorrow,
+        startAt: new Date("2000-01-01T10:00:00Z"),
+        endAt: new Date("2000-01-02T10:00:00Z"),
+      };
+      setValidReservation(reservation);
+
+      await expect(addReservation(reservation)).resolves.toBe(false);
+
+      expect(getReservationsQuery).not.toHaveBeenCalled();
+      expect(addReservationQuery).not.toHaveBeenCalled();
+    });
+
+    it("allows a borrow request starting on today's Stockholm calendar date", async () => {
+      const now = new Date();
+      const parts = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Europe/Stockholm",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).formatToParts(now);
+
+      const values = Object.fromEntries(
+        parts.map(({ type, value }) => [type, value])
+      );
+
+      const today = `${values.year}-${values.month}-${values.day}`;
+      const startAt = new Date(`${today}T12:00:00+01:00`);
+      const endAt = new Date(startAt.getTime() + 24 * 60 * 60 * 1000);
+
+      const reservation = {
+        itemId: 10,
+        startAt,
+        endAt,
+        reservationType: "borrow",
+      };
+      setValidReservation(reservation);
+
+      await expect(addReservation(reservation)).resolves.toBe(true);
+
+      expect(addReservationQuery).toHaveBeenCalledOnce();
+    });
+
+    it("rejects a reservation that conflicts with an existing reservation", async () => {
+      const reservation = {
+        ...validBooking,
+        startAt: new Date("2099-06-15T10:00:00Z"),
+        endAt: new Date("2099-06-15T12:00:00Z"),
+      };
+      setValidReservation(reservation);
+
+      getReservationsQuery.mockResolvedValue([
+        {
+          item_id: 10,
+          start_at: new Date("2099-06-15T11:00:00Z"),
+          end_at: new Date("2099-06-15T13:00:00Z"),
+          returned_at: null,
+        },
+      ]);
+
+      await expect(addReservation(reservation)).resolves.toBe(false);
+
+      expect(addReservationQuery).not.toHaveBeenCalled();
+    });
+
+    it("ignores a reservation for another item when checking conflicts", async () => {
+      setValidReservation(validBooking);
+
+      getReservationsQuery.mockResolvedValue([
+        {
+          item_id: 99,
+          start_at: new Date("2099-06-15T10:30:00Z"),
+          end_at: new Date("2099-06-15T11:30:00Z"),
+          returned_at: null,
+        },
+      ]);
+
+      await expect(addReservation(validBooking)).resolves.toBe(true);
+
+      expect(addReservationQuery).toHaveBeenCalledOnce();
+    });
+
+    it("ignores a returned reservation when checking conflicts", async () => {
+      setValidReservation(validBooking);
+
+      getReservationsQuery.mockResolvedValue([
+        {
+          item_id: 10,
+          start_at: new Date("2099-06-15T10:30:00Z"),
+          end_at: new Date("2099-06-15T11:30:00Z"),
+          returned_at: new Date("2099-06-15T12:00:00Z"),
+        },
+      ]);
+
+      await expect(addReservation(validBooking)).resolves.toBe(true);
+
+      expect(addReservationQuery).toHaveBeenCalledOnce();
+    });
+
+    it("allows reservations that only touch at an endpoint", async () => {
+      setValidReservation(validBooking);
+
+      getReservationsQuery.mockResolvedValue([
+        {
+          item_id: 10,
+          start_at: new Date("2099-06-15T09:00:00Z"),
+          end_at: new Date("2099-06-15T10:00:00Z"),
+          returned_at: null,
+        },
+      ]);
+
+      await expect(addReservation(validBooking)).resolves.toBe(true);
+
+      expect(addReservationQuery).toHaveBeenCalledOnce();
+    });
+
+    it("returns false when fetching existing reservations throws", async () => {
+      const consoleError = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+      getReservationsQuery.mockRejectedValueOnce(
+        new Error("Database error")
+      );
+
+      await expect(addReservation(validBooking)).resolves.toBe(false);
+
+      expect(addReservationQuery).not.toHaveBeenCalled();
+
+      consoleError.mockRestore();
+    });
+
+    it("returns false when adding a reservation throws", async () => {
+      const consoleError = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+      addReservationQuery.mockRejectedValueOnce(
+        new Error("Database error")
+      );
+
+      await expect(addReservation(validBooking)).resolves.toBe(false);
+
+      expect(consoleError).toHaveBeenCalled();
+
+      consoleError.mockRestore();
+    });
   });
 
-  it("returns false when there is no session", async () => {
-    auth.mockResolvedValue(null);
+  describe("approveReservation", () => {
+    it("returns false when the user is not authenticated", async () => {
+      auth.mockResolvedValue(null);
 
-    await expect(denyReservation(42)).resolves.toBe(false);
-    expect(denyReservationQuery).not.toHaveBeenCalled();
+      await expect(approveReservation(1)).resolves.toBe(false);
+
+      expect(approveReservationQuery).not.toHaveBeenCalled();
+    });
+
+    it("returns false when the user is not a maintainer", async () => {
+      auth.mockResolvedValue(userSession);
+
+      await expect(approveReservation(1)).resolves.toBe(false);
+
+      expect(approveReservationQuery).not.toHaveBeenCalled();
+    });
+
+    it.each([0, -1, 1.5, "1", NaN])(
+      "rejects invalid reservation ID %s",
+      async (id) => {
+        auth.mockResolvedValue(maintainerSession);
+
+        await expect(approveReservation(id)).resolves.toBe(false);
+
+        expect(approveReservationQuery).not.toHaveBeenCalled();
+      }
+    );
+
+    it("approves a reservation as a maintainer", async () => {
+      auth.mockResolvedValue(maintainerSession);
+
+      await expect(approveReservation(12)).resolves.toBe(true);
+
+      expect(approveReservationQuery).toHaveBeenCalledWith(12);
+      expect(denyReservationQuery).not.toHaveBeenCalled();
+    });
+
+    it("returns false when approval throws", async () => {
+      auth.mockResolvedValue(maintainerSession);
+
+      const consoleError = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+      approveReservationQuery.mockRejectedValueOnce(
+        new Error("Database error")
+      );
+
+      await expect(approveReservation(12)).resolves.toBe(false);
+
+      expect(consoleError).toHaveBeenCalled();
+
+      consoleError.mockRestore();
+    });
   });
 
-  it("returns false for a non-maintainer", async () => {
-    auth.mockResolvedValue({ user: { id: 2, role_id: 2 } });
+  describe("denyReservation", () => {
+    it("returns false when the user is not authenticated", async () => {
+      auth.mockResolvedValue(null);
 
-    await expect(denyReservation(42)).resolves.toBe(false);
-    expect(denyReservationQuery).not.toHaveBeenCalled();
-  });
+      await expect(denyReservation(1)).resolves.toBe(false);
 
-  it("returns false when the denial query fails", async () => {
-    denyReservationQuery.mockRejectedValue(new Error("Database error"));
+      expect(denyReservationQuery).not.toHaveBeenCalled();
+    });
 
-    await expect(denyReservation(42)).resolves.toBe(false);
+    it("returns false when the user is not a maintainer", async () => {
+      auth.mockResolvedValue(userSession);
+
+      await expect(denyReservation(1)).resolves.toBe(false);
+
+      expect(denyReservationQuery).not.toHaveBeenCalled();
+    });
+
+    it.each([0, -1, 1.5, "1", NaN])(
+      "rejects invalid reservation ID %s",
+      async (id) => {
+        auth.mockResolvedValue(maintainerSession);
+
+        await expect(denyReservation(id)).resolves.toBe(false);
+
+        expect(denyReservationQuery).not.toHaveBeenCalled();
+      }
+    );
+
+    it("denies a reservation as a maintainer", async () => {
+      auth.mockResolvedValue(maintainerSession);
+
+      await expect(denyReservation(12)).resolves.toBe(true);
+
+      expect(denyReservationQuery).toHaveBeenCalledWith(12);
+      expect(approveReservationQuery).not.toHaveBeenCalled();
+    });
+
+    it("returns false when denial throws", async () => {
+      auth.mockResolvedValue(maintainerSession);
+
+      const consoleError = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+      denyReservationQuery.mockRejectedValueOnce(
+        new Error("Database error")
+      );
+
+      await expect(denyReservation(12)).resolves.toBe(false);
+
+      expect(consoleError).toHaveBeenCalled();
+
+      consoleError.mockRestore();
+    });
   });
 });
-

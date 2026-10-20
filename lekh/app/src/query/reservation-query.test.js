@@ -1,14 +1,14 @@
+// src/query/reservation-query.test.js
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-const { query } = vi.hoisted(() => ({
-  query: vi.fn(),
-}));
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/lib/db", () => ({
-  default: { query },
+  default: {
+    query: vi.fn(),
+  },
 }));
 
+import pool from "@/lib/db";
 import {
   addReservationQuery,
   getReservationsQuery,
@@ -18,158 +18,267 @@ import {
   setReturnedQuery,
 } from "./reservation-query";
 
-beforeEach(() => {
-  vi.clearAllMocks();
-});
+describe("reservation-query", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.spyOn(console, "log").mockImplementation(() => {});
+  });
 
-afterEach(() => {
-  vi.restoreAllMocks();
-});
-
-describe("addReservationQuery", () => {
-  it("inserts a reservation with the supplied user ID", async () => {
-    query.mockResolvedValue({ insertId: 42 });
-
+  describe("addReservationQuery", () => {
     const reservation = {
-      startAt: "2026-10-20 09:00:00",
-      endAt: "2026-10-20 10:00:00",
-      itemId: 7,
+      itemId: 20,
+      startAt: new Date("2026-11-01T10:00:00Z"),
+      endAt: new Date("2026-11-01T12:00:00Z"),
       isPending: true,
     };
 
-    await expect(addReservationQuery(reservation, 3)).resolves.toBeUndefined();
+    it("inserts a valid reservation and returns its ID", async () => {
+      pool.query.mockResolvedValueOnce({ insertId: 123 });
 
-    expect(query).toHaveBeenCalledWith(
-      "INSERT INTO reservation (start_at, end_at, user_id, item_id, is_pending) VALUES (?, ?, ?, ?, ?)",
-      [
-        reservation.startAt,
-        reservation.endAt,
-        3,
-        reservation.itemId,
-        reservation.isPending,
-      ],
+      const result = await addReservationQuery(reservation, 5);
+
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining("INSERT INTO reservation"),
+        [
+          reservation.startAt,
+          reservation.endAt,
+          5,
+          20,
+          true,
+        ]
+      );
+
+      expect(result).toEqual({ id: 123 });
+    });
+
+    it.each([
+      ["zero user ID", 0, 20],
+      ["negative user ID", -1, 20],
+      ["zero item ID", 5, 0],
+      ["negative item ID", 5, -1],
+    ])("rejects an invalid ID (%s)", async (_, userId, itemId) => {
+      await expect(
+        addReservationQuery({ ...reservation, itemId }, userId)
+      ).rejects.toThrow("Invalid user or item ID");
+
+      expect(pool.query).not.toHaveBeenCalled();
+    });
+
+    it("rejects a non-Date startAt", async () => {
+      await expect(
+        addReservationQuery(
+          { ...reservation, startAt: "2026-11-01T10:00:00Z" },
+          5
+        )
+      ).rejects.toThrow("Invalid reservation dates");
+
+      expect(pool.query).not.toHaveBeenCalled();
+    });
+
+    it("rejects a non-Date endAt", async () => {
+      await expect(
+        addReservationQuery(
+          { ...reservation, endAt: "2026-11-01T12:00:00Z" },
+          5
+        )
+      ).rejects.toThrow("Invalid reservation dates");
+
+      expect(pool.query).not.toHaveBeenCalled();
+    });
+
+    it("rejects an invalid Date", async () => {
+      await expect(
+        addReservationQuery(
+          { ...reservation, startAt: new Date("invalid") },
+          5
+        )
+      ).rejects.toThrow("Invalid reservation dates");
+
+      expect(pool.query).not.toHaveBeenCalled();
+    });
+
+    it("rejects an end date equal to the start date", async () => {
+      const startAt = new Date("2026-11-01T10:00:00Z");
+
+      await expect(
+        addReservationQuery(
+          { ...reservation, startAt, endAt: new Date(startAt) },
+          5
+        )
+      ).rejects.toThrow("Invalid reservation dates");
+
+      expect(pool.query).not.toHaveBeenCalled();
+    });
+
+    it("rejects an end date earlier than the start date", async () => {
+      await expect(
+        addReservationQuery(
+          {
+            ...reservation,
+            startAt: new Date("2026-11-01T12:00:00Z"),
+            endAt: new Date("2026-11-01T10:00:00Z"),
+          },
+          5
+        )
+      ).rejects.toThrow("Invalid reservation dates");
+
+      expect(pool.query).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("getReservationsQuery", () => {
+    it("returns all reservations", async () => {
+      const reservations = [{ id: 1 }, { id: 2 }];
+      pool.query.mockResolvedValueOnce(reservations);
+
+      await expect(getReservationsQuery()).resolves.toEqual(reservations);
+
+      expect(pool.query).toHaveBeenCalledWith(
+        "SELECT * FROM reservation"
+      );
+    });
+  });
+
+  describe("approveReservationQuery", () => {
+    it("approves a pending reservation", async () => {
+      pool.query.mockResolvedValueOnce({ affectedRows: 1 });
+
+      await expect(approveReservationQuery(12)).resolves.toBe(true);
+
+      expect(pool.query).toHaveBeenCalledWith(
+        expect.stringContaining("UPDATE reservation"),
+        [12]
+      );
+
+      expect(pool.query.mock.calls[0][0]).toContain(
+        "SET is_pending = 0"
+      );
+      expect(pool.query.mock.calls[0][0]).toContain(
+        "WHERE id = ? AND is_pending = 1"
+      );
+    });
+
+    it.each([0, -1, null, undefined])(
+      "rejects invalid reservation ID %s",
+      async (id) => {
+        await expect(approveReservationQuery(id)).rejects.toThrow(
+          "Invalid reservation ID"
+        );
+
+        expect(pool.query).not.toHaveBeenCalled();
+      }
+    );
+
+    it("throws if no pending reservation was updated", async () => {
+      pool.query.mockResolvedValueOnce({ affectedRows: 0 });
+
+      await expect(approveReservationQuery(12)).rejects.toThrow(
+        "Reservation not found or already processed"
+      );
+    });
+  });
+
+  describe("denyReservationQuery", () => {
+    it("deletes a pending reservation", async () => {
+      pool.query.mockResolvedValueOnce({ affectedRows: 1 });
+
+      await expect(denyReservationQuery(12)).resolves.toBe(true);
+
+      expect(pool.query).toHaveBeenCalledWith(
+        "DELETE FROM reservation WHERE id = ? AND is_pending = 1",
+        [12]
+      );
+    });
+
+    it.each([0, -1, null, undefined])(
+      "rejects invalid reservation ID %s",
+      async (id) => {
+        await expect(denyReservationQuery(id)).rejects.toThrow(
+          "Invalid reservation ID"
+        );
+
+        expect(pool.query).not.toHaveBeenCalled();
+      }
+    );
+
+    it("throws if no pending reservation was deleted", async () => {
+      pool.query.mockResolvedValueOnce({ affectedRows: 0 });
+
+      await expect(denyReservationQuery(12)).rejects.toThrow(
+        "Pending reservation not found"
+      );
+    });
+  });
+
+  describe("denyReservationsByUserIdQuery", () => {
+    it("deletes all reservations for a user", async () => {
+      const result = { affectedRows: 3 };
+      pool.query.mockResolvedValueOnce(result);
+
+      await expect(denyReservationsByUserIdQuery(7)).resolves.toEqual(result);
+
+      expect(pool.query).toHaveBeenCalledWith(
+        "DELETE FROM reservation WHERE user_id = ?",
+        [7]
+      );
+    });
+
+    it.each([0, -1, null, undefined])(
+      "rejects invalid user ID %s",
+      async (userId) => {
+        await expect(
+          denyReservationsByUserIdQuery(userId)
+        ).rejects.toThrow("Invalid ID.");
+
+        expect(pool.query).not.toHaveBeenCalled();
+      }
     );
   });
 
-  it("propagates database errors", async () => {
-    query.mockRejectedValue(new Error("Database error"));
+  describe("setReturnedQuery", () => {
+    it("marks a reservation as returned and updates its end date", async () => {
+      pool.query.mockResolvedValueOnce({ affectedRows: 1 });
 
-    await expect(
-      addReservationQuery(
-        {
-          startAt: "2026-10-20 09:00:00",
-          endAt: "2026-10-20 10:00:00",
-          itemId: 7,
-          isPending: true,
-        },
-        3,
-      ),
-    ).rejects.toThrow("Database error");
+      const before = Date.now();
+
+      await expect(setReturnedQuery(15)).resolves.toBe(true);
+
+      const after = Date.now();
+
+      expect(pool.query).toHaveBeenCalledOnce();
+
+      const [sql, params] = pool.query.mock.calls[0];
+
+      expect(sql).toContain("UPDATE reservation");
+      expect(sql).toContain("SET returned_at = ?, end_at = ?");
+      expect(sql).toContain("WHERE id = ?");
+      expect(sql).toContain("returned_at IS NULL");
+      expect(sql).toContain("is_pending = 0");
+
+      expect(params).toHaveLength(3);
+      expect(params[0]).toBeInstanceOf(Date);
+      expect(params[1]).toBe(params[0]);
+      expect(params[2]).toBe(15);
+
+      expect(params[0].getTime()).toBeGreaterThanOrEqual(before);
+      expect(params[0].getTime()).toBeLessThanOrEqual(after);
+    });
+
+    it.each([0, -1, null, undefined])(
+      "rejects invalid reservation ID %s",
+      async (id) => {
+        await expect(setReturnedQuery(id)).rejects.toThrow("Invalid ID.");
+
+        expect(pool.query).not.toHaveBeenCalled();
+      }
+    );
+
+    it("throws if the reservation cannot be marked as returned", async () => {
+      pool.query.mockResolvedValueOnce({ affectedRows: 0 });
+
+      await expect(setReturnedQuery(15)).rejects.toThrow(
+        "Reservation not found, pending, or already returned"
+      );
+    });
   });
 });
-
-describe("getReservationsQuery", () => {
-  it("returns all reservations", async () => {
-    const reservations = [
-      { id: 1, user_id: 3, item_id: 7 },
-      { id: 2, user_id: 4, item_id: 8 },
-    ];
-
-    query.mockResolvedValue(reservations);
-
-    await expect(getReservationsQuery()).resolves.toEqual(reservations);
-    expect(query).toHaveBeenCalledWith("SELECT * FROM reservation");
-  });
-
-  it("propagates database errors", async () => {
-    query.mockRejectedValue(new Error("Database error"));
-
-    await expect(getReservationsQuery()).rejects.toThrow("Database error");
-  });
-});
-
-describe("approveReservationQuery", () => {
-  it("sets the reservation's pending status to zero", async () => {
-    query.mockResolvedValue({ affectedRows: 1 });
-
-    await expect(approveReservationQuery(42)).resolves.toBeUndefined();
-
-    expect(query).toHaveBeenCalledWith(
-      "UPDATE reservation SET is_pending=? WHERE id=?",
-      [0, 42],
-    );
-  });
-
-  it("propagates database errors", async () => {
-    query.mockRejectedValue(new Error("Database error"));
-
-    await expect(approveReservationQuery(42)).rejects.toThrow(
-      "Database error",
-    );
-  });
-});
-
-describe("denyReservationQuery", () => {
-  it("deletes a reservation by ID", async () => {
-    query.mockResolvedValue({ affectedRows: 1 });
-
-    await expect(denyReservationQuery(42)).resolves.toBeUndefined();
-
-    expect(query).toHaveBeenCalledWith(
-      "DELETE FROM reservation WHERE id=?",
-      [42],
-    );
-  });
-
-  it("propagates database errors", async () => {
-    query.mockRejectedValue(new Error("Database error"));
-
-    await expect(denyReservationQuery(42)).rejects.toThrow(
-      "Database error",
-    );
-  });
-});
-
-describe("denyReservationsByUserIdQuery", () => {
-  it("deletes all reservations belonging to a user", async () => {
-    const result = { affectedRows: 2 };
-    query.mockResolvedValue(result);
-
-    await expect(denyReservationsByUserIdQuery(3)).resolves.toEqual(result);
-
-    expect(query).toHaveBeenCalledWith(
-      "DELETE FROM reservation WHERE user_id=?",
-      [3],
-    );
-  });
-
-  it("propagates database errors", async () => {
-    query.mockRejectedValue(new Error("Database error"));
-
-    await expect(denyReservationsByUserIdQuery(3)).rejects.toThrow(
-      "Database error",
-    );
-  });
-});
-
-describe("setReturnedQuery", () => {
-  it("sets returned_at and end_at to the current time", async () => {
-    const fixedDate = new Date("2026-10-19T12:00:00.000Z");
-    vi.setSystemTime(fixedDate);
-    query.mockResolvedValue({ affectedRows: 1 });
-
-    await expect(setReturnedQuery(42)).resolves.toBeUndefined();
-
-    expect(query).toHaveBeenCalledWith(
-      expect.stringContaining("SET returned_at=?, end_at=?"),
-      [fixedDate, fixedDate, 42],
-    );
-  });
-
-  it("propagates database errors", async () => {
-    query.mockRejectedValue(new Error("Database error"));
-
-    await expect(setReturnedQuery(42)).rejects.toThrow("Database error");
-  });
-});
-

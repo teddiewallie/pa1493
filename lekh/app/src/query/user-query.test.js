@@ -1,19 +1,21 @@
+// src/query/user-query.test.js
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-const { query, hash } = vi.hoisted(() => ({
-  query: vi.fn(),
-  hash: vi.fn(),
-}));
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("@/lib/db", () => ({
-  default: { query },
+  default: {
+    query: vi.fn(),
+  },
 }));
 
 vi.mock("bcrypt", () => ({
-  default: { hash },
+  default: {
+    hash: vi.fn(),
+  },
 }));
 
+import pool from "@/lib/db";
+import bcrypt from "bcrypt";
 import {
   getAllUsersQuery,
   getUsersByEmailQuery,
@@ -23,296 +25,338 @@ import {
   deleteUserQuery,
 } from "./user-query";
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  hash.mockResolvedValue("hashed-password");
-});
+describe("user-query", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
-afterEach(() => {
-  vi.restoreAllMocks();
-});
+  describe("getUsersByEmailQuery", () => {
+    it("queries for a non-deleted user by email", async () => {
+      const users = [{ id: 1, email: "user@example.com" }];
+      pool.query.mockResolvedValueOnce(users);
 
-describe("getUsersByEmailQuery", () => {
-  it("returns matching non-deleted users with password hashes", async () => {
-    const users = [
-      {
-        id: 1,
+      await expect(
+        getUsersByEmailQuery("user@example.com")
+      ).resolves.toEqual(users);
+
+      expect(pool.query).toHaveBeenCalledWith(
+        "SELECT id, name, email, password, role_id FROM user WHERE email=? AND deleted=FALSE",
+        ["user@example.com"]
+      );
+    });
+  });
+
+  describe("getUsersByIdQuery", () => {
+    it("queries for a non-deleted user by ID", async () => {
+      const users = [{ id: 7, name: "Test User" }];
+      pool.query.mockResolvedValueOnce(users);
+
+      await expect(getUsersByIdQuery(7)).resolves.toEqual(users);
+
+      expect(pool.query).toHaveBeenCalledWith(
+        "SELECT id, name, email, role_id FROM user WHERE id=? AND deleted=FALSE",
+        [7]
+      );
+    });
+  });
+
+  describe("getAllUsersQuery", () => {
+    it("returns non-deleted users without their passwords", async () => {
+      const users = [
+        { id: 1, name: "Admin", role_id: 1 },
+        { id: 2, name: "Student", role_id: 2 },
+      ];
+      pool.query.mockResolvedValueOnce(users);
+
+      await expect(getAllUsersQuery()).resolves.toEqual(users);
+
+      expect(pool.query).toHaveBeenCalledWith(
+        "SELECT id, name, email, deleted, role_id FROM user WHERE deleted=FALSE"
+      );
+    });
+  });
+
+  describe("addUserQuery", () => {
+    it("hashes the password and inserts a regular user", async () => {
+      bcrypt.hash.mockResolvedValueOnce("hashed-password");
+      pool.query.mockResolvedValueOnce({ insertId: 10 });
+
+      await addUserQuery({
         name: "Test User",
-        email: "test@example.com",
-        password: "hashed-password",
-        role_id: 2,
-      },
-    ];
-    query.mockResolvedValue(users);
-
-    await expect(getUsersByEmailQuery("test@example.com")).resolves.toEqual(users);
-
-    expect(query).toHaveBeenCalledWith(
-      "SELECT id, name, email, password, role_id FROM user WHERE email=? AND deleted=FALSE",
-      ["test@example.com"],
-    );
-  });
-
-  it("propagates database errors", async () => {
-    query.mockRejectedValue(new Error("Database error"));
-
-    await expect(getUsersByEmailQuery("test@example.com")).rejects.toThrow(
-      "Database error",
-    );
-  });
-});
-
-describe("getUsersByIdQuery", () => {
-  it("returns the matching non-deleted user without the password hash", async () => {
-    const users = [
-      { id: 7, name: "Test User", email: "test@example.com", role_id: 2 },
-    ];
-    query.mockResolvedValue(users);
-
-    await expect(getUsersByIdQuery(7)).resolves.toEqual(users);
-
-    expect(query).toHaveBeenCalledWith(
-      "SELECT id, name, email, role_id FROM user WHERE id=? AND deleted=FALSE",
-      [7],
-    );
-  });
-
-  it("propagates database errors", async () => {
-    query.mockRejectedValue(new Error("Database error"));
-
-    await expect(getUsersByIdQuery(7)).rejects.toThrow("Database error");
-  });
-});
-
-describe("getAllUsersQuery", () => {
-  it("returns all non-deleted users without password hashes", async () => {
-    const users = [
-      { id: 1, name: "Maintainer", email: "admin@example.com", deleted: 0, role_id: 1 },
-      { id: 2, name: "Student", email: "student@example.com", deleted: 0, role_id: 2 },
-    ];
-    query.mockResolvedValue(users);
-
-    await expect(getAllUsersQuery()).resolves.toEqual(users);
-
-    expect(query).toHaveBeenCalledWith(
-      "SELECT id, name, email, deleted, role_id FROM user WHERE deleted=FALSE",
-    );
-  });
-
-  it("propagates database errors", async () => {
-    query.mockRejectedValue(new Error("Database error"));
-
-    await expect(getAllUsersQuery()).rejects.toThrow("Database error");
-  });
-});
-
-describe("addUserQuery", () => {
-  it("hashes the password and inserts a regular user", async () => {
-    query.mockResolvedValue({ insertId: 42 });
-
-    await expect(
-      addUserQuery({
-        name: "Test User",
-        email: "test@example.com",
-        password: "plain-password",
+        email: "user@example.com",
+        password: "secret123",
         maintainer: false,
-      }),
-    ).resolves.toBeUndefined();
+      });
 
-    expect(hash).toHaveBeenCalledWith("plain-password", 12);
-    expect(query).toHaveBeenCalledWith(
-      "INSERT INTO user (name, email, password, role_id) VALUES (?, ?, ?, ?)",
-      ["Test User", "test@example.com", "hashed-password", 2],
-    );
-  });
-
-  it("assigns role 1 to a maintainer", async () => {
-    query.mockResolvedValue({ insertId: 42 });
-
-    await addUserQuery({
-      name: "Maintainer",
-      email: "admin@example.com",
-      password: "plain-password",
-      maintainer: true,
+      expect(bcrypt.hash).toHaveBeenCalledWith("secret123", 12);
+      expect(pool.query).toHaveBeenCalledWith(
+        "INSERT INTO user (name, email, password, role_id) VALUES (?, ?, ?, ?)",
+        ["Test User", "user@example.com", "hashed-password", 2]
+      );
     });
 
-    expect(query).toHaveBeenCalledWith(
-      "INSERT INTO user (name, email, password, role_id) VALUES (?, ?, ?, ?)",
-      ["Maintainer", "admin@example.com", "hashed-password", 1],
-    );
+    it("assigns role 1 to a maintainer", async () => {
+      bcrypt.hash.mockResolvedValueOnce("hashed-password");
+      pool.query.mockResolvedValueOnce({ insertId: 11 });
+
+      await addUserQuery({
+        name: "Maintainer",
+        email: "maintainer@example.com",
+        password: "secret456",
+        maintainer: true,
+      });
+
+      expect(bcrypt.hash).toHaveBeenCalledWith("secret456", 12);
+      expect(pool.query).toHaveBeenCalledWith(
+        "INSERT INTO user (name, email, password, role_id) VALUES (?, ?, ?, ?)",
+        ["Maintainer", "maintainer@example.com", "hashed-password", 1]
+      );
+    });
   });
 
-  it("propagates password hashing errors without inserting a user", async () => {
-    hash.mockRejectedValue(new Error("Hashing failed"));
+  describe("updateUserQuery", () => {
+    const userData = {
+      id: 7,
+      name: "Updated User",
+      email: "updated@example.com",
+      maintainer: false,
+      password: "",
+    };
 
-    await expect(
-      addUserQuery({
-        name: "Test User",
-        email: "test@example.com",
-        password: "plain-password",
-        maintainer: false,
-      }),
-    ).rejects.toThrow("Hashing failed");
+    it("updates name and email without changing the password", async () => {
+      pool.query
+        .mockResolvedValueOnce([{ id: 7, role_id: 2 }])
+        .mockResolvedValueOnce({ affectedRows: 1 });
 
-    expect(query).not.toHaveBeenCalled();
+      await expect(updateUserQuery(userData, false)).resolves.toBe(true);
+
+      expect(bcrypt.hash).not.toHaveBeenCalled();
+
+      expect(pool.query).toHaveBeenNthCalledWith(
+        1,
+        "SELECT id, role_id FROM user WHERE id=? AND deleted=FALSE",
+        [7]
+      );
+
+      expect(pool.query).toHaveBeenNthCalledWith(
+        2,
+        "UPDATE user SET name=?, email=?, role_id=? WHERE id=?",
+        ["Updated User", "updated@example.com", 2, 7]
+      );
+    });
+
+    it("promotes a user to maintainer when an admin requests it", async () => {
+      pool.query
+        .mockResolvedValueOnce([{ id: 7, role_id: 2 }])
+        .mockResolvedValueOnce({ affectedRows: 1 });
+
+      await updateUserQuery(
+        { ...userData, maintainer: true },
+        true
+      );
+
+      expect(pool.query).toHaveBeenNthCalledWith(
+        2,
+        "UPDATE user SET name=?, email=?, role_id=? WHERE id=?",
+        ["Updated User", "updated@example.com", 1, 7]
+      );
+    });
+
+    it("does not promote a user when the requester is not an admin", async () => {
+      pool.query
+        .mockResolvedValueOnce([{ id: 7, role_id: 2 }])
+        .mockResolvedValueOnce({ affectedRows: 1 });
+
+      await updateUserQuery(
+        { ...userData, maintainer: true },
+        false
+      );
+
+      expect(pool.query).toHaveBeenNthCalledWith(
+        2,
+        "UPDATE user SET name=?, email=?, role_id=? WHERE id=?",
+        ["Updated User", "updated@example.com", 2, 7]
+      );
+    });
+
+    it("allows demotion when more than one maintainer exists", async () => {
+      pool.query
+        .mockResolvedValueOnce([{ id: 7, role_id: 1 }])
+        .mockResolvedValueOnce([{ id: 1 }, { id: 7 }])
+        .mockResolvedValueOnce({ affectedRows: 1 });
+
+      await updateUserQuery(userData, false);
+
+      expect(pool.query).toHaveBeenNthCalledWith(
+        1,
+        "SELECT id, role_id FROM user WHERE id=? AND deleted=FALSE",
+        [7]
+      );
+
+      expect(pool.query).toHaveBeenNthCalledWith(
+        2,
+        "SELECT id FROM user WHERE role_id=1 AND deleted=0"
+      );
+
+      expect(pool.query).toHaveBeenNthCalledWith(
+        3,
+        "UPDATE user SET name=?, email=?, role_id=? WHERE id=?",
+        ["Updated User", "updated@example.com", 2, 7]
+      );
+    });
+
+    it("prevents demotion when only one maintainer exists", async () => {
+      pool.query
+        .mockResolvedValueOnce([{ id: 7, role_id: 1 }])
+        .mockResolvedValueOnce([{ id: 7 }]);
+
+      await expect(
+        updateUserQuery(userData, false)
+      ).rejects.toThrow("Can't demote last elevated user.");
+
+      expect(pool.query).toHaveBeenCalledTimes(2);
+    });
+
+    it("hashes and updates a new password", async () => {
+      bcrypt.hash.mockResolvedValueOnce("new-hashed-password");
+
+      pool.query
+        .mockResolvedValueOnce([{ id: 7, role_id: 2 }])
+        .mockResolvedValueOnce({ affectedRows: 1 });
+
+      await updateUserQuery(
+        { ...userData, password: "new-secret" },
+        false
+      );
+
+      expect(bcrypt.hash).toHaveBeenCalledWith("new-secret", 12);
+
+      expect(pool.query).toHaveBeenNthCalledWith(
+        2,
+        "UPDATE user SET name=?, email=?, password=?, role_id=? WHERE id=?",
+        [
+          "Updated User",
+          "updated@example.com",
+          "new-hashed-password",
+          2,
+          7,
+        ]
+      );
+    });
+
+    it("does not hash an empty password", async () => {
+      pool.query
+        .mockResolvedValueOnce([{ id: 7, role_id: 2 }])
+        .mockResolvedValueOnce({ affectedRows: 1 });
+
+      await updateUserQuery(
+        { ...userData, password: "" },
+        false
+      );
+
+      expect(bcrypt.hash).not.toHaveBeenCalled();
+
+      const [sql] = pool.query.mock.calls[1];
+      expect(sql).not.toContain("password=?");
+    });
+
+    it("throws when the user to update does not exist", async () => {
+      pool.query.mockResolvedValueOnce([]);
+
+      await expect(
+        updateUserQuery(userData, false)
+      ).rejects.toThrow("User not found.");
+
+      expect(pool.query).toHaveBeenCalledOnce();
+    });
   });
 
-  it("propagates database errors", async () => {
-    query.mockRejectedValue(new Error("Database error"));
+  describe("deleteUserQuery", () => {
+    it("soft-deletes a user when multiple maintainers exist", async () => {
+      pool.query
+        .mockResolvedValueOnce([{ id: 1 }, { id: 2 }])
+        .mockResolvedValueOnce([{ id: 7 }])
+        .mockResolvedValueOnce({ affectedRows: 1 });
 
-    await expect(
-      addUserQuery({
-        name: "Test User",
-        email: "test@example.com",
-        password: "plain-password",
-        maintainer: false,
-      }),
-    ).rejects.toThrow("Database error");
+      await deleteUserQuery(7);
+
+      expect(pool.query).toHaveBeenNthCalledWith(
+        1,
+        "SELECT id FROM user WHERE role_id=1 AND deleted=0"
+      );
+
+      expect(pool.query).toHaveBeenNthCalledWith(
+        2,
+        "SELECT id FROM user WHERE id=? AND deleted=FALSE",
+        [7]
+      );
+
+      expect(pool.query).toHaveBeenNthCalledWith(
+        3,
+        "UPDATE user SET deleted=? WHERE id=?",
+        [1, 7]
+      );
+    });
+
+    it("throws when attempting to delete the last maintainer", async () => {
+      pool.query.mockResolvedValueOnce([{ id: 1 }]);
+
+      await expect(deleteUserQuery(1)).rejects.toThrow(
+        "Can't delete last elevated user."
+      );
+
+      expect(pool.query).toHaveBeenCalledOnce();
+    });
+
+    it("allows deletion when there are no maintainers", async () => {
+      pool.query
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([{ id: 7 }])
+        .mockResolvedValueOnce({ affectedRows: 1 });
+
+      await deleteUserQuery(7);
+
+      expect(pool.query).toHaveBeenNthCalledWith(
+        1,
+        "SELECT id FROM user WHERE role_id=1 AND deleted=0"
+      );
+
+      expect(pool.query).toHaveBeenNthCalledWith(
+        2,
+        "SELECT id FROM user WHERE id=? AND deleted=FALSE",
+        [7]
+      );
+
+      expect(pool.query).toHaveBeenNthCalledWith(
+        3,
+        "UPDATE user SET deleted=? WHERE id=?",
+        [1, 7]
+      );
+    });
+
+    it("throws when the user to delete does not exist", async () => {
+      pool.query
+        .mockResolvedValueOnce([{ id: 1 }, { id: 2 }])
+        .mockResolvedValueOnce([]);
+
+      await expect(deleteUserQuery(7)).rejects.toThrow("User not found.");
+
+      expect(pool.query).toHaveBeenCalledTimes(2);
+    });
+
+    it("does not prevent deleting a regular user when only one maintainer exists", async () => {
+      pool.query
+        .mockResolvedValueOnce([{ id: 1 }])
+        .mockResolvedValueOnce([{ id: 7 }])
+        .mockResolvedValueOnce({ affectedRows: 1 });
+
+      await deleteUserQuery(7);
+
+      expect(pool.query).toHaveBeenNthCalledWith(
+        3,
+        "UPDATE user SET deleted=? WHERE id=?",
+        [1, 7]
+      );
+    });
   });
 });
-
-describe("updateUserQuery", () => {
-  const data = {
-    id: 7,
-    name: "Updated User",
-    email: "updated@example.com",
-    maintainer: false,
-  };
-
-  it("updates user details without changing the role for a non-admin", async () => {
-    query.mockResolvedValue({ affectedRows: 1 });
-
-    await expect(updateUserQuery(data, false)).resolves.toBe(true);
-
-    expect(query).toHaveBeenCalledWith(
-      "UPDATE user SET name=?, email=?, role_id=? WHERE id=?",
-      ["Updated User", "updated@example.com", 2, 7],
-    );
-    expect(hash).not.toHaveBeenCalled();
-  });
-
-  it("allows an admin to assign the maintainer role", async () => {
-    query.mockResolvedValue({ affectedRows: 1 });
-
-    await updateUserQuery({ ...data, maintainer: true }, true);
-
-    expect(query).toHaveBeenCalledWith(
-      "UPDATE user SET name=?, email=?, role_id=? WHERE id=?",
-      ["Updated User", "updated@example.com", 1, 7],
-    );
-  });
-
-  it("does not allow a non-admin to assign the maintainer role", async () => {
-    query.mockResolvedValue({ affectedRows: 1 });
-
-    await updateUserQuery({ ...data, maintainer: true }, false);
-
-    expect(query).toHaveBeenCalledWith(
-      "UPDATE user SET name=?, email=?, role_id=? WHERE id=?",
-      ["Updated User", "updated@example.com", 2, 7],
-    );
-  });
-
-  it("hashes and updates a supplied password", async () => {
-    query.mockResolvedValue({ affectedRows: 1 });
-
-    await updateUserQuery({ ...data, password: "new-password" }, false);
-
-    expect(hash).toHaveBeenCalledWith("new-password", 12);
-    expect(query).toHaveBeenCalledWith(
-      "UPDATE user SET name=?, email=?, password=?, role_id=? WHERE id=?",
-      ["Updated User", "updated@example.com", "hashed-password", 2, 7],
-    );
-  });
-
-  it("does not change the password when it is empty", async () => {
-    query.mockResolvedValue({ affectedRows: 1 });
-
-    await updateUserQuery({ ...data, password: "" }, false);
-
-    expect(hash).not.toHaveBeenCalled();
-    expect(query).toHaveBeenCalledWith(
-      "UPDATE user SET name=?, email=?, role_id=? WHERE id=?",
-      ["Updated User", "updated@example.com", 2, 7],
-    );
-  });
-
-  it("propagates password hashing errors without updating the user", async () => {
-    hash.mockRejectedValue(new Error("Hashing failed"));
-
-    await expect(
-      updateUserQuery({ ...data, password: "new-password" }, false),
-    ).rejects.toThrow("Hashing failed");
-
-    expect(query).not.toHaveBeenCalled();
-  });
-
-  it("propagates database errors", async () => {
-    query.mockRejectedValue(new Error("Database error"));
-
-    await expect(updateUserQuery(data, false)).rejects.toThrow(
-      "Database error",
-    );
-  });
-});
-
-describe("deleteUserQuery", () => {
-  it("soft-deletes a user when multiple elevated users exist", async () => {
-    query
-      .mockResolvedValueOnce([{ id: 1 }, { id: 2 }])
-      .mockResolvedValueOnce({ affectedRows: 1 });
-
-    await expect(deleteUserQuery(7)).resolves.toBeUndefined();
-
-    expect(query).toHaveBeenNthCalledWith(
-      1,
-      "SELECT id FROM user WHERE role_id=1",
-    );
-    expect(query).toHaveBeenNthCalledWith(
-      2,
-      "UPDATE user SET deleted=? WHERE id=?",
-      [1, 7],
-    );
-  });
-
-  it("soft-deletes a user when there are no elevated users", async () => {
-    query
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce({ affectedRows: 1 });
-
-    await expect(deleteUserQuery(7)).resolves.toBeUndefined();
-
-    expect(query).toHaveBeenCalledTimes(2);
-    expect(query).toHaveBeenLastCalledWith(
-      "UPDATE user SET deleted=? WHERE id=?",
-      [1, 7],
-    );
-  });
-
-  it("rejects deletion when exactly one elevated user exists", async () => {
-    query.mockResolvedValueOnce([{ id: 1 }]);
-
-    await expect(deleteUserQuery(7)).rejects.toThrow(
-      "Can't delete last elevated user.",
-    );
-
-    expect(query).toHaveBeenCalledTimes(1);
-  });
-
-  it("propagates errors when checking elevated users", async () => {
-    query.mockRejectedValue(new Error("Database error"));
-
-    await expect(deleteUserQuery(7)).rejects.toThrow("Database error");
-
-    expect(query).toHaveBeenCalledTimes(1);
-  });
-
-  it("propagates errors when soft-deleting the user", async () => {
-    query
-      .mockResolvedValueOnce([{ id: 1 }, { id: 2 }])
-      .mockRejectedValueOnce(new Error("Database error"));
-
-    await expect(deleteUserQuery(7)).rejects.toThrow("Database error");
-  });
-});
-
