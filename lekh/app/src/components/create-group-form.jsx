@@ -76,15 +76,23 @@ const CreateGroupForm = ({ onSuccess, onFail, onDeleteSuccess, onDeleteFail, gro
           </Field>
 
           <div className="grid grid-cols-2 gap-6">
-            <Button variant="destructive" type="button" onClick={async () => {
-              const result = await deleteGroup(group?.id);
+            {group?.id !== undefined && group.id !== 1 ? (
+              <Button
+                variant="destructive"
+                type="button"
+                onClick={async () => {
+                  const result = await deleteGroup(group.id);
 
-              if (result) {
-                onDeleteSuccess();
-              } else {
-                onDeleteFail();
-              }
-            }}>Delete Type</Button>
+                  if (result) {
+                    onDeleteSuccess();
+                  } else {
+                    onDeleteFail();
+                  }
+                }}
+              >
+                Delete Type
+              </Button>
+            ) : (<div />)}
             <Button className="flex" type="submit">
               Save Type
             </Button>
