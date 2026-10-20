@@ -15,10 +15,7 @@ const Profile = ({ user, refresh, canDelete, onDelete }) => {
             canDelete={canDelete}
             onSuccess={() => {
               toast.add({ title: "User successfully edited." });
-
-              if (user.role_id == 1) {
-                refresh();
-              }
+              refresh();
             }}
             onFail={() => {
               toast.add({ title: "Failed to edit user." });

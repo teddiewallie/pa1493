@@ -9,6 +9,21 @@ import {
   denyReservationQuery,
 } from "@/query/reservation-query";
 
+const getStockholmDateKey = (date) => {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Stockholm",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  const values = Object.fromEntries(
+    parts.map(({ type, value }) => [type, value])
+  );
+
+  return `${values.year}-${values.month}-${values.day}`;
+};
+
 const addReservation = async (reservation) => {
   const session = await auth();
 
@@ -24,8 +39,16 @@ const addReservation = async (reservation) => {
   if (!Number.isInteger(userId) || userId <= 0) return false;
 
   try {
-    // Reject reservations that start in the past.
-    if (data.startAt <= new Date()) return false;
+    if (data.reservationType === "borrow") {
+      // Borrow requests use calendar dates, not timestamps.
+      const startDate = getStockholmDateKey(data.startAt);
+      const today = getStockholmDateKey(new Date());
+
+      if (startDate < today) return false;
+    } else {
+      // Bookings must start in the future.
+      if (data.startAt <= new Date()) return false;
+    }
 
     // Check for overlapping reservations on this item.
     const reservations = await getReservationsQuery();
@@ -49,7 +72,7 @@ const addReservation = async (reservation) => {
     await addReservationQuery(
       {
         ...data,
-        isPending: true,
+        isPending: data.reservationType === "borrow",
       },
       userId,
     );

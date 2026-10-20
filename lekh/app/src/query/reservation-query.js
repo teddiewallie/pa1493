@@ -75,7 +75,7 @@ const denyReservationQuery = async (reservationId) => {
 
 const denyReservationsByUserIdQuery = async (userId) => {
   if (!isValidId(userId)) {
-    throw new Error("Invalid user ID");
+    return true;
   }
 
   return await pool.query(
@@ -86,7 +86,7 @@ const denyReservationsByUserIdQuery = async (userId) => {
 
 const setReturnedQuery = async (id) => {
   if (!isValidId(id)) {
-    throw new Error("Invalid reservation ID");
+    return true;
   }
 
   const returnedAt = new Date();

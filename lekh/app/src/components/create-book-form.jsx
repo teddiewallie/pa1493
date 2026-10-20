@@ -3,19 +3,20 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { slots } from "@/slots";
-import { setHours, setMinutes, addDays } from "date-fns";
+import { setHours, setMinutes, addDays, isSameDay } from "date-fns";
 
-import {
-  Field,
-  FieldLabel,
-} from "@/components/ui/field";
-
+import { Field, FieldLabel } from "@/components/ui/field";
 import {
   RadioGroup,
   RadioGroupItem,
 } from "@/components/ui/radio-group";
 
-const CreateBookForm = ({ item, callback, bookings }) => {
+const CreateBookForm = ({
+  item,
+  callback,
+  bookings,
+  borrowings,
+}) => {
   const [selectedSlot, setSelectedSlot] = useState(null);
 
   const now = new Date();
@@ -35,7 +36,6 @@ const CreateBookForm = ({ item, callback, bookings }) => {
       endMinutes
     );
 
-    // Support slots that cross midnight.
     if (endAt <= startAt) {
       endAt = addDays(endAt, 1);
     }
@@ -50,8 +50,10 @@ const CreateBookForm = ({ item, callback, bookings }) => {
 
     const { startAt, endAt } = getSlotTimes(selectedSlot);
 
-    // Recheck at submission time in case the selected slot has expired.
-    if (startAt <= new Date()) {
+    if (
+      startAt <= new Date() ||
+      borrowings.some((date) => isSameDay(date, startAt))
+    ) {
       setSelectedSlot(null);
       return;
     }
@@ -67,10 +69,7 @@ const CreateBookForm = ({ item, callback, bookings }) => {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex w-full flex-row"
-    >
+    <form onSubmit={handleSubmit} className="flex w-full flex-row">
       <div className="min-w-0 flex-1">
         <div className="overflow-hidden border border-r-0">
           <RadioGroup
@@ -82,8 +81,11 @@ const CreateBookForm = ({ item, callback, bookings }) => {
               const selected = selectedSlot === slot;
               const booked = bookings.includes(slot);
               const { startAt } = getSlotTimes(slot);
+              const borrowed = borrowings.some((date) =>
+                isSameDay(date, startAt)
+              );
               const expired = startAt <= now;
-              const disabled = booked || expired;
+              const disabled = booked || borrowed || expired;
 
               return (
                 <Field key={slot}>

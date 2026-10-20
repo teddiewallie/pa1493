@@ -60,6 +60,13 @@ const Page = ({ params }) => {
       new Date(reservation.start_at) <= new Date()
   );
 
+  console.log({
+    role_id: user.role_id,
+    itemId: item?.id,
+    itemReservationIds: itemReservations.map((r) => r.id),
+    activeReservation,
+  });
+
   const isNotPending = !Boolean(activeReservation?.is_pending);
 
   return (
@@ -110,24 +117,26 @@ const Page = ({ params }) => {
           </ModalWithToast>
         )}
 
-        {user.role_id == 1 && activeReservation && isNotPending && (
-          <Button
-            onClick={async () => {
-              const result = await setReturned(activeReservation.id);
+        {user.role_id == 1 &&
+          activeReservation &&
+          !activeReservation.is_pending && (
+            <Button
+              onClick={async () => {
+                const result = await setReturned(activeReservation.id);
 
-              if (result) {
-                toast.add({ title: "Item marked as returned." });
-                refreshItems();
-                refreshReservations();
-              } else {
-                toast.add({ title: "Failed to mark item as returned." });
-              }
-            }}
-            variant="outline"
-          >
-            Mark as Returned
-          </Button>
-        )}
+                if (result) {
+                  toast.add({ title: "Item marked as returned." });
+                  refreshItems();
+                  refreshReservations();
+                } else {
+                  toast.add({ title: "Failed to mark item as returned." });
+                }
+              }}
+              variant="outline"
+            >
+              Mark as Returned
+            </Button>
+          )}
       </div>
 
       <div className="container px-10 md:mx-auto grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 my-4">

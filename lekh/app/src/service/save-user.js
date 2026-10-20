@@ -20,7 +20,6 @@ const saveUser = async (data) => {
     return false;
   }
 
-  
   if (session.user.id !== data.id && session.user.role_id > 1) {
     return false;
   }
