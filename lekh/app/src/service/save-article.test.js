@@ -1,110 +1,317 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+// src/actions/save-article.test.js
 
-const { auth, addArticleQuery, updateArticleQuery } = vi.hoisted(() => ({
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+vi.mock("@/auth", () => ({
   auth: vi.fn(),
+}));
+
+vi.mock("@/query/article-query", () => ({
   addArticleQuery: vi.fn(),
   updateArticleQuery: vi.fn(),
+  getArticleByIdQuery: vi.fn(),
+  getArticlesByIdAndUserIdQuery: vi.fn(),
 }));
 
-vi.mock("@/auth", () => ({ auth }));
-vi.mock("@/query/article-query", () => ({
+vi.mock("@/schema/article-schema", () => ({
+  createArticleSchema: vi.fn(),
+}));
+
+import { auth } from "@/auth";
+import {
   addArticleQuery,
   updateArticleQuery,
-}));
-
+  getArticleByIdQuery,
+  getArticlesByIdAndUserIdQuery,
+} from "@/query/article-query";
+import { createArticleSchema } from "@/schema/article-schema";
 import { saveArticle } from "./save-article";
 
-const article = {
-  title: "Test article",
-  content: "Article content",
-  articleType: 3,
-  itemId: null,
-};
-
 describe("saveArticle", () => {
+  const validArticle = {
+    id: undefined,
+    title: "Test article",
+    content: "Article content",
+    typeId: 3,
+    itemId: null,
+  };
+
+  const validSession = {
+    user: {
+      id: "7",
+      role_id: 2,
+    },
+  };
+
+  const mockValidSchema = (data = validArticle) => {
+    createArticleSchema.mockReturnValue({
+      safeParse: vi.fn().mockReturnValue({
+        success: true,
+        data,
+      }),
+    });
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
 
-    auth.mockResolvedValue({ role_id: 1 });
+    auth.mockResolvedValue(validSession);
+    mockValidSchema();
+
     addArticleQuery.mockResolvedValue(true);
-    updateArticleQuery.mockResolvedValue(undefined);
+    updateArticleQuery.mockResolvedValue(true);
+    getArticleByIdQuery.mockResolvedValue({
+      id: 10,
+      user_id: 99,
+    });
+    getArticlesByIdAndUserIdQuery.mockResolvedValue({
+      id: 10,
+      user_id: 7,
+    });
   });
 
-  it("returns false when no session exists", async () => {
+  it("returns false when the user is not authenticated", async () => {
     auth.mockResolvedValue(null);
 
-    await expect(saveArticle(article)).resolves.toBe(false);
+    await expect(saveArticle(validArticle)).resolves.toBe(false);
+
+    expect(createArticleSchema).not.toHaveBeenCalled();
     expect(addArticleQuery).not.toHaveBeenCalled();
     expect(updateArticleQuery).not.toHaveBeenCalled();
   });
 
-  it("creates an article when no ID is provided", async () => {
+  it("returns false when the session has no user", async () => {
+    auth.mockResolvedValue({});
+
+    await expect(saveArticle(validArticle)).resolves.toBe(false);
+  });
+
+  it("returns false when the session user ID is invalid", async () => {
+    auth.mockResolvedValue({
+      user: {
+        id: "invalid",
+        role_id: 2,
+      },
+    });
+
+    await expect(saveArticle(validArticle)).resolves.toBe(false);
+
+    expect(createArticleSchema).not.toHaveBeenCalled();
+    expect(addArticleQuery).not.toHaveBeenCalled();
+  });
+
+  it.each(["0", "-1", "1.5"])(
+    "returns false when the session user ID is %s",
+    async (id) => {
+      auth.mockResolvedValue({
+        user: {
+          id,
+          role_id: 2,
+        },
+      });
+
+      await expect(saveArticle(validArticle)).resolves.toBe(false);
+    }
+  );
+
+  it("returns false when schema validation fails", async () => {
+    createArticleSchema.mockReturnValue({
+      safeParse: vi.fn().mockReturnValue({
+        success: false,
+        error: { issues: [] },
+      }),
+    });
+
+    await expect(saveArticle(validArticle)).resolves.toBe(false);
+
+    expect(addArticleQuery).not.toHaveBeenCalled();
+    expect(updateArticleQuery).not.toHaveBeenCalled();
+  });
+
+  it("creates a general article for a student using the session user ID", async () => {
+    await expect(saveArticle(validArticle)).resolves.toBe(true);
+
+    expect(addArticleQuery).toHaveBeenCalledWith({
+      ...validArticle,
+      userId: 7,
+    });
+    expect(updateArticleQuery).not.toHaveBeenCalled();
+  });
+
+  it("does not allow a student to create an article for an item", async () => {
+    const article = {
+      ...validArticle,
+      itemId: 42,
+    };
+    mockValidSchema(article);
+
+    await expect(saveArticle(article)).resolves.toBe(false);
+
+    expect(addArticleQuery).not.toHaveBeenCalled();
+  });
+
+  it("does not allow a student to create an article for a type other than 3", async () => {
+    const article = {
+      ...validArticle,
+      typeId: 2,
+    };
+    mockValidSchema(article);
+
+    await expect(saveArticle(article)).resolves.toBe(false);
+
+    expect(addArticleQuery).not.toHaveBeenCalled();
+  });
+
+  it("allows a maintainer to create an article for an item", async () => {
+    auth.mockResolvedValue({
+      user: {
+        id: "7",
+        role_id: 1,
+      },
+    });
+
+    const article = {
+      ...validArticle,
+      itemId: 42,
+      typeId: 1,
+    };
+    mockValidSchema(article);
+
     await expect(saveArticle(article)).resolves.toBe(true);
 
-    expect(addArticleQuery).toHaveBeenCalledWith(article);
-    expect(updateArticleQuery).not.toHaveBeenCalled();
+    expect(addArticleQuery).toHaveBeenCalledWith({
+      ...article,
+      userId: 7,
+    });
   });
 
-  it("returns the result of adding a new article", async () => {
-    addArticleQuery.mockResolvedValue(17);
-
-    await expect(saveArticle(article)).resolves.toBe(17);
-  });
-
-  it("updates an existing article when an ID is provided", async () => {
-    const existingArticle = { ...article, id: 42 };
-
-    await expect(saveArticle(existingArticle)).resolves.toBe(true);
-
-    expect(updateArticleQuery).toHaveBeenCalledWith(existingArticle);
-    expect(addArticleQuery).not.toHaveBeenCalled();
-  });
-
-  it("rejects student articles linked to an item", async () => {
-    auth.mockResolvedValue({ role_id: 2 });
-
-    await expect(
-      saveArticle({ ...article, itemId: 7 })
-    ).resolves.toBe(false);
-
-    expect(addArticleQuery).not.toHaveBeenCalled();
-    expect(updateArticleQuery).not.toHaveBeenCalled();
-  });
-
-  it("rejects student articles whose article type is not 3", async () => {
-    auth.mockResolvedValue({ role_id: 2 });
-
-    await expect(
-      saveArticle({ ...article, articleType: 1 })
-    ).resolves.toBe(false);
-
-    expect(addArticleQuery).not.toHaveBeenCalled();
-    expect(updateArticleQuery).not.toHaveBeenCalled();
-  });
-
-  it("allows students to create type 3 articles without an item", async () => {
-    auth.mockResolvedValue({ role_id: 2 });
+  it("allows a student to update an article they own", async () => {
+    const article = {
+      ...validArticle,
+      id: 10,
+    };
+    mockValidSchema(article);
 
     await expect(saveArticle(article)).resolves.toBe(true);
-    expect(addArticleQuery).toHaveBeenCalledWith(article);
+
+    expect(getArticlesByIdAndUserIdQuery).toHaveBeenCalledWith(10, 7);
+    expect(getArticleByIdQuery).toHaveBeenCalledWith(10);
+
+    expect(updateArticleQuery).toHaveBeenCalledWith({
+      ...article,
+      userId: 99,
+    });
+
+    expect(addArticleQuery).not.toHaveBeenCalled();
   });
 
-  it("returns false when adding an article fails", async () => {
-    const error = new Error("Database error");
-    addArticleQuery.mockRejectedValue(error);
-    vi.spyOn(console, "log").mockImplementation(() => {});
+  it("does not allow a student to update an article they do not own", async () => {
+    const article = {
+      ...validArticle,
+      id: 10,
+    };
+    mockValidSchema(article);
+    getArticlesByIdAndUserIdQuery.mockResolvedValueOnce(null);
 
     await expect(saveArticle(article)).resolves.toBe(false);
+
+    expect(getArticlesByIdAndUserIdQuery).toHaveBeenCalledWith(10, 7);
+    expect(getArticleByIdQuery).not.toHaveBeenCalled();
+    expect(updateArticleQuery).not.toHaveBeenCalled();
   });
 
-  it("returns false when updating an article fails", async () => {
-    const error = new Error("Database error");
-    updateArticleQuery.mockRejectedValue(error);
-    vi.spyOn(console, "log").mockImplementation(() => {});
+  it("does not allow a student to update an article for an item", async () => {
+    const article = {
+      ...validArticle,
+      id: 10,
+      itemId: 42,
+    };
+    mockValidSchema(article);
 
-    await expect(
-      saveArticle({ ...article, id: 42 })
-    ).resolves.toBe(false);
+    await expect(saveArticle(article)).resolves.toBe(false);
+
+    expect(getArticlesByIdAndUserIdQuery).not.toHaveBeenCalled();
+    expect(updateArticleQuery).not.toHaveBeenCalled();
+  });
+
+  it("returns false when an article to update does not exist", async () => {
+    auth.mockResolvedValue({
+      user: {
+        id: "7",
+        role_id: 1,
+      },
+    });
+
+    const article = {
+      ...validArticle,
+      id: 10,
+    };
+    mockValidSchema(article);
+    getArticleByIdQuery.mockResolvedValueOnce(null);
+
+    await expect(saveArticle(article)).resolves.toBe(false);
+
+    expect(updateArticleQuery).not.toHaveBeenCalled();
+  });
+
+  it("allows a maintainer to update another user's article", async () => {
+    auth.mockResolvedValue({
+      user: {
+        id: "7",
+        role_id: 1,
+      },
+    });
+
+    const article = {
+      ...validArticle,
+      id: 10,
+      itemId: 42,
+      typeId: 1,
+    };
+    mockValidSchema(article);
+
+    await expect(saveArticle(article)).resolves.toBe(true);
+
+    expect(getArticlesByIdAndUserIdQuery).not.toHaveBeenCalled();
+    expect(getArticleByIdQuery).toHaveBeenCalledWith(10);
+
+    // The existing author is preserved rather than replaced by the maintainer.
+    expect(updateArticleQuery).toHaveBeenCalledWith({
+      ...article,
+      userId: 99,
+    });
+  });
+
+  it("returns false when adding an article throws", async () => {
+    addArticleQuery.mockRejectedValueOnce(new Error("Database error"));
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    await expect(saveArticle(validArticle)).resolves.toBe(false);
+
+    expect(consoleError).toHaveBeenCalled();
+    consoleError.mockRestore();
+  });
+
+  it("returns false when updating an article throws", async () => {
+    auth.mockResolvedValue({
+      user: {
+        id: "7",
+        role_id: 1,
+      },
+    });
+
+    const article = {
+      ...validArticle,
+      id: 10,
+    };
+    mockValidSchema(article);
+    updateArticleQuery.mockRejectedValueOnce(new Error("Database error"));
+
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    await expect(saveArticle(article)).resolves.toBe(false);
+
+    expect(consoleError).toHaveBeenCalled();
+    consoleError.mockRestore();
   });
 });
-
