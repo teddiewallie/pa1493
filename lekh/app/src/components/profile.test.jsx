@@ -1,37 +1,41 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+// src/components/profile.test.jsx
 
-import { Profile } from "./profile";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import "@testing-library/jest-dom/vitest";
+import { Profile } from "@/components/profile";
+import { toast } from "@/components/ui/toast";
 
 vi.mock("@/components/modal-with-toast", () => ({
-  ModalWithToast: ({ title, message, onMessageHandled, children }) => (
-    <section>
-      <button onClick={onMessageHandled}>{title}</button>
-      <p data-testid="toast-message">{message}</p>
+  ModalWithToast: ({ title, children }) => (
+    <div data-testid="modal-with-toast" data-title={title}>
       {children}
-    </section>
+    </div>
   ),
 }));
 
 vi.mock("@/components/create-user-form", () => ({
   CreateUserForm: (props) => (
-    <div>
-      <button onClick={() => props.onSuccess({ id: 123 })}>
+    <div data-testid="create-user-form">
+      <span data-testid="can-delete">{String(props.canDelete)}</span>
+      <button type="button" onClick={props.onSuccess}>
         Simulate edit success
       </button>
-      <button onClick={props.onFail}>
+      <button type="button" onClick={props.onFail}>
         Simulate edit failure
       </button>
-      <span data-testid="can-delete">{String(props.canDelete)}</span>
-      <span data-testid="form-user">{props.user.name}</span>
+      <button type="button" onClick={props.onDelete}>
+        Simulate delete
+      </button>
+      <span data-testid="form-user">{props.user?.name}</span>
     </div>
   ),
 }));
 
 vi.mock("@/components/user-card", () => ({
   UserCard: ({ user, single }) => (
-    <div data-testid="user-card">
-      {user.name} - single: {String(single)}
+    <div data-testid="user-card" data-single={String(single)}>
+      {user?.name}
     </div>
   ),
 }));
@@ -40,138 +44,105 @@ vi.mock("@/components/pendings-wrapper", () => ({
   PendingsWrapper: () => <div data-testid="pendings-wrapper" />,
 }));
 
-const student = {
-  id: 2,
-  name: "Alex Student",
-  role_id: 2,
-};
-
-const maintainer = {
-  id: 1,
-  name: "Morgan Maintainer",
-  role_id: 1,
-};
-
-const renderProfile = (props = {}) => {
-  const defaults = {
-    user: student,
-    refresh: vi.fn(),
-    canDelete: false,
-    onDelete: vi.fn(),
-  };
-
-  return {
-    ...defaults,
-    ...props,
-    ...render(<Profile {...defaults} {...props} />),
-  };
-};
+vi.mock("@/components/ui/toast", () => ({
+  toast: {
+    add: vi.fn(),
+  },
+}));
 
 describe("Profile", () => {
+  const user = {
+    id: 42,
+    name: "Test User",
+    role_id: 2,
+  };
+
+  let refresh;
+  let onDelete;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    refresh = vi.fn();
+    onDelete = vi.fn();
   });
 
-  it("renders the edit action and user card", () => {
+  const renderProfile = (props = {}) =>
+    render(
+      <Profile
+        user={user}
+        refresh={refresh}
+        canDelete={false}
+        onDelete={onDelete}
+        {...props}
+      />
+    );
+
+  it("renders the Edit User modal and form", () => {
     renderProfile();
 
-    expect(
-      screen.getByRole("button", { name: "Edit User" })
-    ).toBeInTheDocument();
-
-    expect(screen.getByTestId("user-card"))
-      .toHaveTextContent("Alex Student");
-    expect(screen.getByTestId("user-card"))
-      .toHaveTextContent("single: true");
-
-    expect(screen.getByTestId("form-user"))
-      .toHaveTextContent("Alex Student");
-    expect(screen.getByTestId("can-delete"))
-      .toHaveTextContent("false");
+    expect(screen.getByTestId("modal-with-toast")).toHaveAttribute(
+      "data-title",
+      "Edit User"
+    );
+    expect(screen.getByTestId("create-user-form")).toBeInTheDocument();
   });
 
-  it("does not render pending requests for a non-maintainer", () => {
-    renderProfile({ user: student });
+  it("passes canDelete, user, and onDelete to CreateUserForm", () => {
+    renderProfile({ canDelete: true });
 
-    expect(screen.queryByTestId("pendings-wrapper"))
-      .not.toBeInTheDocument();
+    expect(screen.getByTestId("can-delete")).toHaveTextContent("true");
+    expect(screen.getByTestId("form-user")).toHaveTextContent("Test User");
+
+    fireEvent.click(screen.getByRole("button", { name: "Simulate delete" }));
+
+    expect(onDelete).toHaveBeenCalledOnce();
   });
 
-  it("renders pending requests for a maintainer", () => {
-    renderProfile({ user: maintainer });
+  it("renders the UserCard with the user and single prop", () => {
+    renderProfile();
 
-    expect(screen.getByTestId("pendings-wrapper"))
-      .toBeInTheDocument();
+    expect(screen.getByTestId("user-card")).toHaveAttribute(
+      "data-single",
+      "true"
+    );
+    expect(screen.getByTestId("user-card")).toHaveTextContent("Test User");
   });
 
-  it("sets the success message after a successful edit", () => {
+  it("shows PendingsWrapper for a user with role_id 1", () => {
+    renderProfile({ user: { ...user, role_id: 1 } });
+
+    expect(screen.getByTestId("pendings-wrapper")).toBeInTheDocument();
+  });
+
+  it("does not show PendingsWrapper for a user without role_id 1", () => {
+    renderProfile();
+
+    expect(screen.queryByTestId("pendings-wrapper")).not.toBeInTheDocument();
+  });
+
+  it("shows a success toast and refreshes after a successful edit", () => {
     renderProfile();
 
     fireEvent.click(
       screen.getByRole("button", { name: "Simulate edit success" })
     );
 
-    expect(screen.getByTestId("toast-message"))
-      .toHaveTextContent("User successfully edited.");
+    expect(toast.add).toHaveBeenCalledWith({
+      title: "User successfully edited.",
+    });
+    expect(refresh).toHaveBeenCalledOnce();
   });
 
-  it("refreshes data after a maintainer successfully edits a user", () => {
-    const refresh = vi.fn();
-
-    renderProfile({ user: maintainer, refresh });
+  it("shows a failure toast without refreshing after a failed edit", () => {
+    renderProfile();
 
     fireEvent.click(
-      screen.getByRole("button", { name: "Simulate edit success" })
+      screen.getByRole("button", { name: "Simulate edit failure" })
     );
 
-    expect(refresh).toHaveBeenCalledWith({ id: 123 });
-  });
-
-  it("does not refresh data after a non-maintainer successfully edits a user", () => {
-    const refresh = vi.fn();
-
-    renderProfile({ user: student, refresh });
-
-    fireEvent.click(
-      screen.getByRole("button", { name: "Simulate edit success" })
-    );
-
+    expect(toast.add).toHaveBeenCalledWith({
+      title: "Failed to edit user.",
+    });
     expect(refresh).not.toHaveBeenCalled();
   });
-
-  it("sets the failure message when editing fails", () => {
-    renderProfile();
-
-    fireEvent.click(
-      screen.getByRole("button", { name: "Simulate edit failure" })
-    );
-
-    expect(screen.getByTestId("toast-message"))
-      .toHaveTextContent("Failed to edit user.");
-  });
-
-  it("clears the message when the modal reports it handled", () => {
-    renderProfile();
-
-    fireEvent.click(
-      screen.getByRole("button", { name: "Simulate edit failure" })
-    );
-
-    expect(screen.getByTestId("toast-message"))
-      .toHaveTextContent("Failed to edit user.");
-
-    fireEvent.click(screen.getByRole("button", { name: "Edit User" }));
-
-    expect(screen.getByTestId("toast-message")).toBeEmptyDOMElement();
-  });
-
-  it("passes the delete callback through to the user form", () => {
-    const onDelete = vi.fn();
-
-    renderProfile({ onDelete, canDelete: true });
-
-    expect(screen.getByTestId("can-delete"))
-      .toHaveTextContent("true");
-  });
 });
-
