@@ -1,23 +1,24 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 import Page from "./page";
+import { toast } from "@/components/ui/toast";
 
 vi.mock("@/components/modal-with-toast", () => ({
-  ModalWithToast: ({ title, message, children }) => (
-    <section>
-      <h1>{title}</h1>
-      <p data-testid="toast-message">{message}</p>
+  ModalWithToast: ({ title, children }) => (
+    <div data-testid="modal">
+      <span>{title}</span>
       {children}
-    </section>
+    </div>
   ),
 }));
 
 vi.mock("@/components/create-user-form", () => ({
   CreateUserForm: ({ onSuccess, onFail }) => (
     <div data-testid="create-user-form">
-      <button onClick={onSuccess}>Create success</button>
-      <button onClick={onFail}>Create failure</button>
+      <button onClick={onSuccess}>Simulate success</button>
+      <button onClick={onFail}>Simulate failure</button>
     </div>
   ),
 }));
@@ -26,58 +27,66 @@ vi.mock("@/components/users-list", () => ({
   UsersList: () => <div data-testid="users-list">Users list</div>,
 }));
 
+vi.mock("@/components/ui/toast", () => ({
+  toast: {
+    add: vi.fn(),
+  },
+}));
+
 describe("Users page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("renders the create-user modal and users list", () => {
+  it("renders the Create User modal", () => {
     render(<Page />);
 
-    expect(
-      screen.getByRole("heading", { name: "Create User" }),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Create User")).toBeInTheDocument();
+    expect(screen.getByTestId("modal")).toBeInTheDocument();
+  });
+
+  it("renders the create user form inside the modal", () => {
+    render(<Page />);
 
     expect(screen.getByTestId("create-user-form")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Simulate success" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Simulate failure" })
+    ).toBeInTheDocument();
+  });
+
+  it("renders the users list", () => {
+    render(<Page />);
+
     expect(screen.getByTestId("users-list")).toBeInTheDocument();
+    expect(screen.getByText("Users list")).toBeInTheDocument();
   });
 
-  it("shows a success message when a user is created", () => {
+  it("shows a success toast when user creation succeeds", async () => {
+    const user = userEvent.setup();
     render(<Page />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Create success" }));
-
-    expect(screen.getByTestId("toast-message")).toHaveTextContent(
-      "User successfully created.",
+    await user.click(
+      screen.getByRole("button", { name: "Simulate success" })
     );
+
+    expect(toast.add).toHaveBeenCalledWith({
+      title: "User successfully created.",
+    });
   });
 
-  it("shows a failure message when user creation fails", () => {
+  it("shows a failure toast when user creation fails", async () => {
+    const user = userEvent.setup();
     render(<Page />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Create failure" }));
-
-    expect(screen.getByTestId("toast-message")).toHaveTextContent(
-      "Failed to create user.",
+    await user.click(
+      screen.getByRole("button", { name: "Simulate failure" })
     );
-  });
 
-  it("starts with an empty message", () => {
-    render(<Page />);
-
-    expect(screen.getByTestId("toast-message")).toBeEmptyDOMElement();
-  });
-
-  it("updates the message when creation callbacks are invoked successively", () => {
-    render(<Page />);
-
-    const message = screen.getByTestId("toast-message");
-
-    fireEvent.click(screen.getByRole("button", { name: "Create success" }));
-    expect(message).toHaveTextContent("User successfully created.");
-
-    fireEvent.click(screen.getByRole("button", { name: "Create failure" }));
-    expect(message).toHaveTextContent("Failed to create user.");
+    expect(toast.add).toHaveBeenCalledWith({
+      title: "Failed to create user.",
+    });
   });
 });
-
