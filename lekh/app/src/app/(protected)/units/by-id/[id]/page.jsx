@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CircleArrowLeft } from "lucide-react";
-import { use, useContext } from "react";
+import { use, useContext, useEffect } from "react";
 import { UserContext } from "@/context/user-context";
 import { ReservationsContext } from "@/context/reservations-context";
 import { EquipmentContext } from "@/context/equipment-context";
@@ -22,14 +23,21 @@ import { toast } from "@/components/ui/toast";
 
 const Page = ({ params }) => {
   const { id } = use(params);
+  const router = useRouter();
 
   const { user } = useContext(UserContext);
-  const { items, refreshItems, meta, groups } = useContext(EquipmentContext);
+  const { items, refreshItems, meta, groups, loading } = useContext(EquipmentContext);
   const { articles, articleTypes } = useContext(ArticleContext);
   const { reservations, refreshReservations } = useContext(ReservationsContext);
 
   const item = items?.find((thisItem) => thisItem.id == id);
   const group = groups?.find((thisGroup) => thisGroup.id == item?.group_id);
+
+  useEffect(() => {
+    if (!loading && !item) {
+      router.replace("/types");
+    }
+  }, [item, router, loading]);
 
   const itemIssues = item?.known_issues;
   const groupIssues = group?.known_issues;

@@ -18,7 +18,7 @@ import { toast } from "@/components/ui/toast";
 const Page = ({ params }) => {
   const { id } = use(params);
   const { user } = useContext(UserContext);
-  const { groups, refreshGroups, refreshItems } = useContext(EquipmentContext);
+  const { groups, refreshGroups, refreshItems, loading } = useContext(EquipmentContext);
   const { articles, articleTypes, refreshArticles } = useContext(ArticleContext);
   const router = useRouter();
 
@@ -50,11 +50,13 @@ const Page = ({ params }) => {
     redirect("/units");
   }
 
+
+
   useEffect(() => {
-    if (!group) {
+    if (!loading && !group) {
       router.replace("/types");
     }
-  }, [group, router]);
+  }, [group, router, loading]);
 
   return (
     <>
