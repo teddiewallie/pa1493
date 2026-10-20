@@ -1,20 +1,35 @@
+"use client";
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
   addDays,
+  eachDayOfInterval,
+  isSameDay,
   startOfDay,
-  startOfHour,
 } from "date-fns";
 
-const getFirstAvailableDate = (borrowings) => {
+const isDateUnavailable = (date, bookings, borrowings) => {
+  const selectedDate = startOfDay(date);
+  const today = startOfDay(new Date());
+
+  return (
+    selectedDate < today ||
+    bookings.some((bookedDate) => isSameDay(bookedDate, selectedDate)) ||
+    borrowings.some((borrowedDate) =>
+      isSameDay(borrowedDate, selectedDate)
+    )
+  );
+};
+
+const getFirstAvailableDate = (bookings, borrowings) => {
   let date = startOfDay(new Date());
 
+  // Find a free start and end date for the initial range.
   while (
-    borrowings.some(
-      (bookedDate) =>
-        startOfDay(new Date(bookedDate)).getTime() === date.getTime()
-    )
+    isDateUnavailable(date, bookings, borrowings) ||
+    isDateUnavailable(addDays(date, 1), bookings, borrowings)
   ) {
     date = addDays(date, 1);
   }
@@ -22,21 +37,18 @@ const getFirstAvailableDate = (borrowings) => {
   return date;
 };
 
-const CreateBorrowForm = ({ item, callback, borrowings }) => {
-  const firstAvailable = getFirstAvailableDate(borrowings);
+const CreateBorrowForm = ({
+  item,
+  callback,
+  bookings = [],
+  borrowings = [],
+}) => {
+  const firstAvailable = getFirstAvailableDate(bookings, borrowings);
 
   const [dateRange, setDateRange] = useState({
     from: firstAvailable,
     to: addDays(firstAvailable, 1),
   });
-
-  const isSameOrBetween = (date, from, to) => {
-    const time = startOfHour(new Date(date));
-    const start = startOfHour(new Date(from));
-    const end = startOfHour(new Date(to));
-
-    return time >= start && time <= end;
-  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -45,14 +57,31 @@ const CreateBorrowForm = ({ item, callback, borrowings }) => {
       return;
     }
 
+    const startAt = startOfDay(dateRange.from);
+    const endAt = startOfDay(dateRange.to);
+
+    // Revalidate the complete range before submitting.
+    const rangeDates = eachDayOfInterval({
+      start: startAt,
+      end: endAt,
+    });
+
+    if (
+      rangeDates.some((date) =>
+        isDateUnavailable(date, bookings, borrowings)
+      )
+    ) {
+      return;
+    }
+
     const reservation = {
       itemId: item.id,
-      startAt: startOfDay(dateRange.from),
-      endAt: startOfDay(dateRange.to),
-      reservationType: "borrow"
+      startAt,
+      endAt,
+      reservationType: "borrow",
     };
 
-    callback(reservation);
+    await callback(reservation);
   };
 
   return (
@@ -69,45 +98,35 @@ const CreateBorrowForm = ({ item, callback, borrowings }) => {
           }}
           min={1}
           max={6}
-          disabled={(date) => {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            return (
-              date < today ||
-              borrowings.some(
-                (bookedDate) =>
-                  date.toDateString() === bookedDate.toDateString()
-              )
-            );
-          }}
+          disabled={(date) =>
+            isDateUnavailable(date, bookings, borrowings)
+          }
           onSelect={(range) => {
             if (!range?.from || !range?.to) {
               setDateRange(range);
               return;
             }
 
-            const from = new Date(range.from).setHours(0, 0, 0, 0);
-            const to = new Date(range.to).setHours(0, 0, 0, 0);
-
-            const containsBookedDate = borrowings.some((bookedDate) => {
-              const date = new Date(bookedDate).setHours(0, 0, 0, 0);
-
-              return date > Math.min(from, to) && date < Math.max(from, to);
+            const rangeDates = eachDayOfInterval({
+              start: startOfDay(range.from),
+              end: startOfDay(range.to),
             });
 
-            if (!containsBookedDate) {
+            const containsUnavailableDate = rangeDates.some((date) =>
+              isDateUnavailable(date, bookings, borrowings)
+            );
+
+            if (!containsUnavailableDate) {
               setDateRange(range);
               return;
             }
 
-            const previous = dateRange?.from
-              ? new Date(dateRange.from).setHours(0, 0, 0, 0)
-              : null;
-
-            const clickedDate = previous === from
-              ? range.to
-              : range.from;
+            // Keep the newly clicked date as the start of a new range.
+            const clickedDate =
+              dateRange?.from &&
+              isSameDay(dateRange.from, range.from)
+                ? range.to
+                : range.from;
 
             setDateRange({
               from: clickedDate,
@@ -115,7 +134,7 @@ const CreateBorrowForm = ({ item, callback, borrowings }) => {
             });
           }}
           modifiers={{
-            booked: borrowings,
+            booked: [...bookings, ...borrowings],
           }}
           modifiersClassNames={{
             booked: "[&>button]:line-through opacity-100",
@@ -136,4 +155,3 @@ const CreateBorrowForm = ({ item, callback, borrowings }) => {
 };
 
 export { CreateBorrowForm };
-

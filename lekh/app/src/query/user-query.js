@@ -47,8 +47,6 @@ const updateUserQuery = async (data, isAdmin) => {
 
   if (data.maintainer && isAdmin && admins.length > 1) {
     dataColumns[2] = 1;
-  } else {
-    return false;
   }
 
   if (data.password?.length > 0) {

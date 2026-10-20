@@ -33,22 +33,15 @@ const ItemCard = ({ item, pointer, single, activeReservation }) => {
   const group = groups?.find((group) => group.id == item.group_id);
 
   const { id, name, serial, description, shelf, asset_id, status_name } = item;
+
   let status = status_name;
 
   if (status_name === "Available" && activeReservation) {
-    if (new Date(activeReservation.end_at) > new Date()) {
-      /*
-       * Hi and welcome to Jackass, this is "The Ternary Centipede".
-       * Don't try this at home.
-       */
-      status = activeReservation.is_pending ? "Reserved"
+    status = activeReservation.is_pending ? "Reserved"
+      : new Date(activeReservation.end_at) < new Date() ? "Overdue"
         : item.borrowable ? "Borrowed"
-          : item.bookable
-            ? "Booked"
+          : item.bookable ? "Booked"
             : "Unknown";
-    } else {
-      status = "Overdue";
-    }
   }
 
   let cardClassName = "relative overflow-hidden md:max-w-md";
