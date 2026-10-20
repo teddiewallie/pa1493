@@ -1,148 +1,167 @@
 
-import { render, screen, fireEvent } from "@testing-library/react";
-import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
-
-import { CreateBookForm } from "./create-book-form";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { CreateBookForm } from "@/components/create-book-form";
 
 vi.mock("@/slots", () => ({
-  slots: [
-    "09:00-10:00",
-    "10:00-11:00",
-    "11:00-12:00",
-  ],
+  slots: ["09:00-10:00", "11:00-12:00", "23:00-01:00"],
 }));
 
-vi.mock("@/components/ui/button", () => ({
-  Button: ({ children, ...props }) => (
-    <button {...props}>{children}</button>
-  ),
-}));
-
-vi.mock("@/components/ui/field", () => ({
-  Field: ({ children, ...props }) => <div {...props}>{children}</div>,
-  FieldGroup: ({ children, ...props }) => <div {...props}>{children}</div>,
-  FieldLabel: ({ children, ...props }) => (
-    <label {...props}>{children}</label>
-  ),
-  FieldSet: ({ children, ...props }) => <fieldset {...props}>{children}</fieldset>,
-}));
-
-vi.mock("@/components/ui/radio-group", async () => {
-  const React = await import("react");
-  const RadioContext = React.createContext(null);
-
-  return {
-    RadioGroup: ({ value, onValueChange, children, ...props }) => (
-      <RadioContext.Provider value={{ value, onValueChange }}>
-        <div role="radiogroup" {...props}>
-          {children}
-        </div>
-      </RadioContext.Provider>
-    ),
-    RadioGroupItem: ({ value, disabled, ...props }) => {
-      const context = React.useContext(RadioContext);
-
-      return (
-        <input
-          {...props}
-          type="radio"
-          value={value}
-          disabled={disabled}
-          checked={context.value === value}
-          onChange={() => {
-            if (!disabled) context.onValueChange(value);
-          }}
-        />
-      );
-    },
-  };
+const createProps = (overrides = {}) => ({
+  item: { id: 42 },
+  callback: vi.fn().mockResolvedValue(undefined),
+  bookings: [],
+  borrowings: [],
+  ...overrides,
 });
 
-const item = { id: 42, name: "Arduino" };
+const renderComponent = (props = {}) =>
+  render(<CreateBookForm {...createProps(props)} />);
 
-beforeEach(() => {
-  vi.useFakeTimers();
-  vi.setSystemTime(new Date("2026-10-18T08:30:45"));
-  vi.spyOn(console, "log").mockImplementation(() => {});
-});
-
-afterEach(() => {
-  vi.useRealTimers();
-  vi.restoreAllMocks();
-});
+const selectSlot = async (user, slot) => {
+  await user.click(screen.getByText(slot.replace("-", " - ")));
+};
 
 describe("CreateBookForm", () => {
-  it("renders all available time slots", () => {
-    render(<CreateBookForm item={item} callback={vi.fn()} bookings={[]} />);
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 9, 20, 10, 30, 0));
+  });
 
-    expect(screen.getByLabelText("09:00 - 10:00")).toBeInTheDocument();
-    expect(screen.getByLabelText("10:00 - 11:00")).toBeInTheDocument();
-    expect(screen.getByLabelText("11:00 - 12:00")).toBeInTheDocument();
+  afterEach(() => {
+    cleanup();
+    vi.useRealTimers();
+  });
+
+  it("renders the available time slots and disables submission initially", () => {
+    renderComponent();
+
+    expect(screen.getByText("09:00 - 10:00")).toBeInTheDocument();
+    expect(screen.getByText("11:00 - 12:00")).toBeInTheDocument();
+    expect(screen.getByText("23:00 - 01:00")).toBeInTheDocument();
+
     expect(
       screen.getByRole("button", { name: /book this unit/i })
-    ).toBeInTheDocument();
+    ).toBeDisabled();
   });
 
-  it("disables booked slots", () => {
-    render(
-      <CreateBookForm
-        item={item}
-        callback={vi.fn()}
-        bookings={["10:00-11:00"]}
-      />
-    );
+  it("disables booked, borrowed, and expired slots", () => {
+    renderComponent({
+      bookings: ["11:00-12:00"],
+      borrowings: [new Date(2026, 9, 20)],
+    });
 
-    expect(screen.getByLabelText("09:00 - 10:00")).toBeEnabled();
-    expect(screen.getByLabelText("10:00 - 11:00")).toBeDisabled();
-    expect(screen.getByLabelText("11:00 - 12:00")).toBeEnabled();
+    expect(screen.getByText("09:00 - 10:00").closest("label"))
+      .toHaveClass("line-through");
+
+    expect(screen.getByText("11:00 - 12:00").closest("label"))
+      .toHaveClass("line-through");
+
+    expect(screen.getByText("23:00 - 01:00").closest("label"))
+      .toHaveClass("line-through");
   });
 
-  it("submits the selected slot with the item ID and correct dates", () => {
-    const callback = vi.fn();
+  it("allows selecting an available slot", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
 
-    render(
-      <CreateBookForm item={item} callback={callback} bookings={[]} />
+    renderComponent();
+
+    await selectSlot(user, "11:00-12:00");
+
+    expect(
+      screen.getByRole("button", { name: /book this unit/i })
+    ).toBeEnabled();
+  });
+
+  it("submits the selected slot with the item and reservation type", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const callback = vi.fn().mockResolvedValue(undefined);
+
+    renderComponent({ callback });
+
+    await selectSlot(user, "11:00-12:00");
+    await user.click(
+      screen.getByRole("button", { name: /book this unit/i })
     );
-
-    fireEvent.click(screen.getByLabelText("10:00 - 11:00"));
-    fireEvent.click(screen.getByRole("button", { name: /book this unit/i }));
 
     expect(callback).toHaveBeenCalledTimes(1);
 
     const reservation = callback.mock.calls[0][0];
 
     expect(reservation.itemId).toBe(42);
-    expect(reservation.startAt).toEqual(new Date("2026-10-18T10:00:00"));
-    expect(reservation.endAt).toEqual(new Date("2026-10-18T11:00:00"));
+    expect(reservation.reservationType).toBe("book");
+    expect(reservation.startAt).toBeInstanceOf(Date);
+    expect(reservation.endAt).toBeInstanceOf(Date);
+
+    expect(reservation.startAt.getFullYear()).toBe(2026);
+    expect(reservation.startAt.getMonth()).toBe(9);
+    expect(reservation.startAt.getDate()).toBe(20);
+    expect(reservation.startAt.getHours()).toBe(11);
+    expect(reservation.startAt.getMinutes()).toBe(0);
+
+    expect(reservation.endAt.getHours()).toBe(12);
+    expect(reservation.endAt.getMinutes()).toBe(0);
   });
 
-  it("does not submit when no slot is selected", () => {
-    const callback = vi.fn();
+  it("sets the end date to the following day for an overnight slot", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const callback = vi.fn().mockResolvedValue(undefined);
 
-    render(
-      <CreateBookForm item={item} callback={callback} bookings={[]} />
+    renderComponent({ callback });
+
+    await selectSlot(user, "23:00-01:00");
+    await user.click(
+      screen.getByRole("button", { name: /book this unit/i })
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /book this unit/i }));
+    const reservation = callback.mock.calls[0][0];
+
+    expect(reservation.startAt.getDate()).toBe(20);
+    expect(reservation.startAt.getHours()).toBe(23);
+
+    expect(reservation.endAt.getDate()).toBe(21);
+    expect(reservation.endAt.getHours()).toBe(1);
+  });
+
+  it("does not submit when no slot is selected", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const callback = vi.fn();
+
+    renderComponent({ callback });
+
+    await user.click(
+      screen.getByRole("button", { name: /book this unit/i })
+    );
 
     expect(callback).not.toHaveBeenCalled();
   });
 
-  it("does not submit a booked slot", () => {
+  it("clears the selection if a borrowing conflicts at submission time", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     const callback = vi.fn();
 
-    render(
+    const props = createProps({ callback });
+    const { rerender } = render(<CreateBookForm {...props} />);
+
+    await selectSlot(user, "11:00-12:00");
+
+    rerender(
       <CreateBookForm
-        item={item}
-        callback={callback}
-        bookings={["10:00-11:00"]}
+        {...props}
+        borrowings={[new Date(2026, 9, 20)]}
       />
     );
 
-    fireEvent.click(screen.getByLabelText("10:00 - 11:00"));
-    fireEvent.click(screen.getByRole("button", { name: /book this unit/i }));
+    await user.click(
+      screen.getByRole("button", { name: /book this unit/i })
+    );
 
     expect(callback).not.toHaveBeenCalled();
+
+    expect(
+      screen.getByRole("button", { name: /book this unit/i })
+    ).toBeDisabled();
   });
 });
 
