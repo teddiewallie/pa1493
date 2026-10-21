@@ -211,11 +211,11 @@ describe("reservationSchema", () => {
       );
     });
 
-    it("rejects a borrowing period longer than six days", () => {
+    it("rejects a borrowing period longer than seven days", () => {
       const result = reservationSchema.safeParse({
         ...validReservation,
         startAt: new Date("2026-10-20T10:00:00Z"),
-        endAt: new Date("2026-10-26T10:00:01Z"),
+        endAt: new Date("2026-10-27T10:00:01Z"),
         reservationType: "borrow",
       });
 

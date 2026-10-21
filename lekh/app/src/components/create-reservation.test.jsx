@@ -81,6 +81,12 @@ describe("CreateReservation", () => {
     });
   };
 
+  const todayAt = (hours, minutes = 0) => {
+    const date = new Date();
+    date.setHours(hours, minutes, 0, 0);
+    return date.toISOString();
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     setReservations();
@@ -88,8 +94,6 @@ describe("CreateReservation", () => {
   });
 
   it("renders the booking form when the item is bookable", () => {
-    setReservations([]);
-
     render(
       <CreateReservation
         item={{ id: 1, bookable: true, borrowable: true }}
@@ -127,14 +131,14 @@ describe("CreateReservation", () => {
     setReservations([
       {
         item_id: 1,
-        start_at: "2026-10-20T10:00:00",
-        end_at: "2026-10-20T11:00:00",
+        start_at: todayAt(10),
+        end_at: todayAt(11),
         returned_at: null,
       },
       {
         item_id: 2,
-        start_at: "2026-10-20T12:00:00",
-        end_at: "2026-10-20T13:00:00",
+        start_at: todayAt(12),
+        end_at: todayAt(13),
         returned_at: null,
       },
     ]);
@@ -154,9 +158,9 @@ describe("CreateReservation", () => {
     setReservations([
       {
         item_id: 1,
-        start_at: "2026-10-20T10:00:00",
-        end_at: "2026-10-20T11:00:00",
-        returned_at: "2026-10-20T11:00:00",
+        start_at: todayAt(10),
+        end_at: todayAt(11),
+        returned_at: todayAt(11),
       },
     ]);
 
@@ -172,8 +176,6 @@ describe("CreateReservation", () => {
   it("calls addReservation, shows success toast, and refreshes reservations after a successful booking", async () => {
     const { default: userEvent } = await import("@testing-library/user-event");
     const user = userEvent.setup();
-
-    addReservation.mockResolvedValue(true);
 
     render(
       <CreateReservation
@@ -275,3 +277,4 @@ describe("CreateReservation", () => {
     expect(refreshReservations).not.toHaveBeenCalled();
   });
 });
+
