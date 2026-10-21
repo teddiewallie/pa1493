@@ -23,7 +23,7 @@ const reservationSchema = z.object({
     }
 
     const days = duration / (24 * 60 * 60 * 1000);
-    return days >= 1 && days <= 6;
+    return days >= 1 && days <= 7;
   },
   {
     message: "Invalid reservation duration",
