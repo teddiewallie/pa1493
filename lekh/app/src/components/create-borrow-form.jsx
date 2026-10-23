@@ -1,3 +1,6 @@
+// Diffs in the link below are ChatGPT assisted
+// https://github.com/dipt-pa1493-ht26/pa1493-tewa25-lekh-zda/pull/181/changes
+
 "use client";
 
 import { useState } from "react";
@@ -25,7 +28,7 @@ const isDateUnavailable = (date, bookings, borrowings) => {
 
 const getFirstAvailableDate = (bookings, borrowings) => {
   let date = startOfDay(new Date());
-
+j
   // Find a free start and end date for the initial range.
   while (
     isDateUnavailable(date, bookings, borrowings) ||
@@ -102,6 +105,7 @@ const CreateBorrowForm = ({
             isDateUnavailable(date, bookings, borrowings)
           }
           onSelect={(range) => {
+            // Block assisted by ChatGPT.
             if (!range?.from || !range?.to) {
               setDateRange(range);
               return;
