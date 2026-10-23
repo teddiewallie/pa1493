@@ -1,3 +1,6 @@
+// Diffs in the link below are ChatGPT assisted
+// https://github.com/dipt-pa1493-ht26/pa1493-tewa25-lekh-zda/pull/181/changes
+
 import { auth } from "@/auth";
 import { removeAssetQuery } from "@/query/asset-query";
 
