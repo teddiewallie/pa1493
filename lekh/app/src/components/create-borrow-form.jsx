@@ -28,7 +28,7 @@ const isDateUnavailable = (date, bookings, borrowings) => {
 
 const getFirstAvailableDate = (bookings, borrowings) => {
   let date = startOfDay(new Date());
-j
+
   // Find a free start and end date for the initial range.
   while (
     isDateUnavailable(date, bookings, borrowings) ||
